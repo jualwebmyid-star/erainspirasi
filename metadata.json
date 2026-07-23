@@ -1,0 +1,6 @@
+{
+  "name": "EraInspirasi - Portal Berita, Edukasi & Inspirasi Terdepan",
+  "description": "Portal berita, edukasi, dan inspirasi digital Indonesia dengan AI Content Operating System, manajemen redaksi, jadwal media sosial, dan optimasi SEO terpadu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
