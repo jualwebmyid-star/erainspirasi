@@ -425,6 +425,11 @@ async function startServer() {
 
     // Intercept HTML requests to inject dynamic OG meta tags for social crawlers (WhatsApp, FB, etc.)
     app.use(async (req, res, next) => {
+      // Never intercept API endpoints with HTML template
+      if (req.path.startsWith('/api')) {
+        return next();
+      }
+
       const isHtmlReq = req.headers.accept?.includes('text/html') || req.path === '/';
       const isSocialCrawler = /whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|discordbot/i.test(
         req.headers['user-agent'] || ''

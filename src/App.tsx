@@ -64,9 +64,101 @@ export default function App() {
     };
   });
 
-  const handleSaveSettings = (newSettings: SiteSettings) => {
+  const handleSaveSettings = async (newSettings: SiteSettings) => {
     setSiteSettings(newSettings);
     localStorage.setItem('erainspirasi_settings', JSON.stringify(newSettings));
+    try {
+      await setDoc(doc(db, 'settings', 'site'), newSettings);
+    } catch (e) {
+      console.warn('Failed to save settings to Firestore:', e);
+    }
+  };
+
+  const handleAddCategory = async (newCat: CategoryItem) => {
+    const updated = [newCat, ...categories];
+    setCategories(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to add category to Firestore:', e);
+    }
+  };
+
+  const handleUpdateCategory = async (updatedCat: CategoryItem) => {
+    const updated = categories.map((c) => (c.id === updatedCat.id ? updatedCat : c));
+    setCategories(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to update category in Firestore:', e);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    const updated = categories.filter((c) => c.id !== id);
+    setCategories(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to delete category in Firestore:', e);
+    }
+  };
+
+  const handleAddMenuItem = async (item: HeaderMenuItem) => {
+    const updated = [...headerMenuItems, item];
+    setHeaderMenuItems(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to save header menu to Firestore:', e);
+    }
+  };
+
+  const handleUpdateMenuItem = async (item: HeaderMenuItem) => {
+    const updated = headerMenuItems.map((m) => (m.id === item.id ? item : m));
+    setHeaderMenuItems(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to save header menu to Firestore:', e);
+    }
+  };
+
+  const handleDeleteMenuItem = async (id: string) => {
+    const updated = headerMenuItems.filter((m) => m.id !== id);
+    setHeaderMenuItems(updated);
+    try {
+      await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
+    } catch (e) {
+      console.warn('Failed to save header menu to Firestore:', e);
+    }
+  };
+
+  const handleAddStaticPage = async (page: StaticPageItem) => {
+    setStaticPages((prev) => [page, ...prev]);
+    try {
+      await setDoc(doc(db, 'staticPages', page.id), page);
+    } catch (e) {
+      console.warn('Failed to save static page to Firestore:', e);
+    }
+  };
+
+  const handleUpdateStaticPage = async (page: StaticPageItem) => {
+    setStaticPages((prev) => prev.map((p) => (p.id === page.id ? page : p)));
+    try {
+      await setDoc(doc(db, 'staticPages', page.id), page);
+    } catch (e) {
+      console.warn('Failed to update static page in Firestore:', e);
+    }
+  };
+
+  const handleDeleteStaticPage = async (id: string) => {
+    setStaticPages((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deleteDoc(doc(db, 'staticPages', id));
+    } catch (e) {
+      console.warn('Failed to delete static page from Firestore:', e);
+    }
   };
 
 
@@ -252,6 +344,66 @@ export default function App() {
     };
   }, []);
 
+  // Real-time Firebase Firestore Sync for Settings, Categories, Menu & Static Pages
+  useEffect(() => {
+    let unsubSite: () => void;
+    let unsubCat: () => void;
+    let unsubMenu: () => void;
+    let unsubPages: () => void;
+
+    try {
+      // 1. Site Settings
+      unsubSite = onSnapshot(doc(db, 'settings', 'site'), (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as SiteSettings;
+          setSiteSettings(data);
+          localStorage.setItem('erainspirasi_settings', JSON.stringify(data));
+        } else {
+          setDoc(doc(db, 'settings', 'site'), siteSettings).catch(console.warn);
+        }
+      });
+
+      // 2. Categories
+      unsubCat = onSnapshot(doc(db, 'settings', 'categories'), (snap) => {
+        if (snap.exists() && snap.data()?.items) {
+          setCategories(snap.data().items as CategoryItem[]);
+        } else {
+          setDoc(doc(db, 'settings', 'categories'), { items: categories }).catch(console.warn);
+        }
+      });
+
+      // 3. Header Menu Items
+      unsubMenu = onSnapshot(doc(db, 'settings', 'headerMenu'), (snap) => {
+        if (snap.exists() && snap.data()?.items) {
+          setHeaderMenuItems(snap.data().items as HeaderMenuItem[]);
+        } else {
+          setDoc(doc(db, 'settings', 'headerMenu'), { items: headerMenuItems }).catch(console.warn);
+        }
+      });
+
+      // 4. Static Pages
+      unsubPages = onSnapshot(collection(db, 'staticPages'), (snapshot) => {
+        if (!snapshot.empty) {
+          const loadedPages = snapshot.docs.map((d) => d.data() as StaticPageItem);
+          setStaticPages(loadedPages);
+        } else {
+          staticPages.forEach((page) => {
+            setDoc(doc(db, 'staticPages', page.id), page).catch(console.warn);
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('Firestore settings initialization error:', e);
+    }
+
+    return () => {
+      if (unsubSite) unsubSite();
+      if (unsubCat) unsubCat();
+      if (unsubMenu) unsubMenu();
+      if (unsubPages) unsubPages();
+    };
+  }, []);
+
   // Deep-linking URL Slug Sync & Parser for Shareable Links
   useEffect(() => {
     if (posts.length === 0) return;
@@ -273,7 +425,7 @@ export default function App() {
         siteName: siteSettings.siteName || 'EraInspirasi Portal',
       });
     }
-  }, [posts, selectedPost, siteSettings]);
+  }, [posts, siteSettings]);
 
   // Handlers
   const handleLogout = () => {
@@ -449,12 +601,19 @@ export default function App() {
                 setSelectedPost(null);
                 setSelectedStaticPageSlug(null);
                 setCurrentTab(tab);
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', window.location.pathname);
+                }
               }}
               selectedCategory={selectedCategory}
               onSelectCategory={(cat) => {
                 setSelectedCategory(cat);
                 setSelectedPost(null);
+                setSelectedStaticPageSlug(null);
                 setCurrentTab('reader');
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', window.location.pathname);
+                }
               }}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
@@ -516,11 +675,9 @@ export default function App() {
               {currentTab === 'categories' && (
                 <CategoryManager
                   categories={categories}
-                  onAddCategory={(newCat) => setCategories((prev) => [newCat, ...prev])}
-                  onUpdateCategory={(updated) =>
-                    setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
-                  }
-                  onDeleteCategory={(id) => setCategories((prev) => prev.filter((c) => c.id !== id))}
+                  onAddCategory={handleAddCategory}
+                  onUpdateCategory={handleUpdateCategory}
+                  onDeleteCategory={handleDeleteCategory}
                 />
               )}
 
@@ -529,22 +686,18 @@ export default function App() {
                   menuItems={headerMenuItems}
                   categories={categories}
                   staticPages={staticPages}
-                  onAddMenuItem={(item) => setHeaderMenuItems((prev) => [...prev, item])}
-                  onUpdateMenuItem={(item) =>
-                    setHeaderMenuItems((prev) => prev.map((m) => (m.id === item.id ? item : m)))
-                  }
-                  onDeleteMenuItem={(id) => setHeaderMenuItems((prev) => prev.filter((m) => m.id !== id))}
+                  onAddMenuItem={handleAddMenuItem}
+                  onUpdateMenuItem={handleUpdateMenuItem}
+                  onDeleteMenuItem={handleDeleteMenuItem}
                 />
               )}
 
               {currentTab === 'static-pages' && (
                 <StaticPageManager
                   staticPages={staticPages}
-                  onAddPage={(page) => setStaticPages((prev) => [page, ...prev])}
-                  onUpdatePage={(page) =>
-                    setStaticPages((prev) => prev.map((p) => (p.id === page.id ? page : p)))
-                  }
-                  onDeletePage={(id) => setStaticPages((prev) => prev.filter((p) => p.id !== id))}
+                  onAddPage={handleAddStaticPage}
+                  onUpdatePage={handleUpdateStaticPage}
+                  onDeletePage={handleDeleteStaticPage}
                   onViewPagePublic={(slug) => handleOpenStaticPage(slug)}
                 />
               )}
@@ -605,6 +758,9 @@ export default function App() {
               setSelectedPost(null);
               setSelectedStaticPageSlug(null);
               setCurrentTab(tab);
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', window.location.pathname);
+              }
             }}
             selectedCategory={selectedCategory}
             onSelectCategory={(cat) => {
@@ -612,6 +768,9 @@ export default function App() {
               setSelectedPost(null);
               setSelectedStaticPageSlug(null);
               setCurrentTab('reader');
+              if (typeof window !== 'undefined') {
+                window.history.pushState({}, '', window.location.pathname);
+              }
             }}
             darkMode={darkMode}
             setDarkMode={setDarkMode}

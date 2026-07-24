@@ -160,13 +160,31 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     return headers;
   };
 
+  const safeFetchJson = async (url: string, options: RequestInit) => {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    let json: any = {};
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      if (text.includes('GEMINI_API_KEY') || text.includes('API Key')) {
+        throw new Error('API Key Gemini belum diisi. Masukkan API Key Anda di menu Pengaturan Admin.');
+      }
+      throw new Error('Gagal memproses respon AI. Pastikan API Key Gemini sudah dimasukkan di Pengaturan Admin.');
+    }
+    if (!res.ok && json.error) {
+      throw new Error(json.error);
+    }
+    return json;
+  };
+
   // 0. Auto Batch AI Content Generator & Scheduler
   const handleBatchGenerate = async () => {
     if (selectedBatchCategories.length === 0) return;
     setIsBatchGenerating(true);
 
     try {
-      const res = await fetch('/api/gemini/batch-generate-schedule', {
+      const json = await safeFetchJson('/api/gemini/batch-generate-schedule', {
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
@@ -176,7 +194,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         }),
       });
 
-      const json = await res.json();
       if (json.success && json.posts && json.posts.length > 0) {
         if (onBatchSavePosts) {
           onBatchSavePosts(json.posts);
@@ -188,7 +205,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     } catch (err: any) {
       console.error('Error generating batch AI articles:', err);
-      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal terhubung ke API AI.'}`);
+      alert(`Terjadi kesalahan AI: ${err?.message || 'Gagal terhubung ke API AI.'}`);
     } finally {
       setIsBatchGenerating(false);
     }
@@ -200,7 +217,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setIsAiGenerating(true);
 
     try {
-      const res = await fetch('/api/gemini/generate-article', {
+      const json = await safeFetchJson('/api/gemini/generate-article', {
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
@@ -210,7 +227,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         }),
       });
 
-      const json = await res.json();
       if (json.success && json.data) {
         setTitle(json.data.title || title);
         setExcerpt(json.data.excerpt || excerpt);
@@ -223,7 +239,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal terhubung ke AI Generator.'}`);
+      alert(`Terjadi kesalahan AI: ${err?.message || 'Gagal terhubung ke AI Generator.'}`);
     } finally {
       setIsAiGenerating(false);
     }
@@ -233,7 +249,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const handleRewriteSpin = async () => {
     setIsRewriting(true);
     try {
-      const res = await fetch('/api/gemini/rewrite-spin', {
+      const json = await safeFetchJson('/api/gemini/rewrite-spin', {
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
@@ -243,7 +259,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         }),
       });
 
-      const json = await res.json();
       if (json.success && json.rewrittenText) {
         setContent(json.rewrittenText);
         setShowRewriteModal(false);
@@ -252,7 +267,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal AI Rewrite.'}`);
+      alert(`Terjadi kesalahan AI: ${err?.message || 'Gagal AI Rewrite.'}`);
     } finally {
       setIsRewriting(false);
     }
@@ -262,13 +277,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const handleDetectHumanize = async () => {
     setIsDetectingHumanizing(true);
     try {
-      const res = await fetch('/api/gemini/detect-humanize', {
+      const json = await safeFetchJson('/api/gemini/detect-humanize', {
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({ content }),
       });
 
-      const json = await res.json();
       if (json.success) {
         setAiScore(json.aiScore);
         if (json.humanizedContent) {
@@ -282,7 +296,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal AI Humanizer.'}`);
+      alert(`Terjadi kesalahan AI: ${err?.message || 'Gagal AI Humanizer.'}`);
     } finally {
       setIsDetectingHumanizing(false);
     }
