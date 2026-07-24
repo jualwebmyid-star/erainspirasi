@@ -20,6 +20,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { BlogPost } from '../types';
+import { VisitorStatsWidget } from './VisitorStatsWidget';
 
 interface BlogReaderViewProps {
   posts: BlogPost[];
@@ -625,7 +626,10 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
             </div>
           </div>
 
-          {/* Widget 3: 📬 BULLETIN ERAINSPIRASI */}
+          {/* Widget 3: 📊 STATISTIK PENGUNJUNG WEB */}
+          <VisitorStatsWidget variant="sidebar" />
+
+          {/* Widget 4: 📬 BULLETIN ERAINSPIRASI */}
           <div className="p-5 rounded-2xl bg-gradient-to-br from-rose-900 via-slate-900 to-slate-950 text-white shadow-lg space-y-3 relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-10 -mt-10 w-32 h-32 rounded-full bg-rose-500/20 blur-xl pointer-events-none" />
             
