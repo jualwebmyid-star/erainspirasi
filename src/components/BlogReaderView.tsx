@@ -131,19 +131,19 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   return (
     <div className="space-y-8 pb-16">
       
-      {/* Category Pills & Quick Filter Toolbar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Category Pills & Quick Filter Toolbar (Compact on Mobile) */}
+      <div className="bg-white dark:bg-slate-900 p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3">
         
         {/* Horizontal Category Navigation */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          <Filter className="w-4 h-4 text-rose-600 shrink-0 mr-1" />
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full md:w-auto">
+          <Filter className="w-3.5 h-3.5 text-rose-600 shrink-0 mr-0.5" />
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => handleCategorySelect(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedCategory === cat && !selectedTag
-                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20 font-black'
+                  ? 'bg-rose-600 text-white shadow-xs font-black'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >
@@ -152,8 +152,8 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
           ))}
         </div>
 
-        {/* Quick Search Input */}
-        <div className="relative w-full md:w-72 shrink-0">
+        {/* Quick Search Input (Hidden on Mobile to keep header clean & compact) */}
+        <div className="hidden md:block relative w-72 shrink-0">
           <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -202,61 +202,61 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                 return (
                   <div
                     key={slidePost.id}
-                    className="relative aspect-[16/9] sm:aspect-[21/9] min-h-[340px] sm:min-h-[380px] flex flex-col justify-end p-5 sm:p-8 transition-all duration-700"
+                    className="relative aspect-[16/10] sm:aspect-[21/9] min-h-[260px] sm:min-h-[380px] flex flex-col justify-end p-4 sm:p-8 px-9 sm:px-12 transition-all duration-700 max-w-full overflow-hidden"
                   >
                     <img
                       src={slidePost.coverImage}
                       alt={slidePost.title}
                       className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-slate-950/20" />
 
-                    <div className="relative z-10 max-w-2xl space-y-2.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-rose-600 text-white shadow-md uppercase tracking-wider flex items-center gap-1">
+                    <div className="relative z-10 max-w-2xl space-y-1.5 sm:space-y-2.5 w-full">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="px-2 sm:px-2.5 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-md uppercase tracking-wider flex items-center gap-1 shrink-0">
                           <Flame className="w-3 h-3 fill-current" />
                           HEADLINE TERUTAMA
                         </span>
-                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 backdrop-blur-md text-white">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-bold bg-white/20 backdrop-blur-md text-white shrink-0">
                           {slidePost.category}
                         </span>
                       </div>
 
                       <h2
                         onClick={() => onSelectPost(slidePost)}
-                        className="text-xl sm:text-3xl font-black text-white hover:text-rose-400 cursor-pointer transition-colors leading-tight drop-shadow"
+                        className="text-sm sm:text-2xl md:text-3xl font-black text-white hover:text-rose-400 cursor-pointer transition-colors leading-tight sm:leading-tight drop-shadow line-clamp-2 max-w-full break-words"
                       >
                         {slidePost.title}
                       </h2>
 
-                      <p className="text-slate-300 text-xs line-clamp-2 leading-relaxed">
+                      <p className="text-slate-300 text-[10px] sm:text-xs line-clamp-1 sm:line-clamp-2 leading-snug sm:leading-relaxed max-w-full break-words">
                         {slidePost.excerpt}
                       </p>
 
-                      <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300 border-t border-white/10">
-                        <div className="flex items-center gap-2.5 text-[11px]">
+                      <div className="pt-1.5 sm:pt-2 flex flex-wrap items-center justify-between gap-1.5 text-[10px] sm:text-xs text-slate-300 border-t border-white/10 w-full">
+                        <div className="flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-[11px] truncate max-w-[60%] sm:max-w-none">
                           <img
                             src={slidePost.author.avatar}
                             alt={slidePost.author.name}
-                            className="w-6 h-6 rounded-full object-cover ring-2 ring-rose-500"
+                            className="w-4 h-4 sm:w-6 sm:h-6 rounded-full object-cover ring-1 sm:ring-2 ring-rose-500 shrink-0"
                           />
-                          <span className="font-semibold text-white">{slidePost.author.name}</span>
-                          <span>•</span>
-                          <span>{new Date(slidePost.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                          <span className="font-semibold text-white truncate max-w-[80px] sm:max-w-none">{slidePost.author.name}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="hidden sm:inline">{new Date(slidePost.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1 text-[11px] font-medium text-slate-300">
-                            <Eye className="w-3.5 h-3.5 text-rose-400" />
-                            {slidePost.viewCount} views
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                          <span className="flex items-center gap-1 text-[9px] sm:text-[11px] font-medium text-slate-300">
+                            <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
+                            {slidePost.viewCount}
                           </span>
                           
                           <button
                             onClick={() => onSelectPost(slidePost)}
-                            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-1 active:scale-95"
+                            className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-[10px] sm:text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-1 active:scale-95 shrink-0"
                           >
                             <span>Baca</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -268,28 +268,28 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
               {/* Carousel Left / Right Navigation Controls */}
               <button
                 onClick={() => setActiveSlide((prev) => (prev === 0 ? heroSliderPosts.length - 1 : prev - 1))}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/60 hover:bg-rose-600 text-white backdrop-blur-md transition-all shadow-lg border border-white/10 opacity-80 hover:opacity-100"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-slate-900/60 hover:bg-rose-600 text-white backdrop-blur-md transition-all shadow-lg border border-white/10 opacity-80 hover:opacity-100"
                 title="Slide Sebelumnya"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               
               <button
                 onClick={() => setActiveSlide((prev) => (prev + 1) % heroSliderPosts.length)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-slate-900/60 hover:bg-rose-600 text-white backdrop-blur-md transition-all shadow-lg border border-white/10 opacity-80 hover:opacity-100"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-slate-900/60 hover:bg-rose-600 text-white backdrop-blur-md transition-all shadow-lg border border-white/10 opacity-80 hover:opacity-100"
                 title="Slide Berikutnya"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
 
               {/* Carousel Pagination Dots */}
-              <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5">
+              <div className="absolute bottom-2 sm:bottom-3 right-3 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5">
                 {heroSliderPosts.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveSlide(idx)}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === activeSlide ? 'w-6 bg-rose-600' : 'w-2 bg-white/40 hover:bg-white'
+                    className={`h-1.5 sm:h-2 rounded-full transition-all ${
+                      idx === activeSlide ? 'w-4 sm:w-6 bg-rose-600' : 'w-1.5 sm:w-2 bg-white/40 hover:bg-white'
                     }`}
                   />
                 ))}
@@ -298,77 +298,77 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
             </div>
           )}
 
-          {/* 3-THUMBNAIL CAROUSEL SECTION (DESKTOP & MOBILE) - Matched to Article Column Width */}
+          {/* 3-THUMBNAIL CAROUSEL SECTION (DESKTOP & MOBILE - 3 SMALL COLUMNS IN MOBILE) */}
           {!searchQuery && selectedCategory === 'Semua' && !selectedTag && visibleMiniPosts.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-xl bg-rose-600 text-white shadow-sm">
-                    <Sparkles className="w-4 h-4 fill-current" />
+                  <span className="p-1 sm:p-1.5 rounded-xl bg-rose-600 text-white shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
                   </span>
                   <div>
-                    <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                    <h3 className="text-[11px] sm:text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                       SOROTAN 3 THUMBNAIL BERITA & INSPIRASI
                     </h3>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400">
                       Rekomendasi visual pilihan redaksi EraInspirasi hari ini
                     </p>
                   </div>
                 </div>
 
                 {/* Carousel Prev/Next Buttons */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={handlePrevMini}
-                    className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 transition shadow-sm active:scale-95"
+                    className="p-1 sm:p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 transition shadow-sm active:scale-95"
                     title="Geser Kiri"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                   <button
                     onClick={handleNextMini}
-                    className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 transition shadow-sm active:scale-95"
+                    className="p-1 sm:p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 transition shadow-sm active:scale-95"
                     title="Geser Kanan"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* 3 Thumbnail Grid Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 3 Thumbnail Grid Cards: ALWAYS 3 SMALL COLUMNS EVEN ON MOBILE */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {visibleMiniPosts.map((post) => (
                   <div
                     key={`mini-${post.id}`}
                     onClick={() => onSelectPost(post)}
-                    className="group cursor-pointer bg-slate-50 dark:bg-slate-900/60 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-800 transition-all duration-300 flex flex-col justify-between space-y-2.5 shadow-xs hover:shadow-md"
+                    className="group cursor-pointer bg-slate-50 dark:bg-slate-900/60 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-800 transition-all duration-300 flex flex-col justify-between space-y-1.5 sm:space-y-2.5 shadow-xs hover:shadow-md"
                   >
-                    <div className="relative w-full h-28 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0">
+                    <div className="relative w-full h-16 sm:h-28 rounded-lg sm:rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0">
                       <img
                         src={post.coverImage}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute top-2 left-2">
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-600 text-white uppercase tracking-wider shadow">
+                      <div className="absolute top-1 left-1 sm:top-2 sm:left-2">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold bg-rose-600 text-white uppercase tracking-wider shadow">
                           {post.category}
                         </span>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 flex-1 flex flex-col justify-between">
-                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 leading-snug">
+                    <div className="space-y-1 flex-1 flex flex-col justify-between">
+                      <h4 className="text-[10px] sm:text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 leading-tight sm:leading-snug">
                         {post.title}
                       </h4>
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-1.5 border-t border-slate-200/60 dark:border-slate-800/60">
-                        <span className="flex items-center gap-1 font-medium">
+                      <div className="flex items-center justify-between text-[8px] sm:text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <span className="hidden sm:flex items-center gap-1 font-medium">
                           <Calendar className="w-3 h-3 text-rose-500" />
                           {new Date(post.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                         </span>
-                        <span className="flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400 group-hover:translate-x-1 transition-transform">
+                        <span className="flex items-center gap-0.5 font-bold text-rose-600 dark:text-rose-400 group-hover:translate-x-0.5 transition-transform">
                           <span>Baca</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </span>
                       </div>
                     </div>
@@ -377,6 +377,7 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
               </div>
             </div>
           )}
+
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-rose-600">
             <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2 uppercase tracking-wide">

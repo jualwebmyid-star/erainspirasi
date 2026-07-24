@@ -13,10 +13,12 @@ import { HeaderMenuManager } from './components/HeaderMenuManager';
 import { StaticPageManager } from './components/StaticPageManager';
 import { StaticPageReaderView } from './components/StaticPageReaderView';
 import { UserManager } from './components/UserManager';
+import { AdminSettings } from './components/AdminSettings';
 import { OAuthModal } from './components/OAuthModal';
 import { PushNotificationModal } from './components/PushNotificationModal';
 import { ImageUploaderModal } from './components/ImageUploaderModal';
 import { SearchModal } from './components/SearchModal';
+import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
 
 import { 
   INITIAL_POSTS, 
@@ -31,7 +33,8 @@ import {
   UserProfile, 
   CategoryItem, 
   HeaderMenuItem, 
-  StaticPageItem 
+  StaticPageItem,
+  SiteSettings
 } from './types';
 
 export default function App() {
@@ -39,6 +42,32 @@ export default function App() {
   const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS);
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>(INITIAL_SOCIAL_POSTS);
   const [analytics] = useState(INITIAL_ANALYTICS);
+
+  // Site Settings State (Logo, AI API Keys, Socials)
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
+    const saved = localStorage.getItem('erainspirasi_settings');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      siteName: 'EraInspirasi',
+      siteTagline: 'Portal Berita, Edukasi & Inspirasi Digital',
+      logoUrl: '',
+      geminiApiKey: '',
+      openaiApiKey: '',
+      facebookUrl: 'https://facebook.com/erainspirasi',
+      instagramUrl: 'https://instagram.com/erainspirasi',
+      twitterUrl: 'https://x.com/erainspirasi',
+      youtubeUrl: 'https://youtube.com/@erainspirasi',
+      whatsappContact: '6281234567890',
+    };
+  });
+
+  const handleSaveSettings = (newSettings: SiteSettings) => {
+    setSiteSettings(newSettings);
+    localStorage.setItem('erainspirasi_settings', JSON.stringify(newSettings));
+  };
+
 
   // Initial Article Categories State
   const [categories, setCategories] = useState<CategoryItem[]>([
@@ -110,16 +139,20 @@ export default function App() {
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
   // Dark Mode
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('erainspirasi_theme');
+    if (saved) return saved === 'dark';
+    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
-  // User Profile Session
+  // User Profile Session - DEFAULT TO PUBLIC READER/GUEST FOR PORTAL VISITORS
   const [user, setUser] = useState<UserProfile>({
-    id: 'usr-admin',
-    name: 'Redaktur Utama',
-    email: 'admin@erainspirasi.com',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    role: 'admin',
-    provider: 'system',
+    id: 'usr-guest',
+    name: 'Pengunjung Portal',
+    email: 'pembaca@erainspirasi.com',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+    role: 'reader',
+    provider: 'guest',
   });
 
   // Users List State (Firebase & Google Auth RBAC)
@@ -161,16 +194,50 @@ export default function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('erainspirasi_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('erainspirasi_theme', 'light');
     }
   }, [darkMode]);
+
+  // Real-time Firebase Firestore Sync for Articles
+  useEffect(() => {
+    let unsubscribe: () => void;
+    try {
+      const postsColRef = collection(db, 'posts');
+      unsubscribe = onSnapshot(postsColRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const loadedPosts: BlogPost[] = snapshot.docs.map((docSnap) => docSnap.data() as BlogPost);
+          loadedPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+          setPosts(loadedPosts);
+        } else {
+          // Seed default posts to Firebase Firestore
+          INITIAL_POSTS.forEach(async (post) => {
+            try {
+              await setDoc(doc(db, 'posts', post.id), post);
+            } catch (err) {
+              console.warn('Seeding initial post to Firebase error:', err);
+            }
+          });
+        }
+      }, (err) => {
+        console.warn('Firestore snapshot listener warning:', err);
+      });
+    } catch (e) {
+      console.warn('Firestore initialization warning:', e);
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   // Handlers
   const handleLogout = () => {
     setUser({
       id: 'usr-guest',
-      name: 'Pengunjung',
+      name: 'Pengunjung Portal',
       email: 'pembaca@erainspirasi.com',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       role: 'reader',
@@ -195,7 +262,7 @@ export default function App() {
     setCurrentTab('static-page-view');
   };
 
-  const handleAddComment = (postId: string, content: string, parentId?: string) => {
+  const handleAddComment = async (postId: string, content: string, parentId?: string) => {
     const newComment: Comment = {
       id: `c-${Date.now()}`,
       postId,
@@ -214,15 +281,21 @@ export default function App() {
     setPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p))
     );
+
+    try {
+      await setDoc(doc(db, 'comments', newComment.id), newComment);
+    } catch (err) {
+      console.warn('Firebase save comment warning:', err);
+    }
   };
 
-  const handleSavePost = (savedPostData: Partial<BlogPost>) => {
+  const handleSavePost = async (savedPostData: Partial<BlogPost>) => {
+    let newPost: BlogPost;
     if (savedPostData.id && posts.some((p) => p.id === savedPostData.id)) {
-      setPosts((prev) =>
-        prev.map((p) => (p.id === savedPostData.id ? ({ ...p, ...savedPostData } as BlogPost) : p))
-      );
+      const existing = posts.find((p) => p.id === savedPostData.id)!;
+      newPost = { ...existing, ...savedPostData } as BlogPost;
     } else {
-      const newPost: BlogPost = {
+      newPost = {
         id: `post-${Date.now()}`,
         title: savedPostData.title || 'Artikel Tanpa Judul',
         slug: savedPostData.slug || 'artikel-baru',
@@ -245,21 +318,47 @@ export default function App() {
         aiScore: savedPostData.aiScore || 10,
         humanized: true,
       };
+    }
 
-      setPosts((prev) => [newPost, ...prev]);
+    setPosts((prev) => {
+      const exists = prev.some((p) => p.id === newPost.id);
+      if (exists) {
+        return prev.map((p) => (p.id === newPost.id ? newPost : p));
+      } else {
+        return [newPost, ...prev];
+      }
+    });
+
+    try {
+      await setDoc(doc(db, 'posts', newPost.id), newPost, { merge: true });
+    } catch (err) {
+      console.warn('Firebase save article error:', err);
     }
 
     setEditingPost(null);
     setCurrentTab('reader');
   };
 
-  const handleBatchSavePosts = (newBatchPosts: BlogPost[]) => {
+  const handleBatchSavePosts = async (newBatchPosts: BlogPost[]) => {
     setPosts((prev) => [...newBatchPosts, ...prev]);
+    for (const p of newBatchPosts) {
+      try {
+        await setDoc(doc(db, 'posts', p.id), p, { merge: true });
+      } catch (err) {
+        console.warn('Firebase batch save article error:', err);
+      }
+    }
   };
 
-  const handleDeletePost = (id: string) => {
+  const handleDeletePost = async (id: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deleteDoc(doc(db, 'posts', id));
+    } catch (err) {
+      console.warn('Firebase delete article error:', err);
+    }
   };
+
 
   const handleOpenImagePicker = (callback: (url: string, alt: string) => void) => {
     setImageCallback(() => callback);
@@ -338,6 +437,15 @@ export default function App() {
                 />
               )}
 
+              {currentTab === 'settings' && (
+                <AdminSettings
+                  settings={siteSettings}
+                  onSaveSettings={handleSaveSettings}
+                  onOpenImageUploader={handleOpenImagePicker}
+                />
+              )}
+
+
               {currentTab === 'users' && (
                 <UserManager
                   usersList={usersList}
@@ -408,6 +516,8 @@ export default function App() {
                     onBack={() => setSelectedPost(null)}
                     onAddComment={handleAddComment}
                     user={user}
+                    allPosts={posts}
+                    onSelectPost={handleSelectPostToRead}
                   />
                 ) : (
                   <BlogReaderView
@@ -418,6 +528,7 @@ export default function App() {
                   />
                 )
               )}
+
 
               {currentTab === 'static-page-view' && activeStaticPage && (
                 <StaticPageReaderView
@@ -459,7 +570,9 @@ export default function App() {
             categoriesList={categoriesNameList}
             headerMenuItems={headerMenuItems}
             onOpenStaticPage={handleOpenStaticPage}
+            siteSettings={siteSettings}
           />
+
 
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
             {currentTab === 'static-page-view' && activeStaticPage ? (
@@ -477,8 +590,11 @@ export default function App() {
                 onBack={() => setSelectedPost(null)}
                 onAddComment={handleAddComment}
                 user={user}
+                allPosts={posts}
+                onSelectPost={handleSelectPostToRead}
               />
             ) : (
+
               <BlogReaderView
                 posts={posts}
                 onSelectPost={handleSelectPostToRead}

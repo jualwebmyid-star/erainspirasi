@@ -70,8 +70,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialPost?.scheduledAt || new Date(Date.now() + 86400000).toISOString().slice(0, 16)
   );
 
-  // Editor Tabs: visual-wp (Default WordPress Visual Editor), write (Source), split, preview
-  const [activeTab, setActiveTab] = useState<'visual-wp' | 'write' | 'preview' | 'split'>('visual-wp');
+  // Editor Tabs: visual-wp (Mode Visual), write (Mode Teks / Markdown)
+  const [activeTab, setActiveTab] = useState<'visual-wp' | 'write'>('visual-wp');
 
   // WordPress Image Sizing & Alignment
   const [selectedImageWidth, setSelectedImageWidth] = useState<'25%' | '50%' | '75%' | '100%'>('75%');
@@ -560,7 +560,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   </button>
                 </div>
 
-                {/* Right: View Mode Tabs */}
+                {/* Right: View Mode Tabs (Visual & Text) */}
                 <div className="flex items-center bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold shrink-0 shadow-xs">
                   <button
                     type="button"
@@ -570,27 +570,20 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
-                    <span>Editor Visual WP</span>
+                    <span>Mode Visual</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('write')}
-                    className={`px-3 py-1.5 rounded-lg transition ${
+                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                       activeTab === 'write' ? 'bg-rose-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
-                    Markdown Teks
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('split')}
-                    className={`px-3 py-1.5 rounded-lg transition ${
-                      activeTab === 'split' ? 'bg-rose-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                    }`}
-                  >
-                    Layar Split
+                    <Code className="w-3.5 h-3.5" />
+                    <span>Mode Teks (Markdown)</span>
                   </button>
                 </div>
+
               </div>
 
               {/* Ultra-Compact Image Control Options Bar */}
@@ -714,10 +707,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </div>
               )}
 
-              {(activeTab === 'write' || activeTab === 'split') && (
-                <div className={`${activeTab === 'split' ? 'lg:col-span-6' : 'lg:col-span-12'} flex flex-col space-y-1.5`}>
+              {activeTab === 'write' && (
+                <div className="lg:col-span-12 flex flex-col space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold px-1">
-                    <span>Source Text Markdown</span>
+                    <span>Source Text Kode / Markdown</span>
                     <span className="text-slate-400 font-mono">{wordsCount} kata • Est. {readingTimeMinutes} mnt baca</span>
                   </div>
                   <textarea
@@ -725,23 +718,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     rows={20}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Ketik isi artikel dalam format Markdown..."
+                    placeholder="Ketik isi artikel dalam format Teks / Markdown..."
                     className="w-full p-4 font-mono text-xs sm:text-sm rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-inner leading-relaxed"
                   />
                 </div>
               )}
 
-              {(activeTab === 'preview' || activeTab === 'split') && (
-                <div className={`${activeTab === 'split' ? 'lg:col-span-6' : 'lg:col-span-12'} flex flex-col space-y-1.5`}>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold px-1">
-                    <span>Preview Visual Artikel</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Live Output</span>
-                  </div>
-                  <div className="p-6 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 overflow-y-auto max-h-[520px] prose dark:prose-invert max-w-none text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
-                  </div>
-                </div>
-              )}
             </div>
 
           </div>

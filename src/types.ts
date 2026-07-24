@@ -151,3 +151,16 @@ export interface StaticPageItem {
   location?: 'header' | 'footer' | 'both';
 }
 
+export interface SiteSettings {
+  siteName: string;
+  siteTagline: string;
+  logoUrl?: string;
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  twitterUrl?: string;
+  youtubeUrl?: string;
+  whatsappContact?: string;
+}
+

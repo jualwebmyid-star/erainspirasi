@@ -18,7 +18,8 @@ import {
   Flame,
   Users,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Settings
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -52,6 +53,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const adminNavItems = [
     { id: 'dashboard', label: 'CMS Redaksi', icon: LayoutDashboard },
     { id: 'editor', label: 'Editor AI', icon: PenTool },
+    { id: 'settings', label: 'Pengaturan Portal & API', icon: Settings },
     { id: 'users', label: 'Kelola User & Role', icon: Users },
     { id: 'categories', label: 'Kelola Kategori', icon: Tag },
     { id: 'header-menu', label: 'Kelola Menu Header', icon: LayoutList },
