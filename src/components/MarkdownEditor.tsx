@@ -33,7 +33,10 @@ import {
   Sliders,
   Layers,
   LayoutGrid,
-  Clock
+  Clock,
+  Copy,
+  ExternalLink,
+  Share2
 } from 'lucide-react';
 import { BlogPost } from '../types';
 
@@ -73,6 +76,24 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [scheduledAt, setScheduledAt] = useState(
     initialPost?.scheduledAt || new Date(Date.now() + 86400000).toISOString().slice(0, 16)
   );
+
+  const [copiedSlugLink, setCopiedSlugLink] = useState(false);
+
+  const currentCleanSlug = slug.trim() || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+  const fullShareablePermalink = typeof window !== 'undefined'
+    ? `${window.location.origin}${window.location.pathname}?post=${currentCleanSlug}`
+    : `https://erainspirasi.com/?post=${currentCleanSlug}`;
+
+  const handleCopySlugPermalink = () => {
+    navigator.clipboard.writeText(fullShareablePermalink);
+    setCopiedSlugLink(true);
+    setTimeout(() => setCopiedSlugLink(false), 2000);
+  };
+
+  const handleGenerateAutoSlug = () => {
+    const newSlug = title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+    setSlug(newSlug);
+  };
 
   // Editor Tabs: visual-wp (Mode Visual), write (Mode Teks / Markdown)
   const [activeTab, setActiveTab] = useState<'visual-wp' | 'write'>('visual-wp');
@@ -844,9 +865,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 type="text"
                 value={title}
                 onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (!initialPost) {
-                    setSlug(e.target.value.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'));
+                  const newTitle = e.target.value;
+                  setTitle(newTitle);
+                  if (!initialPost || !slug) {
+                    setSlug(newTitle.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'));
                   }
                 }}
                 placeholder="Masukkan judul artikel..."
@@ -854,18 +876,73 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               />
             </div>
 
-            {/* Slug URL */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
-                URL Slug SEO
-              </label>
+            {/* Link Share Slug Artikel & Permalinks */}
+            <div className="space-y-2 p-3 bg-blue-50/80 dark:bg-blue-950/40 rounded-2xl border border-blue-200 dark:border-blue-900">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                  <Link className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Link Share & URL Slug Artikel</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGenerateAutoSlug}
+                  className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  title="Buat ulang slug dari judul"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Auto Slug</span>
+                </button>
+              </div>
+
+              {/* Slug Input */}
               <input
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="judul-artikel-anda"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-mono focus:outline-none"
+                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-slate-800 dark:text-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+
+              {/* Live Share URL Preview & Copy Button */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">
+                  Link Tautan Share Siap Pakai:
+                </span>
+                <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-blue-600 dark:text-blue-400 break-all flex items-center justify-between gap-2">
+                  <span className="truncate">{fullShareablePermalink}</span>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleCopySlugPermalink}
+                    className="flex-1 py-1.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    {copiedSlugLink ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>Link Disalin!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Salin Link Share</span>
+                      </>
+                    )}
+                  </button>
+
+                  <a
+                    href={fullShareablePermalink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1.5 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-200 font-bold text-xs transition flex items-center gap-1 shrink-0"
+                    title="Uji Buka Link"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Uji</span>
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* Status Publikasi & Scheduled Date */}

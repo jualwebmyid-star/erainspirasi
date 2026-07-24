@@ -233,6 +233,19 @@ export default function App() {
     };
   }, []);
 
+  // Deep-linking URL Slug Sync & Parser for Shareable Links
+  useEffect(() => {
+    if (posts.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const postParam = params.get('post') || params.get('article') || params.get('p');
+    if (postParam) {
+      const matched = posts.find((p) => p.slug === postParam || p.id === postParam);
+      if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
+        setSelectedPost(matched);
+      }
+    }
+  }, [posts]);
+
   // Handlers
   const handleLogout = () => {
     setUser({
@@ -243,9 +256,16 @@ export default function App() {
       role: 'reader',
       provider: 'guest',
     });
+    handleBackToReader();
+    setCurrentTab('reader');
+  };
+
+  const handleBackToReader = () => {
     setSelectedPost(null);
     setSelectedStaticPageSlug(null);
-    setCurrentTab('reader');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', window.location.pathname);
+    }
   };
 
   const handleSelectPostToRead = (post: BlogPost) => {
@@ -254,6 +274,9 @@ export default function App() {
     );
     setSelectedPost(post);
     setSelectedStaticPageSlug(null);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `?post=${post.slug || post.id}`);
+    }
   };
 
   const handleOpenStaticPage = (slug: string) => {
@@ -514,7 +537,7 @@ export default function App() {
                   <ArticleDetailView
                     post={selectedPost}
                     comments={comments}
-                    onBack={() => setSelectedPost(null)}
+                    onBack={handleBackToReader}
                     onAddComment={handleAddComment}
                     user={user}
                     allPosts={posts}
@@ -589,7 +612,7 @@ export default function App() {
               <ArticleDetailView
                 post={selectedPost}
                 comments={comments}
-                onBack={() => setSelectedPost(null)}
+                onBack={handleBackToReader}
                 onAddComment={handleAddComment}
                 user={user}
                 allPosts={posts}

@@ -85,14 +85,18 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     }
   };
 
+  const shareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}${window.location.pathname}?post=${post.slug || post.id}`
+    : `https://erainspirasi.com/?post=${post.slug || post.id}`;
+
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(shareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`Baca berita terbaru di EraInspirasi: "${post.title}" - ${window.location.href}`);
+    const text = encodeURIComponent(`Baca berita terbaru di EraInspirasi: "${post.title}"\n${shareUrl}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
@@ -275,33 +279,68 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             </article>
           </div>
 
-          {/* Share & Feedback Row */}
-          <div className="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">Sukai atau Bagikan Artikel Ini</h4>
-              <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
-                Bantu pembaca lain menemukan artikel berbobot ini di media sosial.
-              </p>
+          {/* Share & Feedback Row with Permalink Box */}
+          <div className="p-5 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                  Bagikan & Sukai Artikel Ini
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
+                  Bantu pembaca lain menemukan artikel berbobot ini melalui tautan langsung (permalink).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleLikeArticle}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    hasLiked ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border'
+                  }`}
+                >
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                  <span>{hasLiked ? 'Disukai!' : 'Suka'}</span>
+                </button>
+
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition flex items-center gap-1.5"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleLikeArticle}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                  hasLiked ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border'
-                }`}
-              >
-                <ThumbsUp className="w-3.5 h-3.5" />
-                <span>{hasLiked ? 'Disukai!' : 'Suka'}</span>
-              </button>
-
-              <button
-                onClick={handleCopyLink}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow hover:bg-indigo-700 transition flex items-center gap-1.5"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>{copiedLink ? 'Disalin!' : 'Bagikan'}</span>
-              </button>
+            {/* Permalink Box */}
+            <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 space-y-1.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                Link Permalink Tautan Slug Artikel:
+              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none select-all"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow transition flex items-center gap-1.5 shrink-0 active:scale-95"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-300" />
+                      <span>Disalin!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Salin Link</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
