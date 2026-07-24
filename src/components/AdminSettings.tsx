@@ -17,9 +17,14 @@ import {
   Twitter, 
   Youtube,
   ShieldCheck,
-  Building
+  Building,
+  Database,
+  Radio,
+  ExternalLink,
+  Layers,
+  LayoutGrid
 } from 'lucide-react';
-import { SiteSettings } from '../types';
+import { SiteSettings, BannerConfig } from '../types';
 
 interface AdminSettingsProps {
   settings: SiteSettings;
@@ -47,6 +52,32 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [youtubeUrl, setYoutubeUrl] = useState(settings.youtubeUrl || 'https://youtube.com/@erainspirasi');
   const [whatsappContact, setWhatsappContact] = useState(settings.whatsappContact || '6281234567890');
 
+  // Banners State
+  const [headerBanner, setHeaderBanner] = useState<BannerConfig>(
+    settings.headerBanner || {
+      imageUrl: '',
+      targetUrl: 'https://erainspirasi.com/iklan',
+      altText: 'Banner Header Iklan Utama',
+      isEnabled: true,
+    }
+  );
+
+  const [sidebarBanner, setSidebarBanner] = useState<BannerConfig>(
+    settings.sidebarBanner || {
+      imageUrl: '',
+      targetUrl: 'https://erainspirasi.com/iklan',
+      altText: 'Banner Sidebar Artikel 300x250',
+      isEnabled: true,
+    }
+  );
+
+  // Social API Keys
+  const [facebookAppId, setFacebookAppId] = useState(settings.facebookAppId || '');
+  const [facebookPageAccessToken, setFacebookPageAccessToken] = useState(settings.facebookPageAccessToken || '');
+  const [twitterApiKey, setTwitterApiKey] = useState(settings.twitterApiKey || '');
+  const [twitterApiSecret, setTwitterApiSecret] = useState(settings.twitterApiSecret || '');
+  const [instagramAccessToken, setInstagramAccessToken] = useState(settings.instagramAccessToken || '');
+
   const [savedNotification, setSavedNotification] = useState<string | null>(null);
 
   const handleSave = (e: React.FormEvent) => {
@@ -62,16 +93,35 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       twitterUrl,
       youtubeUrl,
       whatsappContact,
+      headerBanner,
+      sidebarBanner,
+      facebookAppId,
+      facebookPageAccessToken,
+      twitterApiKey,
+      twitterApiSecret,
+      instagramAccessToken,
     };
 
     onSaveSettings(updated);
-    setSavedNotification('✓ Pengaturan Portal, Logo, API Key AI, & Sosmed berhasil disimpan!');
+    setSavedNotification('✓ Pengaturan Portal, Logo, Banner Iklan, API Key & Sosmed berhasil disimpan ke Database Firebase!');
     setTimeout(() => setSavedNotification(null), 4000);
   };
 
   const handleUploadLogoClick = () => {
     onOpenImageUploader((url) => {
       setLogoUrl(url);
+    });
+  };
+
+  const handleUploadHeaderBannerClick = () => {
+    onOpenImageUploader((url, alt) => {
+      setHeaderBanner((prev) => ({ ...prev, imageUrl: url, altText: alt || prev.altText }));
+    });
+  };
+
+  const handleUploadSidebarBannerClick = () => {
+    onOpenImageUploader((url, alt) => {
+      setSidebarBanner((prev) => ({ ...prev, imageUrl: url, altText: alt || prev.altText }));
     });
   };
 
@@ -82,14 +132,14 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm">
         <div>
           <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider">
-            Sistem Kontrol Portal
+            Sistem Kontrol Portal & Banner
           </span>
           <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 mt-1">
             <Settings className="w-6 h-6 text-rose-600" />
-            <span>Pengaturan Portal, Logo Web & Integration API</span>
+            <span>Pengaturan Portal, Banner Iklan & API Media Sosial</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Kelola identitas visual logo web, kunci API AI (Gemini/OpenAI), dan tautan media sosial portal EraInspirasi.
+            Kelola identitas logo, banner iklan 2 posisi (Header & Sidebar), API key AI, serta koneksi media sosial.
           </p>
         </div>
 
@@ -98,8 +148,28 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           className="px-6 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 active:scale-95 shrink-0"
         >
           <Save className="w-4 h-4" />
-          <span>Simpan Semua Pengaturan</span>
+          <span>Simpan Semua Ke Database</span>
         </button>
+      </div>
+
+      {/* Database Connection Info Status */}
+      <div className="p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-xs text-amber-400 uppercase tracking-wider">Database Terhubung: Firebase Firestore Cloud</span>
+              <span className="flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+                <Radio className="w-3 h-3 animate-pulse text-emerald-400" /> Real-time Sync Active
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Seluruh artikel, komentar, pengaturan banner, dan kategori tersimpan aman secara terpusat di cloud database Firebase.
+            </p>
+          </div>
+        </div>
       </div>
 
       {savedNotification && (
@@ -205,13 +275,166 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: KONFIGURASI API KEY AI (GEMINI & OPENAI) */}
+        {/* SECTION 2: MANAJEMEN UPLOAD BANNER IKLAN (2 POSISI) */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-6">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-rose-600" />
+              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                2. Manajemen Upload Banner Iklan (2 Posisi Utama)
+              </h3>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase">
+              Monetisasi Portal
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* POSISI 1: BANNER HEADER */}
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-rose-600" />
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
+                    Posisi 1: Banner Header Website (Leaderboard)
+                  </span>
+                </div>
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={headerBanner.isEnabled}
+                    onChange={(e) => setHeaderBanner((prev) => ({ ...prev, isEnabled: e.target.checked }))}
+                    className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
+                  />
+                  <span>Tampilkan</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  URL Gambar Banner Header
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={headerBanner.imageUrl}
+                    onChange={(e) => setHeaderBanner((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                    placeholder="https://domain.com/banner-header.jpg"
+                    className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUploadHeaderBannerClick}
+                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Banner</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Tautan / Target Link Saat Banner Diklik
+                </label>
+                <input
+                  type="url"
+                  value={headerBanner.targetUrl}
+                  onChange={(e) => setHeaderBanner((prev) => ({ ...prev, targetUrl: e.target.value }))}
+                  placeholder="https://sponsor.com/promo"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              {/* Preview Box */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Preview Banner Header</span>
+                {headerBanner.imageUrl ? (
+                  <img src={headerBanner.imageUrl} alt={headerBanner.altText} className="max-h-20 w-full object-cover rounded-lg mx-auto" />
+                ) : (
+                  <div className="py-4 text-xs font-bold text-slate-400">Belum ada banner diunggah (Menampilkan Ruang Iklan Default)</div>
+                )}
+              </div>
+            </div>
+
+            {/* POSISI 2: BANNER SIDEBAR ARTIKEL (300x250) */}
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-rose-600" />
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
+                    Posisi 2: Banner Sidebar Artikel (300x250 Medium Rectangle)
+                  </span>
+                </div>
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={sidebarBanner.isEnabled}
+                    onChange={(e) => setSidebarBanner((prev) => ({ ...prev, isEnabled: e.target.checked }))}
+                    className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
+                  />
+                  <span>Tampilkan</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  URL Gambar Banner Sidebar
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={sidebarBanner.imageUrl}
+                    onChange={(e) => setSidebarBanner((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                    placeholder="https://domain.com/banner-sidebar.jpg"
+                    className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUploadSidebarBannerClick}
+                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Banner</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Tautan / Target Link Saat Banner Diklik
+                </label>
+                <input
+                  type="url"
+                  value={sidebarBanner.targetUrl}
+                  onChange={(e) => setSidebarBanner((prev) => ({ ...prev, targetUrl: e.target.value }))}
+                  placeholder="https://sponsor.com/promo"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              {/* Preview Box */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Preview Banner Sidebar 300x250</span>
+                {sidebarBanner.imageUrl ? (
+                  <img src={sidebarBanner.imageUrl} alt={sidebarBanner.altText} className="max-h-28 max-w-[200px] object-cover rounded-lg mx-auto" />
+                ) : (
+                  <div className="py-4 text-xs font-bold text-slate-400">Belum ada banner diunggah (Menampilkan Ruang Iklan Default)</div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* SECTION 3: KONFIGURASI API KEY AI (GEMINI & OPENAI) */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-500" />
               <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                2. Pengaturan API Key Artificial Intelligence (AI Engine)
+                3. Pengaturan API Key Artificial Intelligence (AI Engine)
               </h3>
             </div>
             <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-black uppercase">
@@ -281,85 +504,158 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           </div>
         </div>
 
-        {/* SECTION 3: API & AKUN MEDIA SOSIAL */}
+        {/* SECTION 4: KONEKSI API MEDIA SOSIAL & AUTOPILOT */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
-            <Share2 className="w-5 h-5 text-rose-600" />
-            <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-              3. Tautan Media Sosial & Kontak WhatsApp Portal
-            </h3>
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-rose-600" />
+              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                4. Koneksi API Media Sosial & Tautan Portal
+              </h3>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase">
+              Auto-Posting Ready
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                <Facebook className="w-3.5 h-3.5 text-blue-600" />
-                <span>Facebook Page</span>
-              </label>
-              <input
-                type="url"
-                value={facebookUrl}
-                onChange={(e) => setFacebookUrl(e.target.value)}
-                placeholder="https://facebook.com/erainspirasi"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
-              />
+          <div className="space-y-4">
+            <h4 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              A. Tautan Akun Publik Media Sosial & WhatsApp
+            </h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Facebook className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Facebook Page</span>
+                </label>
+                <input
+                  type="url"
+                  value={facebookUrl}
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                  placeholder="https://facebook.com/erainspirasi"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Instagram className="w-3.5 h-3.5 text-pink-600" />
+                  <span>Instagram Account</span>
+                </label>
+                <input
+                  type="url"
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
+                  placeholder="https://instagram.com/erainspirasi"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Twitter className="w-3.5 h-3.5 text-sky-500" />
+                  <span>Twitter / X</span>
+                </label>
+                <input
+                  type="url"
+                  value={twitterUrl}
+                  onChange={(e) => setTwitterUrl(e.target.value)}
+                  placeholder="https://x.com/erainspirasi"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Youtube className="w-3.5 h-3.5 text-red-600" />
+                  <span>YouTube Channel</span>
+                </label>
+                <input
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  placeholder="https://youtube.com/@erainspirasi"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>No. WhatsApp Redaksi (62...)</span>
+                </label>
+                <input
+                  type="text"
+                  value={whatsappContact}
+                  onChange={(e) => setWhatsappContact(e.target.value)}
+                  placeholder="6281234567890"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                <Instagram className="w-3.5 h-3.5 text-pink-600" />
-                <span>Instagram Account</span>
-              </label>
-              <input
-                type="url"
-                value={instagramUrl}
-                onChange={(e) => setInstagramUrl(e.target.value)}
-                placeholder="https://instagram.com/erainspirasi"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
-              />
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+              <h4 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                <Key className="w-3.5 h-3.5 text-rose-600" />
+                <span>B. Kunci API & Access Token Otomatisasi Posting Sosmed</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Facebook Page Access Token (Graph API)
+                  </label>
+                  <input
+                    type="password"
+                    value={facebookPageAccessToken}
+                    onChange={(e) => setFacebookPageAccessToken(e.target.value)}
+                    placeholder="EAAB..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Instagram Graph Access Token
+                  </label>
+                  <input
+                    type="password"
+                    value={instagramAccessToken}
+                    onChange={(e) => setInstagramAccessToken(e.target.value)}
+                    placeholder="IGQV..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Twitter / X API Key (v2 OAuth)
+                  </label>
+                  <input
+                    type="password"
+                    value={twitterApiKey}
+                    onChange={(e) => setTwitterApiKey(e.target.value)}
+                    placeholder="API Key..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Twitter / X API Secret
+                  </label>
+                  <input
+                    type="password"
+                    value={twitterApiSecret}
+                    onChange={(e) => setTwitterApiSecret(e.target.value)}
+                    placeholder="API Secret..."
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                <Twitter className="w-3.5 h-3.5 text-sky-500" />
-                <span>Twitter / X</span>
-              </label>
-              <input
-                type="url"
-                value={twitterUrl}
-                onChange={(e) => setTwitterUrl(e.target.value)}
-                placeholder="https://x.com/erainspirasi"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                <Youtube className="w-3.5 h-3.5 text-red-600" />
-                <span>YouTube Channel</span>
-              </label>
-              <input
-                type="url"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://youtube.com/@erainspirasi"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                <span>No. WhatsApp Redaksi (62...)</span>
-              </label>
-              <input
-                type="text"
-                value={whatsappContact}
-                onChange={(e) => setWhatsappContact(e.target.value)}
-                placeholder="6281234567890"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
-              />
-            </div>
           </div>
         </div>
 
@@ -370,7 +666,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             className="px-8 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm shadow-xl shadow-rose-600/30 transition-all flex items-center gap-2 active:scale-95"
           >
             <Save className="w-5 h-5" />
-            <span>Simpan Semua Pengaturan Redaksi</span>
+            <span>Simpan Semua Pengaturan Redaksi & Database</span>
           </button>
         </div>
 

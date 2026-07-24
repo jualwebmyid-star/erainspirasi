@@ -21,7 +21,7 @@ import {
   ChevronRight,
   ArrowRight
 } from 'lucide-react';
-import { BlogPost, Comment, UserProfile } from '../types';
+import { BlogPost, Comment, UserProfile, SiteSettings } from '../types';
 
 interface ArticleDetailViewProps {
   post: BlogPost;
@@ -31,6 +31,7 @@ interface ArticleDetailViewProps {
   user: UserProfile;
   allPosts?: BlogPost[];
   onSelectPost?: (post: BlogPost) => void;
+  siteSettings?: SiteSettings;
 }
 
 export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
@@ -40,7 +41,8 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   onAddComment,
   user,
   allPosts,
-  onSelectPost
+  onSelectPost,
+  siteSettings
 }) => {
   const [likes, setLikes] = useState(post.likesCount);
   const [hasLiked, setHasLiked] = useState(false);
@@ -454,22 +456,37 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
           </div>
 
           {/* BANNER IKLAN SIDEBAR (300x250) */}
-          <div className="p-4 rounded-3xl border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-b from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 text-center space-y-3 shadow-xs">
-            <span className="px-2.5 py-1 bg-rose-600 text-white font-black text-[9px] rounded-md uppercase tracking-widest inline-block shadow-xs">
-              RUANG IKLAN SIDEBAR 300x250
-            </span>
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs">
-                Pasang Banner & Advertorial Artikel
-              </h4>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                Jangkau ratusan ribu pembaca aktif portal EraInspirasi setiap hari.
-              </p>
+          {siteSettings?.sidebarBanner?.isEnabled && siteSettings?.sidebarBanner?.imageUrl ? (
+            <a
+              href={siteSettings.sidebarBanner.targetUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-2 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:opacity-95 transition overflow-hidden"
+            >
+              <img
+                src={siteSettings.sidebarBanner.imageUrl}
+                alt={siteSettings.sidebarBanner.altText || 'Banner Sidebar'}
+                className="w-full h-auto max-h-[300px] object-cover rounded-2xl mx-auto"
+              />
+            </a>
+          ) : (
+            <div className="p-4 rounded-3xl border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-b from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 text-center space-y-3 shadow-xs">
+              <span className="px-2.5 py-1 bg-rose-600 text-white font-black text-[9px] rounded-md uppercase tracking-widest inline-block shadow-xs">
+                RUANG IKLAN SIDEBAR 300x250
+              </span>
+              <div className="space-y-1">
+                <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-xs">
+                  Pasang Banner & Advertorial Artikel
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Jangkau ratusan ribu pembaca aktif portal EraInspirasi setiap hari.
+                </p>
+              </div>
+              <button className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold rounded-xl shadow-md transition">
+                Hubungi Tim Redaksi →
+              </button>
             </div>
-            <button className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold rounded-xl shadow-md transition">
-              Hubungi Tim Redaksi →
-            </button>
-          </div>
+          )}
 
         </div>
 

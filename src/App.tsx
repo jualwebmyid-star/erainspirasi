@@ -425,6 +425,7 @@ export default function App() {
                   }}
                   onDeletePost={handleDeletePost}
                   onNavigateTab={(tab) => setCurrentTab(tab)}
+                  onImportWpPosts={handleBatchSavePosts}
                 />
               )}
 
@@ -518,6 +519,7 @@ export default function App() {
                     user={user}
                     allPosts={posts}
                     onSelectPost={handleSelectPostToRead}
+                    siteSettings={siteSettings}
                   />
                 ) : (
                   <BlogReaderView
@@ -592,6 +594,7 @@ export default function App() {
                 user={user}
                 allPosts={posts}
                 onSelectPost={handleSelectPostToRead}
+                siteSettings={siteSettings}
               />
             ) : (
 

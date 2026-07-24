@@ -204,24 +204,39 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Tempat Pasang Banner Header Sebelah Logo (Desktop Only: lg:flex) */}
-              <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-4 py-2 w-[520px] xl:w-[640px] h-[64px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="px-2 py-1 bg-rose-600 text-white font-black text-[10px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
-                    IKLAN 728x90
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 transition line-clamp-1">
-                      Ruang Iklan Banner Header Sebelah Logo
+              {siteSettings?.headerBanner?.isEnabled && siteSettings?.headerBanner?.imageUrl ? (
+                <a
+                  href={siteSettings.headerBanner.targetUrl || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden lg:flex items-center justify-center overflow-hidden rounded-2xl w-[520px] xl:w-[640px] h-[64px] border border-slate-200 dark:border-slate-800 shadow-sm hover:opacity-95 transition"
+                >
+                  <img
+                    src={siteSettings.headerBanner.imageUrl}
+                    alt={siteSettings.headerBanner.altText || 'Banner Header'}
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+              ) : (
+                <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-4 py-2 w-[520px] xl:w-[640px] h-[64px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="px-2 py-1 bg-rose-600 text-white font-black text-[10px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
+                      IKLAN 728x90
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1">
-                      Hubungi Redaksi EraInspirasi untuk Kerjasama Banner & Advertorial
+                    <div>
+                      <div className="font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 transition line-clamp-1">
+                        Ruang Iklan Banner Header Sebelah Logo
+                      </div>
+                      <div className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1">
+                        Hubungi Redaksi EraInspirasi untuk Kerjasama Banner & Advertorial
+                      </div>
                     </div>
                   </div>
+                  <span className="hidden xl:inline-block px-3 py-1.5 bg-rose-600 text-white text-[10px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
+                    Pasang Iklan →
+                  </span>
                 </div>
-                <span className="hidden xl:inline-block px-3 py-1.5 bg-rose-600 text-white text-[10px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
-                  Pasang Iklan →
-                </span>
-              </div>
+              )}
 
               {/* Action Tools & User Profile (Desktop: lg:flex) */}
               <div className="hidden lg:flex items-center gap-2 shrink-0">

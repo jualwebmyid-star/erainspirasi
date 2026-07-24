@@ -51,10 +51,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onOpenImageUploader,
 }) => {
   const [title, setTitle] = useState(initialPost?.title || '');
+  const [seoTitle, setSeoTitle] = useState(initialPost?.seoTitle || initialPost?.title || '');
   const [slug, setSlug] = useState(initialPost?.slug || '');
   const [category, setCategory] = useState(initialPost?.category || 'Teknologi');
   const [tagsInput, setTagsInput] = useState(initialPost?.tags.join(', ') || 'NextJS, AI, WebDev');
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || '');
+  const [seoDescription, setSeoDescription] = useState(
+    initialPost?.seoDescription || initialPost?.excerpt || ''
+  );
   const [content, setContent] = useState(
     initialPost?.content ||
       `# Judul Artikel Anda Di Sini\n\nTulis isi tulisan Anda secara visual atau menggunakan markdown di sini...\n\n## Subheading Pertama\n\n* Poin penting satu\n* Poin penting dua\n\n<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" style="width: 75%; display: block; margin: 16px auto;" alt="Ilustrasi Teknologi" />\n\nTuliskan kelanjutan paragraf artikel Anda di bawah gambar ini dengan nyaman.`
@@ -354,10 +358,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     onSavePost({
       id: initialPost?.id || `post-${Date.now()}`,
       title: title || 'Artikel Tanpa Judul',
+      seoTitle: seoTitle || title || 'Artikel Tanpa Judul',
       slug: slug || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
       category,
       tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
       excerpt: excerpt || title,
+      seoDescription: seoDescription || excerpt || title,
       content,
       coverImage,
       status,
@@ -943,16 +949,73 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               </button>
             </div>
 
-            {/* Excerpt */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-700/80">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Rangkuman / Meta Description</label>
-              <textarea
-                rows={3}
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Ringkasan singkat untuk Google Search & preview card..."
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none"
-              />
+            {/* Pengaturan SEO Meta Title & Description */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-700/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-rose-600 flex items-center gap-1">
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Meta Title & Meta Description SEO</span>
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">Google SERP Snippet</span>
+              </div>
+
+              {/* SERP Preview Card */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-1 text-left">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                  https://erainspirasi.com › {category.toLowerCase()} › {slug || 'judul-artikel'}
+                </div>
+                <div className="text-xs font-bold text-blue-600 dark:text-blue-400 line-clamp-1 hover:underline cursor-pointer">
+                  {seoTitle || title || 'Judul Meta SEO Artikel Anda'}
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                  {seoDescription || excerpt || 'Deskripsi meta ringkas artikel Anda akan tampil di snippet hasil pencarian Google...'}
+                </div>
+              </div>
+
+              {/* Meta Title Input */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Meta Title SEO</label>
+                  <span className={`text-[10px] font-bold ${
+                    seoTitle.length >= 50 && seoTitle.length <= 60
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {seoTitle.length} / 60 Karakter
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  placeholder="Meta Title khusus SEO..."
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              {/* Meta Description Input */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Meta Description SEO</label>
+                  <span className={`text-[10px] font-bold ${
+                    seoDescription.length >= 120 && seoDescription.length <= 160
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {seoDescription.length} / 160 Karakter
+                  </span>
+                </div>
+                <textarea
+                  rows={2}
+                  value={seoDescription}
+                  onChange={(e) => {
+                    setSeoDescription(e.target.value);
+                    setExcerpt(e.target.value);
+                  }}
+                  placeholder="Ringkasan khusus meta deskripsi Google (120-160 karakter)..."
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
             </div>
 
             {/* Tombol Publish Artikel Utama */}

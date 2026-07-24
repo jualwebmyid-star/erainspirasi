@@ -151,6 +151,13 @@ export interface StaticPageItem {
   location?: 'header' | 'footer' | 'both';
 }
 
+export interface BannerConfig {
+  imageUrl: string;
+  targetUrl: string;
+  altText: string;
+  isEnabled: boolean;
+}
+
 export interface SiteSettings {
   siteName: string;
   siteTagline: string;
@@ -162,5 +169,12 @@ export interface SiteSettings {
   twitterUrl?: string;
   youtubeUrl?: string;
   whatsappContact?: string;
+  headerBanner?: BannerConfig;
+  sidebarBanner?: BannerConfig;
+  facebookAppId?: string;
+  facebookPageAccessToken?: string;
+  twitterApiKey?: string;
+  twitterApiSecret?: string;
+  instagramAccessToken?: string;
 }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   PenTool, 
   FileText, 
@@ -11,9 +11,11 @@ import {
   Share2, 
   BarChart3, 
   Globe, 
-  Sparkles 
+  Sparkles,
+  Download
 } from 'lucide-react';
 import { BlogPost, Comment } from '../types';
+import { WordPressImporter } from './WordPressImporter';
 
 interface CmsDashboardProps {
   posts: BlogPost[];
@@ -21,6 +23,7 @@ interface CmsDashboardProps {
   onSelectPostToEdit: (post: BlogPost) => void;
   onDeletePost: (id: string) => void;
   onNavigateTab: (tab: 'editor' | 'social' | 'analytics' | 'seo') => void;
+  onImportWpPosts?: (posts: BlogPost[]) => void;
 }
 
 export const CmsDashboard: React.FC<CmsDashboardProps> = ({
@@ -29,7 +32,10 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   onSelectPostToEdit,
   onDeletePost,
   onNavigateTab,
+  onImportWpPosts,
 }) => {
+  const [showWpImporterModal, setShowWpImporterModal] = useState(false);
+
   const publishedCount = posts.filter((p) => p.status === 'published').length;
   const draftCount = posts.filter((p) => p.status === 'draft').length;
   const scheduledCount = posts.filter((p) => p.status === 'scheduled').length;
@@ -50,13 +56,23 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => onNavigateTab('editor')}
-          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center gap-2 shrink-0"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Tulis Artikel / Draf AI Baru</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <button
+            onClick={() => setShowWpImporterModal(true)}
+            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center gap-2 shrink-0"
+          >
+            <Download className="w-4 h-4" />
+            <span>Import dari WordPress</span>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('editor')}
+            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center gap-2 shrink-0"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Tulis Artikel / Draf AI Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Metrics Row */}
@@ -195,6 +211,24 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
           </table>
         </div>
       </div>
+
+      {/* WordPress Importer Modal */}
+      {showWpImporterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl my-8">
+            <WordPressImporter
+              onClose={() => setShowWpImporterModal(false)}
+              onImportPosts={(importedPosts) => {
+                if (onImportWpPosts) {
+                  onImportWpPosts(importedPosts);
+                }
+                setShowWpImporterModal(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
