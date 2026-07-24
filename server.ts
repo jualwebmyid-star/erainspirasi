@@ -1,8 +1,10 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
+import { createServer as createViteServer, ViteDevServer } from 'vite';
+import { INITIAL_POSTS } from './src/mockData';
 
 dotenv.config();
 
@@ -360,6 +362,53 @@ app.get(['/auth/callback', '/auth/callback/'], (_req, res) => {
   `);
 });
 
+// Helper to dynamically inject Open Graph (OG) meta tags into index.html for WhatsApp & Social Media Crawlers
+function getDynamicOgHtml(rawHtml: string, req: express.Request): string {
+  const postParam = (req.query.post || req.query.article || req.query.slug || req.query.p || '') as string;
+
+  let title = 'EraInspirasi - Portal Berita, Edukasi & Inspirasi';
+  let description = 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.';
+  let image = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80';
+
+  const host = req.get('host') || 'erainspirasi.com';
+  const protocol = req.protocol || 'https';
+  const fullUrl = `${protocol}://${host}${req.originalUrl}`;
+
+  if (postParam) {
+    const post = INITIAL_POSTS.find(
+      (p) => p.slug === postParam || p.id === postParam || p.slug.toLowerCase() === postParam.toLowerCase()
+    );
+
+    if (post) {
+      title = post.seoTitle || post.title;
+      description = post.seoDescription || post.excerpt || post.title;
+      image = post.coverImage || image;
+    } else {
+      const formattedSlugTitle = postParam
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+      title = `${formattedSlugTitle} - EraInspirasi`;
+      description = `Baca artikel "${formattedSlugTitle}" selengkapnya di portal EraInspirasi.`;
+    }
+  }
+
+  const safeTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeDesc = description.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  let html = rawHtml;
+  html = html.replace(/<title>.*?<\/title>/gi, `<title>${safeTitle}</title>`);
+  html = html.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, `<meta property="og:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, `<meta property="og:description" content="${safeDesc}" />`);
+  html = html.replace(/<meta\s+property="og:image"\s+content=".*?"\s*\/?>/gi, `<meta property="og:image" content="${image}" />`);
+  html = html.replace(/<meta\s+property="og:url"\s+content=".*?"\s*\/?>/gi, `<meta property="og:url" content="${fullUrl}" />`);
+
+  html = html.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:description" content="${safeDesc}" />`);
+  html = html.replace(/<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:image" content="${image}" />`);
+
+  return html;
+}
+
 // Serve frontend with Vite in dev mode or static files in production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
@@ -367,12 +416,39 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    // Intercept HTML requests to inject dynamic OG meta tags for social crawlers (WhatsApp, FB, etc.)
+    app.use(async (req, res, next) => {
+      const isHtmlReq = req.headers.accept?.includes('text/html') || req.path === '/';
+      const isSocialCrawler = /whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|discordbot/i.test(
+        req.headers['user-agent'] || ''
+      );
+
+      if (isHtmlReq && (req.query.post || req.query.article || req.query.slug || isSocialCrawler)) {
+        try {
+          const indexFilePath = path.join(process.cwd(), 'index.html');
+          let rawTemplate = fs.readFileSync(indexFilePath, 'utf-8');
+          rawTemplate = await vite.transformIndexHtml(req.originalUrl, rawTemplate);
+          const finalHtml = getDynamicOgHtml(rawTemplate, req);
+          return res.status(200).set({ 'Content-Type': 'text/html' }).send(finalHtml);
+        } catch (e) {
+          return next(e);
+        }
+      }
+      next();
+    });
+
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    app.use(express.static(distPath, { index: false }));
+    app.get('*', (req, res) => {
+      const indexPath = path.join(distPath, 'index.html');
+      let rawTemplate = fs.existsSync(indexPath)
+        ? fs.readFileSync(indexPath, 'utf-8')
+        : fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf-8');
+      const finalHtml = getDynamicOgHtml(rawTemplate, req);
+      res.status(200).set({ 'Content-Type': 'text/html' }).send(finalHtml);
     });
   }
 
