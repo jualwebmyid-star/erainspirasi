@@ -145,6 +145,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setContent(content.substring(0, start) + replacement + content.substring(end));
   };
 
+  // Helper to attach custom Gemini API key from settings if present
+  const getGeminiHeaders = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    try {
+      const saved = localStorage.getItem('erainspirasi_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.geminiApiKey) {
+          headers['x-gemini-api-key'] = parsed.geminiApiKey.trim();
+        }
+      }
+    } catch (e) {}
+    return headers;
+  };
+
   // 0. Auto Batch AI Content Generator & Scheduler
   const handleBatchGenerate = async () => {
     if (selectedBatchCategories.length === 0) return;
@@ -153,7 +168,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     try {
       const res = await fetch('/api/gemini/batch-generate-schedule', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getGeminiHeaders(),
         body: JSON.stringify({
           count: batchCount,
           categories: selectedBatchCategories,
@@ -168,9 +183,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         }
         setBatchNotification(`⚡ Berhasil membuat & menjadwalkan ${json.posts.length} artikel AI otomatis!`);
         setShowBatchModal(false);
+      } else if (json.error) {
+        alert(`Gagal Batch AI: ${json.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating batch AI articles:', err);
+      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal terhubung ke API AI.'}`);
     } finally {
       setIsBatchGenerating(false);
     }
@@ -184,7 +202,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     try {
       const res = await fetch('/api/gemini/generate-article', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getGeminiHeaders(),
         body: JSON.stringify({
           topic: aiTopic,
           category,
@@ -200,9 +218,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         if (json.data.tags) setTagsInput(json.data.tags.join(', '));
         setShowAiModal(false);
         setAiTopic('');
+      } else if (json.error) {
+        alert(`Gagal AI Generator: ${json.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal terhubung ke AI Generator.'}`);
     } finally {
       setIsAiGenerating(false);
     }
@@ -214,7 +235,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     try {
       const res = await fetch('/api/gemini/rewrite-spin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getGeminiHeaders(),
         body: JSON.stringify({
           content,
           tone: rewriteTone,
@@ -226,9 +247,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       if (json.success && json.rewrittenText) {
         setContent(json.rewrittenText);
         setShowRewriteModal(false);
+      } else if (json.error) {
+        alert(`Gagal AI Rewrite: ${json.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal AI Rewrite.'}`);
     } finally {
       setIsRewriting(false);
     }
@@ -240,7 +264,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     try {
       const res = await fetch('/api/gemini/detect-humanize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getGeminiHeaders(),
         body: JSON.stringify({ content }),
       });
 
@@ -253,9 +277,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         setHumanizeMessage(
           `✅ Berhasil meng-humanize artikel! Probabilitas AI turun menjadi ${json.aiScore}%. Gaya bahasa sekarang bernuansa alami & variatif.`
         );
+      } else if (json.error) {
+        alert(`Gagal AI Humanizer: ${json.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(`Terjadi kesalahan sistem: ${err?.message || 'Gagal AI Humanizer.'}`);
     } finally {
       setIsDetectingHumanizing(false);
     }

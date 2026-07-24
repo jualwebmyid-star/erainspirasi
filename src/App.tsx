@@ -146,15 +146,33 @@ export default function App() {
     return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  // User Profile Session - DEFAULT TO PUBLIC READER/GUEST FOR PORTAL VISITORS
-  const [user, setUser] = useState<UserProfile>({
-    id: 'usr-guest',
-    name: 'Pengunjung Portal',
-    email: 'pembaca@erainspirasi.com',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-    role: 'reader',
-    provider: 'guest',
+  // User Profile Session Persistence across refreshes
+  const [user, setUser] = useState<UserProfile>(() => {
+    const savedUser = localStorage.getItem('erainspirasi_user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.role) return parsed;
+      } catch (e) {}
+    }
+    return {
+      id: 'usr-guest',
+      name: 'Pengunjung Portal',
+      email: 'pembaca@erainspirasi.com',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      role: 'reader',
+      provider: 'guest',
+    };
   });
+
+  // Keep user session synced in localStorage
+  useEffect(() => {
+    if (user && user.role !== 'reader' && user.provider !== 'guest') {
+      localStorage.setItem('erainspirasi_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('erainspirasi_user');
+    }
+  }, [user]);
 
   // Users List State (Firebase & Google Auth RBAC)
   const [usersList, setUsersList] = useState<UserProfile[]>([

@@ -13,14 +13,20 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Initialize Gemini Client with mandatory telemetry header
-const getGeminiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is missing.');
+// Initialize Gemini Client with fallback to request header or body
+const getGeminiClient = (req?: express.Request) => {
+  const apiKey = 
+    req?.headers['x-gemini-api-key'] as string ||
+    req?.body?.geminiApiKey ||
+    process.env.GEMINI_API_KEY ||
+    process.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('GEMINI_API_KEY belum dikonfigurasi. Masukkan API Key di Pengaturan Admin atau file .env.');
   }
+
   return new GoogleGenAI({
-    apiKey,
+    apiKey: apiKey.trim(),
     httpOptions: {
       headers: {
         'User-Agent': 'aistudio-build',
@@ -43,7 +49,7 @@ app.post('/api/gemini/generate-article', async (req, res) => {
       return res.status(400).json({ error: 'Topik artikel wajib diisi.' });
     }
 
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Anda adalah penulis konten blog profesional Indonesia & spesialis SEO.
 Buatkan artikel blog lengkap berformat Markdown berdasarkan informasi berikut:
@@ -91,7 +97,7 @@ app.post('/api/gemini/rewrite-spin', async (req, res) => {
       return res.status(400).json({ error: 'Konten teks wajib disertakan.' });
     }
 
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Anda adalah seorang penyunting teks dan spesialis gaya bahasa Indonesia.
 Tugas Anda: Lakukan ${mode.toUpperCase()} (Rewrite / Article Spinning / Refinement) pada teks berikut dengan nada bicara: ${tone}.
@@ -133,7 +139,7 @@ app.post('/api/gemini/detect-humanize', async (req, res) => {
       return res.status(400).json({ error: 'Teks artikel wajib diisi.' });
     }
 
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Analisis teks artikel berikut dari segi probabilitas tulisan AI (AI Likelihood Score) dan sediakan versi "Humanized" yang bernuansa alami, memiliki variasi struktur kalimat, empati, serta ritme penulisan manusiawi.
 
@@ -174,7 +180,7 @@ app.post('/api/gemini/seo-optimize', async (req, res) => {
       return res.status(400).json({ error: 'Judul dan isi artikel wajib diisi.' });
     }
 
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Analisis artikel blog berikut dan hasilkan rekomendasi Meta SEO serta Structured Data Schema.org:
 Judul: "${title}"
@@ -223,7 +229,7 @@ Respon HANYA dalam format JSON:
 app.post('/api/gemini/generate-alt', async (req, res) => {
   try {
     const { imageName, topic } = req.body;
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Buatkan atribut ALT text SEO yang deskriptif dan ramah pembaca layar (screen reader) untuk gambar blog dengan nama file "${imageName}" dan konteks artikel "${topic || 'Teknologi Modern'}". Balas singkat dalam 1 kalimat (max 12 kata).`;
 
@@ -244,7 +250,7 @@ app.post('/api/gemini/batch-generate-schedule', async (req, res) => {
   try {
     const { count = 3, categories = ['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'], intervalHours = 3 } = req.body;
 
-    const ai = getGeminiClient();
+    const ai = getGeminiClient(req);
 
     const prompt = `Anda adalah sistem AI Auto-Content Creator untuk portal berita & blog berita Indonesia (EraInspirasi.com).
 Buatkan persis ${count} artikel berita/blog terkini yang variatif dari pilihan kategori berikut: ${categories.join(', ')}.
