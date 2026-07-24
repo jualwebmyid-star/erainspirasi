@@ -11,6 +11,7 @@ import {
   LogOut,
   Globe2,
   Menu,
+  LayoutGrid,
   X,
   ChevronRight
 } from 'lucide-react';
@@ -117,22 +118,67 @@ export const Header: React.FC<HeaderProps> = ({
 
   // PUBLIC FRONTEND HEADER (For Readers & Non-Admins)
   return (
-    <div className="w-full transition-colors duration-200">
+    <header className="contents">
       
-      {/* 1. STICKY TOP NAVBAR FOR MOBILE & DESKTOP (Menu, Logo, Search, Actions) */}
-      <nav className="sticky top-0 z-40 w-full shadow-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      {/* 1. DESKTOP TOP BAR (Laptop/Desktop Only: hidden lg:block) - Positioned AT THE VERY TOP */}
+      <div className="hidden lg:block bg-slate-900 text-slate-300 text-xs py-1.5 px-4 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          
+          <div className="flex items-center gap-3 overflow-hidden">
+            <span className="inline-flex items-center gap-1.5 text-slate-400 font-medium shrink-0">
+              <Calendar className="w-3.5 h-3.5 text-rose-500" />
+              <span>Kamis, 23 Juli 2026</span>
+            </span>
+
+            <div className="w-px h-3.5 bg-slate-700" />
+
+            {/* Ticker marquee / headline highlight */}
+            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+              <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs">
+                <Flame className="w-3 h-3 fill-current animate-pulse" />
+                HEADLINE
+              </span>
+              <span className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate">
+                Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-slate-400 shrink-0 text-xs">
+            <span className="text-slate-400 font-medium">{siteSettings?.siteTagline || 'Portal Berita, Edukasi & Inspirasi'}</span>
+            <div className="flex items-center gap-2 font-bold text-slate-300">
+              <a href={siteSettings?.instagramUrl || "#instagram"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">IG</a>
+              <span className="text-slate-600">•</span>
+              <a href={siteSettings?.youtubeUrl || "#youtube"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">YT</a>
+              <span className="text-slate-600">•</span>
+              <a href={siteSettings?.twitterUrl || "#x"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">X</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 2. STICKY TOP NAVBAR FOR MOBILE & DESKTOP (Menu, Logo, Search, Actions) */}
+      <nav className="sticky top-0 z-50 w-full shadow-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           <div className="flex items-center justify-between gap-3">
             
-            {/* Left: Burger Button & Brand Logo */}
+            {/* Left: Modern Burger Button & Brand Logo */}
             <div className="flex items-center gap-2.5 sm:gap-3">
-              {/* Mobile Hamburger Burger Button */}
+              {/* Sleek Modern Grid Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-rose-100 dark:hover:bg-rose-950/80 transition"
+                className="lg:hidden p-2 sm:p-2.5 rounded-2xl bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white shadow-md shadow-rose-600/30 active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                 title="Menu Utama Portal"
               >
-                <Menu className="w-5 h-5 text-rose-600" />
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5 text-white animate-in spin-in-90 duration-200" />
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <LayoutGrid className="w-5 h-5 text-white" />
+                    <span className="text-[11px] font-black uppercase tracking-wider hidden xs:inline">MENU</span>
+                  </div>
+                )}
               </button>
 
               {/* EraInspirasi Brand Logo */}
@@ -249,7 +295,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </nav>
 
-      {/* 2. NON-STICKY BANNER AD FOR MOBILE (Ditaruh dibawah logo/menu sticky) */}
+      {/* 3. NON-STICKY BANNER AD FOR MOBILE (Ditaruh dibawah logo/menu sticky) */}
       <div className="lg:hidden w-full bg-slate-100 dark:bg-slate-950 px-4 py-2 border-b border-slate-200 dark:border-slate-800">
         {siteSettings?.headerBanner?.isEnabled && siteSettings?.headerBanner?.imageUrl ? (
           <a
@@ -286,41 +332,16 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* 3. NON-STICKY HEADLINE / BREAKING NEWS TICKER BAR (Ditaruh dibawah banner, TIDAK STICKY) */}
-      <div className="bg-slate-900 text-slate-300 text-[11px] sm:text-xs py-1.5 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          
-          <div className="flex items-center gap-3 overflow-hidden w-full sm:w-auto">
-            <span className="hidden sm:inline-flex items-center gap-1 text-slate-400 font-medium shrink-0">
-              <Calendar className="w-3.5 h-3.5 text-rose-500" />
-              <span>Kamis, 23 Juli 2026</span>
-            </span>
-
-            <div className="hidden sm:block w-px h-3 bg-slate-700" />
-
-            {/* Ticker marquee / headline highlight */}
-            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap w-full">
-              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1">
-                <Flame className="w-3 h-3 fill-current" />
-                HEADLINE
-              </span>
-              <span className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate">
-                Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-              </span>
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4 text-slate-400 shrink-0">
-            <span className="text-[11px] text-slate-400 font-medium">Portal Berita, Edukasi & Inspirasi</span>
-            <div className="flex items-center gap-2">
-              <a href={siteSettings?.instagramUrl || "#instagram"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">IG</a>
-              <span>•</span>
-              <a href={siteSettings?.youtubeUrl || "#youtube"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">YT</a>
-              <span>•</span>
-              <a href={siteSettings?.twitterUrl || "#x"} target="_blank" rel="noreferrer" className="hover:text-rose-400 transition">X</a>
-            </div>
-          </div>
-
+      {/* 4. MOBILE HEADLINE TICKER BAR (Mobile HP Only: lg:hidden) - Positioned below Sticky Nav & Banner */}
+      <div className="lg:hidden bg-slate-900 text-slate-300 text-[11px] py-1.5 px-3 border-b border-slate-800">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[9px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs">
+            <Flame className="w-3 h-3 fill-current animate-pulse" />
+            HEADLINE
+          </span>
+          <span className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate text-[11px]">
+            Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
+          </span>
         </div>
       </div>
 
@@ -502,7 +523,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
-    </div>
+    </header>
   );
 };
 

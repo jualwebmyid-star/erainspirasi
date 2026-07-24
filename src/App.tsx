@@ -594,7 +594,7 @@ export default function App() {
           />
 
           {/* Right Main Content Panel */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+          <div className="flex-1 flex flex-col min-w-0 overflow-x-clip">
             <Header
               currentTab={currentTab}
               setCurrentTab={(tab) => {
