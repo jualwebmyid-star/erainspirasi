@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -22,6 +22,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { BlogPost, Comment, UserProfile, SiteSettings } from '../types';
+import { updateOpenGraphTags } from '../utils/seo';
+import { OpenGraphPreview } from './OpenGraphPreview';
 
 interface ArticleDetailViewProps {
   post: BlogPost;
@@ -88,6 +90,20 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}${window.location.pathname}?post=${post.slug || post.id}`
     : `https://erainspirasi.com/?post=${post.slug || post.id}`;
+
+  // Automatically update Open Graph (OG) meta tags in document head for social media sharing
+  useEffect(() => {
+    updateOpenGraphTags({
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.excerpt || post.title,
+      image: post.coverImage,
+      url: shareUrl,
+      type: 'article',
+      siteName: siteSettings?.siteName || 'EraInspirasi Portal',
+      author: post.author.name,
+      publishedTime: post.publishedAt,
+    });
+  }, [post, shareUrl, siteSettings]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -342,6 +358,9 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Live Open Graph Social Media Card Preview */}
+            <OpenGraphPreview post={post} customUrl={shareUrl} />
           </div>
 
           {/* RELATED ARTICLES SECTION (3 Columns) */}

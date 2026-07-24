@@ -19,6 +19,7 @@ import { PushNotificationModal } from './components/PushNotificationModal';
 import { ImageUploaderModal } from './components/ImageUploaderModal';
 import { SearchModal } from './components/SearchModal';
 import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
+import { updateOpenGraphTags } from './utils/seo';
 
 import { 
   INITIAL_POSTS, 
@@ -243,8 +244,18 @@ export default function App() {
       if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
         setSelectedPost(matched);
       }
+    } else if (!selectedPost) {
+      // Default Portal Home Page Open Graph Tags
+      updateOpenGraphTags({
+        title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
+        description: siteSettings.siteTagline || 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.',
+        image: siteSettings.logoUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://erainspirasi.com',
+        type: 'website',
+        siteName: siteSettings.siteName || 'EraInspirasi Portal',
+      });
     }
-  }, [posts]);
+  }, [posts, selectedPost, siteSettings]);
 
   // Handlers
   const handleLogout = () => {

@@ -39,6 +39,7 @@ import {
   Share2
 } from 'lucide-react';
 import { BlogPost } from '../types';
+import { OpenGraphPreview } from './OpenGraphPreview';
 
 interface MarkdownEditorProps {
   initialPost?: BlogPost | null;
@@ -1091,6 +1092,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   }}
                   placeholder="Ringkasan khusus meta deskripsi Google (120-160 karakter)..."
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              {/* Live Open Graph (OG) Social Media Card Preview */}
+              <div className="pt-2">
+                <OpenGraphPreview
+                  post={{
+                    title,
+                    seoTitle,
+                    excerpt,
+                    seoDescription,
+                    coverImage,
+                    slug: currentCleanSlug,
+                  }}
+                  customUrl={fullShareablePermalink}
                 />
               </div>
             </div>
