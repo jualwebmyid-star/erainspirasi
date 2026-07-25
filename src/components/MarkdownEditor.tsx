@@ -3,6 +3,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { 
+  batchGenerateDirect, 
+  generateArticleDirect, 
+  rewriteSpinDirect, 
+  detectHumanizeDirect 
+} from '../services/geminiClient';
+import { 
   Sparkles, 
   RefreshCw, 
   CheckCircle, 
@@ -196,27 +202,48 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const handleBatchGenerate = async () => {
     if (selectedBatchCategories.length === 0) return;
     setIsBatchGenerating(true);
+    const apiKey = getGeminiApiKey();
 
     try {
-      const json = await safeFetchJson('/api/gemini/batch-generate-schedule', {
-        method: 'POST',
-        headers: getGeminiHeaders(),
-        body: JSON.stringify({
-          geminiApiKey: getGeminiApiKey(),
-          count: batchCount,
-          categories: selectedBatchCategories,
-          intervalHours: batchIntervalHours,
-        }),
-      });
-
-      if (json.success && json.posts && json.posts.length > 0) {
-        if (onBatchSavePosts) {
-          onBatchSavePosts(json.posts);
+      let posts: any[] = [];
+      try {
+        const json = await safeFetchJson('/api/gemini/batch-generate-schedule', {
+          method: 'POST',
+          headers: getGeminiHeaders(),
+          body: JSON.stringify({
+            geminiApiKey: apiKey,
+            count: batchCount,
+            categories: selectedBatchCategories,
+            intervalHours: batchIntervalHours,
+          }),
+        });
+        if (json.success && json.posts) {
+          posts = json.posts;
         }
-        setBatchNotification(`⚡ Berhasil membuat & menjadwalkan ${json.posts.length} artikel AI otomatis!`);
+      } catch (backendErr) {
+        console.warn('Backend batch AI failed/404, using direct client fallback:', backendErr);
+        if (apiKey) {
+          const directRes = await batchGenerateDirect(apiKey, {
+            count: batchCount,
+            categories: selectedBatchCategories,
+            intervalHours: batchIntervalHours,
+          });
+          if (directRes.success && directRes.posts) {
+            posts = directRes.posts;
+          }
+        } else {
+          throw backendErr;
+        }
+      }
+
+      if (posts.length > 0) {
+        if (onBatchSavePosts) {
+          onBatchSavePosts(posts);
+        }
+        setBatchNotification(`⚡ Berhasil membuat & menjadwalkan ${posts.length} artikel AI otomatis!`);
         setShowBatchModal(false);
-      } else if (json.error) {
-        alert(`Gagal Batch AI: ${json.error}`);
+      } else {
+        alert(`Gagal Batch AI: Tidak ada artikel yang dihasilkan.`);
       }
     } catch (err: any) {
       console.error('Error generating batch AI articles:', err);
@@ -230,28 +257,53 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const handleGenerateAiArticle = async () => {
     if (!aiTopic.trim()) return;
     setIsAiGenerating(true);
+    const apiKey = getGeminiApiKey();
 
     try {
-      const json = await safeFetchJson('/api/gemini/generate-article', {
-        method: 'POST',
-        headers: getGeminiHeaders(),
-        body: JSON.stringify({
-          geminiApiKey: getGeminiApiKey(),
-          topic: aiTopic,
-          category,
-          keywords: tagsInput.split(',').map((t) => t.trim()),
-        }),
-      });
+      let articleData: any = null;
+      try {
+        const json = await safeFetchJson('/api/gemini/generate-article', {
+          method: 'POST',
+          headers: getGeminiHeaders(),
+          body: JSON.stringify({
+            geminiApiKey: apiKey,
+            topic: aiTopic,
+            category,
+            keywords: tagsInput.split(',').map((t) => t.trim()),
+          }),
+        });
+        if (json.success) {
+          articleData = json.data || json;
+        }
+      } catch (backendErr) {
+        console.warn('Backend AI generate article failed/404, using direct client fallback:', backendErr);
+        if (apiKey) {
+          const directRes = await generateArticleDirect(apiKey, {
+            topic: aiTopic,
+            category,
+            keywords: tagsInput.split(',').map((t) => t.trim()),
+          });
+          if (directRes.success) {
+            articleData = directRes;
+          }
+        } else {
+          throw backendErr;
+        }
+      }
 
-      if (json.success && json.data) {
-        setTitle(json.data.title || title);
-        setExcerpt(json.data.excerpt || excerpt);
-        setContent(json.data.content || content);
-        if (json.data.tags) setTagsInput(json.data.tags.join(', '));
+      if (articleData) {
+        setTitle(articleData.title || title);
+        setExcerpt(articleData.excerpt || excerpt);
+        setContent(articleData.content || content);
+        if (articleData.tags && Array.isArray(articleData.tags)) {
+          setTagsInput(articleData.tags.join(', '));
+        }
+        if (articleData.seoTitle) setSeoTitle(articleData.seoTitle);
+        if (articleData.seoDescription) setSeoDescription(articleData.seoDescription);
         setShowAiModal(false);
         setAiTopic('');
-      } else if (json.error) {
-        alert(`Gagal AI Generator: ${json.error}`);
+      } else {
+        alert(`Gagal AI Generator.`);
       }
     } catch (err: any) {
       console.error(err);
@@ -264,23 +316,45 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // 2. AI Rewrite / Spinning
   const handleRewriteSpin = async () => {
     setIsRewriting(true);
-    try {
-      const json = await safeFetchJson('/api/gemini/rewrite-spin', {
-        method: 'POST',
-        headers: getGeminiHeaders(),
-        body: JSON.stringify({
-          geminiApiKey: getGeminiApiKey(),
-          content,
-          tone: rewriteTone,
-          mode: 'rewrite',
-        }),
-      });
+    const apiKey = getGeminiApiKey();
 
-      if (json.success && json.rewrittenText) {
-        setContent(json.rewrittenText);
+    try {
+      let resultText = '';
+      try {
+        const json = await safeFetchJson('/api/gemini/rewrite-spin', {
+          method: 'POST',
+          headers: getGeminiHeaders(),
+          body: JSON.stringify({
+            geminiApiKey: apiKey,
+            content,
+            tone: rewriteTone,
+            mode: 'rewrite',
+          }),
+        });
+        if (json.success && (json.rewrittenText || json.result)) {
+          resultText = json.rewrittenText || json.result;
+        }
+      } catch (backendErr) {
+        console.warn('Backend rewrite failed/404, using direct client fallback:', backendErr);
+        if (apiKey) {
+          const directRes = await rewriteSpinDirect(apiKey, {
+            content,
+            tone: rewriteTone,
+            mode: 'rewrite',
+          });
+          if (directRes.success && directRes.result) {
+            resultText = directRes.result;
+          }
+        } else {
+          throw backendErr;
+        }
+      }
+
+      if (resultText) {
+        setContent(resultText);
         setShowRewriteModal(false);
-      } else if (json.error) {
-        alert(`Gagal AI Rewrite: ${json.error}`);
+      } else {
+        alert(`Gagal AI Rewrite.`);
       }
     } catch (err: any) {
       console.error(err);
@@ -293,26 +367,44 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // 3. AI Detect & Humanize
   const handleDetectHumanize = async () => {
     setIsDetectingHumanizing(true);
-    try {
-      const json = await safeFetchJson('/api/gemini/detect-humanize', {
-        method: 'POST',
-        headers: getGeminiHeaders(),
-        body: JSON.stringify({ 
-          geminiApiKey: getGeminiApiKey(),
-          content 
-        }),
-      });
+    const apiKey = getGeminiApiKey();
 
-      if (json.success) {
-        setAiScore(json.aiScore);
-        if (json.humanizedContent) {
-          setContent(json.humanizedContent);
+    try {
+      let resData: any = null;
+      try {
+        const json = await safeFetchJson('/api/gemini/detect-humanize', {
+          method: 'POST',
+          headers: getGeminiHeaders(),
+          body: JSON.stringify({ 
+            geminiApiKey: apiKey,
+            content 
+          }),
+        });
+        if (json.success) {
+          resData = json;
+        }
+      } catch (backendErr) {
+        console.warn('Backend humanize failed/404, using direct client fallback:', backendErr);
+        if (apiKey) {
+          const directRes = await detectHumanizeDirect(apiKey, { content });
+          if (directRes.success) {
+            resData = directRes;
+          }
+        } else {
+          throw backendErr;
+        }
+      }
+
+      if (resData) {
+        setAiScore(resData.aiScore);
+        if (resData.humanizedContent) {
+          setContent(resData.humanizedContent);
         }
         setHumanizeMessage(
-          `✅ Berhasil meng-humanize artikel! Probabilitas AI turun menjadi ${json.aiScore}%. Gaya bahasa sekarang bernuansa alami & variatif.`
+          `✅ Berhasil meng-humanize artikel! Probabilitas AI turun menjadi ${resData.aiScore}%. Gaya bahasa sekarang bernuansa alami & variatif.`
         );
-      } else if (json.error) {
-        alert(`Gagal AI Humanizer: ${json.error}`);
+      } else {
+        alert(`Gagal AI Humanizer.`);
       }
     } catch (err: any) {
       console.error(err);

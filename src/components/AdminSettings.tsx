@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { testGeminiKeyDirect } from '../services/geminiClient';
 import { 
   Settings, 
   Upload, 
@@ -137,7 +138,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         json = JSON.parse(text);
       } catch (e) {
         console.error('Non-JSON server response:', text);
-        json = { error: `Respon server tidak valid (${res.status})` };
       }
 
       if (res.ok && json.success) {
@@ -146,16 +146,34 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           message: `✅ ${json.message} (Respon Gemini: "${json.sample || 'OK'}")`,
         });
       } else {
-        setTestGeminiResult({
-          success: false,
-          message: `❌ ${json.error || 'Gagal terhubung ke Google Gemini API.'}`,
-        });
+        // Fallback to direct client-side test if backend API route is 404/unavailable (e.g. Vercel static)
+        try {
+          const directRes = await testGeminiKeyDirect(keyToTest);
+          setTestGeminiResult({
+            success: true,
+            message: `✅ ${directRes.message} (Respon Gemini: "${directRes.sample || 'OK'}")`,
+          });
+        } catch (directErr: any) {
+          setTestGeminiResult({
+            success: false,
+            message: `❌ ${json.error || directErr?.message || 'Gagal terhubung ke Google Gemini API.'}`,
+          });
+        }
       }
     } catch (e: any) {
-      setTestGeminiResult({
-        success: false,
-        message: `❌ Kesalahan Jaringan: ${e?.message || 'Gagal terhubung ke server.'}`,
-      });
+      // Fallback on network error (e.g. static site)
+      try {
+        const directRes = await testGeminiKeyDirect(keyToTest);
+        setTestGeminiResult({
+          success: true,
+          message: `✅ ${directRes.message} (Respon Gemini: "${directRes.sample || 'OK'}")`,
+        });
+      } catch (directErr: any) {
+        setTestGeminiResult({
+          success: false,
+          message: `❌ Kesalahan: ${directErr?.message || e?.message || 'Gagal terhubung ke server.'}`,
+        });
+      }
     } finally {
       setIsTestingGemini(false);
     }

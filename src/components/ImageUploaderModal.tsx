@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, Check, Sparkles, Image as ImageIcon, Sliders, Zap, Link as LinkIcon, RefreshCw } from 'lucide-react';
+import { generateAltDirect } from '../services/geminiClient';
 
 interface ImageUploaderModalProps {
   isOpen: boolean;
@@ -129,24 +130,41 @@ export const ImageUploaderModal: React.FC<ImageUploaderModalProps> = ({
 
   const handleGenerateAltWithAi = async () => {
     setIsGeneratingAlt(true);
+    let apiKey = '';
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       const saved = localStorage.getItem('erainspirasi_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.geminiApiKey) {
-          headers['x-gemini-api-key'] = parsed.geminiApiKey.trim();
+          apiKey = parsed.geminiApiKey.trim();
+          headers['x-gemini-api-key'] = apiKey;
         }
       }
 
-      const res = await fetch('/api/gemini/generate-alt', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ imageName, topic: generatedAlt })
-      });
-      const data = await res.json();
-      if (data.altText) {
-        setGeneratedAlt(data.altText);
+      let altResult = '';
+      try {
+        const res = await fetch('/api/gemini/generate-alt', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ imageName, topic: generatedAlt })
+        });
+        const data = await res.json();
+        if (data && data.altText) {
+          altResult = data.altText;
+        }
+      } catch (backendErr) {
+        console.warn('Backend alt text generation failed/404, using client direct fallback:', backendErr);
+        if (apiKey) {
+          const directRes = await generateAltDirect(apiKey, { imageName, topic: generatedAlt });
+          if (directRes && directRes.altText) {
+            altResult = directRes.altText;
+          }
+        }
+      }
+
+      if (altResult) {
+        setGeneratedAlt(altResult);
       }
     } catch (err) {
       console.error(err);

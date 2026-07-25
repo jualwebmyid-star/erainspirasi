@@ -522,9 +522,13 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server Lumina Blog & AI Content OS berjalan di http://0.0.0.0:${PORT}`);
-  });
+  if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server Lumina Blog & AI Content OS berjalan di http://0.0.0.0:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+export default app;
