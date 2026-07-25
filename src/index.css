@@ -21,6 +21,56 @@
   }
 }
 
+/* Pure CSS Anti-Copy Protection (Works 100% EVEN WHEN BROWSER JAVASCRIPT IS DISABLED) */
+.copy-protected,
+.article-content,
+article.prose,
+.no-copy {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Prevent image dragging and context menu on images */
+.copy-protected img,
+.article-content img,
+article.prose img {
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  pointer-events: none !important;
+}
+
+/* Disable text selection highlight styling */
+.copy-protected ::selection,
+.article-content ::selection,
+article.prose ::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.copy-protected ::-moz-selection,
+.article-content ::-moz-selection,
+article.prose ::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Print Protection: Hide protected article content when user attempts to print page to PDF */
+@media print {
+  .copy-protected,
+  .article-content,
+  article.prose {
+    display: none !important;
+  }
+  body::before {
+    content: "DILARANG MENCETAK ATAU MENYALIN ARTIKEL ERAINSPIRASI. KONTEN DILINDUNGI HAK CIPTA.";
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+  }
+}
+
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -39,4 +89,5 @@ html.dark ::-webkit-scrollbar-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: #e11d48;
 }
+
 

@@ -103,20 +103,32 @@ apiRouter.post(['/gemini/generate-article', '/gemini/generate-article/'], async 
 
     const ai = getGeminiClient(req);
 
-    const prompt = `Anda adalah penulis konten blog profesional Indonesia & spesialis SEO.
-Buatkan artikel blog lengkap berformat Markdown berdasarkan informasi berikut:
+    const prompt = `Anda adalah Redaktur Utama Jurnalisme Berita Pers Nasional & Pakar SEO Indonesia.
+Buatkan artikel berita berformat pers standar profesional Indonesia berdasarkan informasi berikut:
 Topik: "${topic}"
-Kategori: "${category || 'Teknologi'}"
-Nada Bicara (Tone): "${tone}"
-Kata Kunci Utama: ${keywords.join(', ') || 'terkait topik'}
+Kategori: "${category || 'Nasional'}"
+Gaya Bahasa: "${tone}"
+Kata Kunci Utama: ${keywords.join(', ') || 'terkait berita'}
+
+PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
+1. LEAD BERITA (Dateline & 5W+1H):
+   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi dalam cetak tebal, contoh:
+   "**JAKARTA, ERAINSPIRASI** — [Paragraf utama memuat unsur 5W+1H (Who, What, Where, When, Why, How) secara padat dan lugas]."
+2. STRUKTUR PIRAMIDA TERBALIK (Inverted Pyramid):
+   - Paragraf awal memuat fakta utama.
+   - Paragraf tengah memuat fakta detail & kutipan langsung dari narasumber/pakar (*"..." ujar...* atau *"..." kata...*).
+   - Paragraf akhir memuat latar belakang & penutup berita.
+3. LINK OTOMATIS:
+   - Sisipkan minimal 1-2 link internal markdown yang relevan ke kategori/portal, misal: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
+   - Sisipkan minimal 1-2 link eksternal markdown ke sumber otoritas tepercaya, misal: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\` atau \`[Informasi Google News](https://news.google.com)\` atau \`[Portal BMKG](https://www.bmkg.go.id)\` atau \`[Kemendikbud](https://www.kemendikbud.go.id)\`.
 
 Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 {
-  "title": "Judul Artikel yang Menarik & SEO Friendly (50-60 karakter)",
-  "excerpt": "Ringkasan/Rangkuman singkat (120-150 karakter)",
-  "content": "Isi lengkap artikel berformat Markdown dengan beberapa Subheading (H2, H3), list bullet/number, blockquote, dan blok kode (bila relevan). Minimal 400 kata.",
+  "title": "Judul Berita Faktual & SEO Friendly (50-70 karakter)",
+  "excerpt": "Ringkasan berita 2 kalimat lugas (120-150 karakter)",
+  "content": "Isi lengkap berita berformat Markdown sesuai instruksi pers di atas (minimal 450 kata).",
   "tags": ["tag1", "tag2", "tag3"],
-  "seoTitle": "Meta Title SEO",
+  "seoTitle": "Meta Title SEO Berisi Kata Kunci Utama",
   "seoDescription": "Meta Description SEO yang relevan",
   "seoKeywords": ["keyword1", "keyword2", "keyword3"],
   "readingTime": 4
@@ -304,19 +316,26 @@ apiRouter.post(['/gemini/batch-generate-schedule', '/gemini/batch-generate-sched
 
     const ai = getGeminiClient(req);
 
-    const prompt = `Anda adalah sistem AI Auto-Content Creator untuk portal berita & blog berita Indonesia (EraInspirasi.com).
-Buatkan persis ${count} artikel berita/blog terkini yang variatif dari pilihan kategori berikut: ${categories.join(', ')}.
-Setiap artikel harus ditulis secara mendalam, santun, terverifikasi, dan bebas frasa AI klise.
+    const prompt = `Anda adalah sistem Redaksi AI Auto-Content Creator untuk portal berita pers Indonesia (EraInspirasi.com).
+Buatkan persis ${count} artikel berita pers standar jurnalistik yang bervariasi secara otomatis dari pilihan kategori berikut: ${categories.join(', ')}.
+
+PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
+1. LEAD & DATELINE (5W+1H): Setiap artikel diawali dengan dateline cetak tebal, misal: "**JAKARTA, ERAINSPIRASI** — ..." atau "**SURABAYA, ERAINSPIRASI** — ..." dengan prinsip 5W+1H di paragraf pertama.
+2. PIRAMIDA TERBALIK: Fakta utama di awal, kutipan narasumber/pakar di tengah (*"..." kata/ujar...*), latar belakang di akhir.
+3. LINK OTOMATIS:
+   - Minimal 1 link internal markdown seperti \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan lengkap ekonomi](/kategori/ekonomi)\`.
+   - Minimal 1 link eksternal markdown ke sumber otoritas resmi seperti \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Portal Google News](https://news.google.com)\`, atau \`[Data BMKG](https://www.bmkg.go.id)\`.
+4. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan) dan BUKAN hanya tentang teknologi web.
 
 Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
 [
   {
-    "title": "Judul Artikel yang Menarik & SEO Friendly",
-    "excerpt": "Ringkasan artikel 2-3 kalimat",
-    "content": "Isi artikel lengkap berformat Markdown dengan beberapa H2, H3, poin bullet, dan paragraf informatif (minimal 350 kata). Sertakan pula 1 tag gambar markdown seperti: <img src=\\"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80\\" style=\\"width: 75%; display: block; margin: 16px auto; rounded-xl\\" alt=\\"Ilustrasi Topik\\" />",
+    "title": "Judul Berita Faktual & SEO Friendly",
+    "excerpt": "Ringkasan berita 2-3 kalimat",
+    "content": "Isi artikel berita lengkap berformat Markdown dengan H2, H3, poin bullet, dan paragraf informatif (minimal 400 kata). Sertakan pula 1 tag gambar markdown seperti: <img src=\\"https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80\\" style=\\"width: 75%; display: block; margin: 16px auto; rounded-xl\\" alt=\\"Ilustrasi Berita\\" />",
     "category": "Salah satu kategori pilihan di atas",
     "tags": ["tag1", "tag2", "tag3"],
-    "coverImage": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80",
     "readingTime": 4
   }
 ]`;

@@ -25,19 +25,35 @@ export async function testGeminiKeyDirect(apiKey: string) {
 }
 
 export async function generateArticleDirect(apiKey: string, body: { topic: string; category?: string; tone?: string; keywords?: string[] }) {
-  const { topic, category = 'Umum', tone = 'Informatif & Engaging', keywords = [] } = body;
+  const { topic, category = 'Umum', tone = 'Informatif & Journalistic', keywords = [] } = body;
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Anda adalah seorang Penulis Artikel SEO Profesional dan Jurnalis Senior. Buatlah artikel blog yang sangat menarik, mendalam, dan kaya informasi tentang topik: "${topic}".
+  const prompt = `Anda adalah seorang Redaktur Utama Jurnalisme Berita Pers Nasional dan Pakar SEO. Buatkan artikel berita berformat pers standar profesional Indonesia mengenai topik: "${topic}".
 Kategori: "${category}".
-Gaya Bahasa/Tone: "${tone}".
-Kata Kunci SEO yang wajib dimasukkan secara natural: ${keywords.length > 0 ? keywords.join(', ') : 'sesuaikan dengan topik'}.
+Gaya Bahasa: "${tone}".
+Kata Kunci SEO: ${keywords.length > 0 ? keywords.join(', ') : 'sesuaikan dengan topik'}.
 
-Format keluaran HARUS dalam JSON valid dengan struktur persis seperti ini (tanpa markdown tambahan):
+PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
+1. LEAD BERITA (Dateline & 5W+1H):
+   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi dalam cetak tebal, contoh:
+   "**JAKARTA, ERAINSPIRASI** — [Paragraf utama memuat unsur 5W+1H (Who, What, Where, When, Why, How) secara padat dan lugas]."
+2. STRUKTUR PIRAMIDA TERBALIK (Inverted Pyramid):
+   - Paragraf awal memuat fakta paling utama.
+   - Paragraf tengah memuat fakta detail & kutipan langsung dari narasumber/pakar (menggunakan format: *"..." ujar...* atau *"..." kata...*).
+   - Paragraf akhir memuat konteks historis, latar belakang, dan penutup berita.
+3. KANONIKAL & LINK OTOMATIS:
+   - SISIPKAN MINIMAL 1-2 LINK INTERNAL markdown yang relevan mengarah ke kategori atau portal terkait, contoh:
+     \`[baca juga berita nasional terkait](/kategori/nasional)\` atau \`[ulasan lengkap seputar ekonomi](/kategori/ekonomi)\` atau \`[artikel pilihan di EraInspirasi](/kategori/politik)\`.
+   - SISIPKAN MINIMAL 1-2 LINK EKSTERNAL markdown berkualitas ke situs otoritas/sumber resmi tepercaya, contoh:
+     \`[Sumber Resmi Wikipedia](https://id.wikipedia.org)\` atau \`[Informasi Google News](https://news.google.com)\` atau \`[Data BMKG](https://www.bmkg.go.id)\` atau \`[Portal Kemendikbud](https://www.kemendikbud.go.id)\` atau \`[Layanan Kominfo](https://www.kominfo.go.id)\`.
+4. FORMAT MARKDOWN:
+   Gunakan H2, H3, poin bullet jika relevan, serta cetak tebal pada istilah penting. Minimal 450-700 kata.
+
+Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus tambahan):
 {
-  "title": "Judul Artikel yang Sangat Menarik dan Clickable (60-70 karakter)",
-  "content": "Isi artikel lengkap dalam format Markdown dengan Heading (H2, H3), bullet points, bold, dan paragraf rapi (minimal 400-600 kata).",
-  "excerpt": "Ringkasan artikel 2 kalimat singkat (120-150 karakter) untuk deskripsi meta.",
+  "title": "Judul Berita yang Faktual, Menarik, dan SEO Friendly (60-70 karakter)",
+  "content": "Isi lengkap berita berformat Markdown sesuai instruksi pers di atas.",
+  "excerpt": "Ringkasan berita 2 kalimat lugas (120-150 karakter) untuk deskripsi meta.",
   "category": "${category}",
   "tags": ["Tag1", "Tag2", "Tag3"],
   "seoTitle": "Judul Meta SEO Berisi Kata Kunci Utama",
@@ -171,19 +187,31 @@ export async function generateAltDirect(apiKey: string, body: { imageName: strin
 }
 
 export async function batchGenerateDirect(apiKey: string, body: { count?: number; categories?: string[]; intervalHours?: number }) {
-  const { count = 3, categories = ['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM'], intervalHours = 3 } = body;
+  const { 
+    count = 3, 
+    categories = ['Nasional', 'Politik', 'Ekonomi & Bisnis', 'Teknologi', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan'], 
+    intervalHours = 3 
+  } = body;
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Hasilkan ${count} artikel blog berkualitas tinggi secara otomatis.
-Pilih topik dari kategori berikut: ${categories.join(', ')}.
+  const prompt = `Anda adalah sistem Redaksi AI Auto-Scheduler Berita Pers Indonesia (EraInspirasi.com).
+Hasilkan persis ${count} artikel berita standar jurnalistik nasional yang bervariasi secara otomatis dari pilihan kategori berikut: ${categories.join(', ')}.
+
+PETUNJUK FORMAT BERITA STANDAR PERS & JURNALISTIK:
+1. LEAD & DATELINE (5W+1H): Setiap artikel diawali dengan dateline cetak tebal, misal: "**JAKARTA, ERAINSPIRASI** — ..." atau "**BANDUNG, ERAINSPIRASI** — ..." dengan prinsip 5W+1H di paragraf pertama.
+2. PIRAMIDA TERBALIK: Fakta utama di awal, kutipan narasumber/pakar di tengah (*"..." kata...*), latar belakang & konteks di akhir.
+3. LINK OTOMATIS:
+   - Minimal 1 link internal markdown seperti \`[baca selengkapnya di kategori terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
+   - Minimal 1 link eksternal markdown ke sumber otoritas resmi seperti \`[Sumber Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Portal Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
+4. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan) dan BUKAN hanya tentang teknologi web.
 
 Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
 [
   {
-    "title": "Judul Artikel 1",
-    "content": "Isi artikel lengkap format Markdown...",
-    "excerpt": "Ringkasan 2 kalimat...",
-    "category": "${categories[0] || 'Teknologi'}",
+    "title": "Judul Berita Faktual & SEO Friendly",
+    "content": "Isi artikel berita lengkap format Markdown sesuai aturan pers...",
+    "excerpt": "Ringkasan berita 2 kalimat...",
+    "category": "${categories[0] || 'Nasional'}",
     "tags": ["Tag1", "Tag2"],
     "seoTitle": "Judul SEO Meta",
     "seoDescription": "Deskripsi SEO Meta"
@@ -201,8 +229,8 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
   const parsedArray = cleanJsonResponse(response.text || '[]');
   const now = new Date();
   const sampleImages = [
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80'
@@ -212,16 +240,16 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
     const scheduledTime = new Date(now.getTime() + idx * intervalHours * 3600000);
     return {
       id: `ai-batch-${Date.now()}-${idx}`,
-      title: p.title || `Artikel AI ${idx + 1}`,
+      title: p.title || `Berita Terkini ${idx + 1}`,
       content: p.content || '',
       excerpt: p.excerpt || '',
-      category: p.category || categories[idx % categories.length] || 'Umum',
-      tags: p.tags || ['AI Generated', 'Otomatis'],
+      category: p.category || categories[idx % categories.length] || 'Nasional',
+      tags: p.tags || ['Berita Terkini', 'EraInspirasi'],
       coverImage: sampleImages[idx % sampleImages.length],
       author: {
-        name: 'EraInspirasi AI Bot',
+        name: 'EraInspirasi Redaksi Pers',
         avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80',
-        role: 'AI Editor in Chief',
+        role: 'Redaktur Utama',
       },
       publishedAt: scheduledTime.toISOString(),
       status: 'scheduled',

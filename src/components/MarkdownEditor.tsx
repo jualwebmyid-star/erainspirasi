@@ -1132,17 +1132,23 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             {/* Kategori & Tag */}
             <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-700/80">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori Berita / Artikel</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium focus:outline-none"
                 >
-                  <option value="Teknologi">Teknologi</option>
-                  <option value="AI & Penulisan">AI & Penulisan</option>
-                  <option value="Design & UX">Design & UX</option>
-                  <option value="Strategi Digital">Strategi Digital</option>
-                  <option value="Pengembangan Diri">Pengembangan Diri</option>
+                  <option value="Nasional">🇮🇩 Nasional & Pemerintahan</option>
+                  <option value="Politik">🏛️ Politik & Kebijakan Publik</option>
+                  <option value="Ekonomi & Bisnis">📈 Ekonomi, Bisnis & Finansial</option>
+                  <option value="Teknologi">💻 Teknologi & Gadget</option>
+                  <option value="Otomotif">🚗 Otomotif & Transportasi</option>
+                  <option value="Olahraga">⚽ Olahraga & Sepakbola</option>
+                  <option value="Gaya Hidup & Kesehatan">🌿 Gaya Hidup & Kesehatan</option>
+                  <option value="Hukum & Kriminal">⚖️ Hukum & Kriminalitas</option>
+                  <option value="Hiburan">🎬 Hiburan & Seni Budaya</option>
+                  <option value="AI & Penulisan">🤖 AI & Penulisan</option>
+                  <option value="Pengembangan Diri">💡 Pengembangan Diri</option>
                 </select>
               </div>
 
