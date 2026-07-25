@@ -49,9 +49,33 @@ const formatGeminiError = (error: any, defaultMsg: string = 'Gagal memproses AI.
   return message || defaultMsg;
 };
 
+const cleanAndParseJson = (text: string) => {
+  if (!text) return {};
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
+  }
+  return JSON.parse(cleaned);
+};
+
 // 1. Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// 1.5. Test Gemini API Key Connection Endpoint
+app.post('/api/gemini/test-key', async (req, res) => {
+  try {
+    const ai = getGeminiClient(req);
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: 'Tes koneksi API Key Gemini. Respon singkat 1 kata "Terhubung".',
+    });
+    res.json({ success: true, message: 'Koneksi ke Google Gemini AI Berhasil!', sample: response.text?.trim() });
+  } catch (error: any) {
+    console.error('Error testing Gemini API key:', error);
+    res.status(400).json({ success: false, error: formatGeminiError(error, 'Koneksi API Key Gemini gagal.') });
+  }
 });
 
 // 2. AI Article Generator Endpoint
@@ -94,7 +118,7 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
     });
 
     const jsonText = response.text || '{}';
-    const parsedData = JSON.parse(jsonText);
+    const parsedData = cleanAndParseJson(jsonText);
     res.json({ success: true, data: parsedData });
   } catch (error: any) {
     console.error('Error generating article:', error);
@@ -136,7 +160,7 @@ Respon HANYA dalam format JSON:
       },
     });
 
-    const parsed = JSON.parse(response.text || '{}');
+    const parsed = cleanAndParseJson(response.text || '{}');
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error rewriting article:', error);
@@ -177,7 +201,7 @@ Respon HANYA dalam format JSON:
       },
     });
 
-    const parsed = JSON.parse(response.text || '{}');
+    const parsed = cleanAndParseJson(response.text || '{}');
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error detecting/humanizing AI content:', error);
@@ -231,7 +255,7 @@ Respon HANYA dalam format JSON:
       },
     });
 
-    const parsed = JSON.parse(response.text || '{}');
+    const parsed = cleanAndParseJson(response.text || '{}');
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error optimizing SEO:', error);
@@ -293,7 +317,7 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
     });
 
     const jsonText = response.text || '[]';
-    const articlesArray = JSON.parse(jsonText);
+    const articlesArray = cleanAndParseJson(jsonText);
 
     // Calculate progressive scheduled release dates
     const now = new Date();

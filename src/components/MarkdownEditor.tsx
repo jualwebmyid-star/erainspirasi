@@ -181,12 +181,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       json = JSON.parse(text);
     } catch (e) {
       if (text.includes('GEMINI_API_KEY') || text.includes('API Key')) {
-        throw new Error('API Key Gemini belum diisi. Masukkan API Key Anda di menu Pengaturan Admin.');
+        throw new Error('API Key Gemini belum diisi. Masukkan API Key Anda di Pengaturan Admin (Menu Admin > Pengaturan Portal > Section 3).');
       }
-      throw new Error('Gagal memproses respon AI. Pastikan API Key Gemini sudah dimasukkan di Pengaturan Admin.');
+      console.error('Server non-JSON response:', text);
+      throw new Error(`Respon server tidak valid (${res.status}): ${text.slice(0, 120)}`);
     }
-    if (!res.ok && json.error) {
-      throw new Error(json.error);
+    if (!res.ok) {
+      throw new Error(json.error || `Gagal memproses AI (${res.status}).`);
     }
     return json;
   };

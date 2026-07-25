@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Upload, 
@@ -22,7 +22,9 @@ import {
   Radio,
   ExternalLink,
   Layers,
-  LayoutGrid
+  LayoutGrid,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { SiteSettings, BannerConfig } from '../types';
 
@@ -79,6 +81,77 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [instagramAccessToken, setInstagramAccessToken] = useState(settings.instagramAccessToken || '');
 
   const [savedNotification, setSavedNotification] = useState<string | null>(null);
+  
+  // Test Gemini Key state
+  const [isTestingGemini, setIsTestingGemini] = useState(false);
+  const [testGeminiResult, setTestGeminiResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.siteName) setSiteName(settings.siteName);
+      if (settings.siteTagline) setSiteTagline(settings.siteTagline);
+      if (settings.logoUrl !== undefined) setLogoUrl(settings.logoUrl);
+      if (settings.geminiApiKey !== undefined) setGeminiApiKey(settings.geminiApiKey);
+      if (settings.openaiApiKey !== undefined) setOpenaiApiKey(settings.openaiApiKey);
+      if (settings.facebookUrl) setFacebookUrl(settings.facebookUrl);
+      if (settings.instagramUrl) setInstagramUrl(settings.instagramUrl);
+      if (settings.twitterUrl) setTwitterUrl(settings.twitterUrl);
+      if (settings.youtubeUrl) setYoutubeUrl(settings.youtubeUrl);
+      if (settings.whatsappContact) setWhatsappContact(settings.whatsappContact);
+      if (settings.headerBanner) setHeaderBanner(settings.headerBanner);
+      if (settings.sidebarBanner) setSidebarBanner(settings.sidebarBanner);
+      if (settings.facebookAppId !== undefined) setFacebookAppId(settings.facebookAppId);
+      if (settings.facebookPageAccessToken !== undefined) setFacebookPageAccessToken(settings.facebookPageAccessToken);
+      if (settings.twitterApiKey !== undefined) setTwitterApiKey(settings.twitterApiKey);
+      if (settings.twitterApiSecret !== undefined) setTwitterApiSecret(settings.twitterApiSecret);
+      if (settings.instagramAccessToken !== undefined) setInstagramAccessToken(settings.instagramAccessToken);
+    }
+  }, [settings]);
+
+  const handleTestGeminiKey = async () => {
+    const keyToTest = geminiApiKey.trim();
+    if (!keyToTest) {
+      setTestGeminiResult({
+        success: false,
+        message: 'Mohon masukkan API Key Gemini terlebih dahulu di kolom di atas.',
+      });
+      return;
+    }
+
+    setIsTestingGemini(true);
+    setTestGeminiResult(null);
+
+    try {
+      const res = await fetch('/api/gemini/test-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': keyToTest,
+        },
+        body: JSON.stringify({ geminiApiKey: keyToTest }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setTestGeminiResult({
+          success: true,
+          message: `✅ ${json.message} (Respon Gemini: "${json.sample || 'OK'}")`,
+        });
+      } else {
+        setTestGeminiResult({
+          success: false,
+          message: `❌ ${json.error || 'Gagal terhubung ke Google Gemini API.'}`,
+        });
+      }
+    } catch (e: any) {
+      setTestGeminiResult({
+        success: false,
+        message: `❌ Kesalahan Jaringan: ${e?.message || 'Gagal terhubung ke server.'}`,
+      });
+    } finally {
+      setIsTestingGemini(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +159,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       siteName,
       siteTagline,
       logoUrl,
-      geminiApiKey,
-      openaiApiKey,
+      geminiApiKey: geminiApiKey.trim(),
+      openaiApiKey: openaiApiKey.trim(),
       facebookUrl,
       instagramUrl,
       twitterUrl,
@@ -444,7 +517,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Gemini API Key */}
-            <div className="space-y-2 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
+            <div className="space-y-3 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                   <Key className="w-3.5 h-3.5 text-indigo-600" />
@@ -456,7 +529,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <input
                   type={showGeminiKey ? 'text' : 'password'}
                   value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  onChange={(e) => {
+                    setGeminiApiKey(e.target.value);
+                    setTestGeminiResult(null);
+                  }}
                   placeholder="AIzaSy..."
                   className="w-full pl-3 pr-10 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                 />
@@ -468,9 +544,47 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                Digunakan untuk Penulisan AI otomatis, Humanizer Anti-AI Detector, dan Auto-Batch Generator.
-              </p>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Digunakan untuk Penulisan AI otomatis, Humanizer Anti-AI, dan Auto-Batch Generator.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleTestGeminiKey}
+                  disabled={isTestingGemini}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0 transition-colors disabled:opacity-50"
+                >
+                  {isTestingGemini ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menguji...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Tes Koneksi API</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {testGeminiResult && (
+                <div
+                  className={`p-3 rounded-xl border text-xs font-bold flex items-start gap-2 ${
+                    testGeminiResult.success
+                      ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 text-emerald-800 dark:text-emerald-200'
+                      : 'bg-rose-50 dark:bg-rose-950/80 border-rose-200 text-rose-800 dark:text-rose-200'
+                  }`}
+                >
+                  {testGeminiResult.success ? (
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  )}
+                  <span className="leading-snug">{testGeminiResult.message}</span>
+                </div>
+              )}
             </div>
 
             {/* OpenAI API Key */}
