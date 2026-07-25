@@ -101,36 +101,46 @@ apiRouter.post(['/gemini/generate-article', '/gemini/generate-article/'], async 
       return res.status(400).json({ error: 'Topik artikel wajib diisi.' });
     }
 
-    const ai = getGeminiClient(req);
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
 
-    const prompt = `Anda adalah Redaktur Utama Jurnalisme Berita Pers Nasional & Pakar SEO Indonesia.
+    const prompt = `Anda adalah Redaktur Utama Jurnalisme Berita Pers Nasional (EraInspirasi.com).
 Buatkan artikel berita berformat pers standar profesional Indonesia berdasarkan informasi berikut:
 Topik: "${topic}"
 Kategori: "${category || 'Nasional'}"
 Gaya Bahasa: "${tone}"
 Kata Kunci Utama: ${keywords.join(', ') || 'terkait berita'}
+Tanggal Hari Ini: ${dateFormatted}
 
-PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
-1. LEAD BERITA (Dateline & 5W+1H):
-   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi dalam cetak tebal, contoh:
-   "**JAKARTA, ERAINSPIRASI** — [Paragraf utama memuat unsur 5W+1H (Who, What, Where, When, Why, How) secara padat dan lugas]."
+PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
+1. LEAD BERITA DENGAN DATELINE & TANGGAL (5W+1H):
+   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi DAN TANGGAL LENGKAP (${dateFormatted}) dalam cetak tebal, contoh:
+   "**JAKARTA, ERAINSPIRASI (${dateFormatted})** — [Paragraf lead utama berita yang WAJIB memuat unsur 5W+1H secara lengkap dan padat: Who (Siapa), What (Apa), Where (Di mana), When (${dateFormatted}), Why (Mengapa), dan How (Bagaimana)]."
 2. STRUKTUR PIRAMIDA TERBALIK (Inverted Pyramid):
-   - Paragraf awal memuat fakta utama.
-   - Paragraf tengah memuat fakta detail & kutipan langsung dari narasumber/pakar (*"..." ujar...* atau *"..." kata...*).
-   - Paragraf akhir memuat latar belakang & penutup berita.
-3. LINK OTOMATIS:
-   - Sisipkan minimal 1-2 link internal markdown yang relevan ke kategori/portal, misal: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
-   - Sisipkan minimal 1-2 link eksternal markdown ke sumber otoritas tepercaya, misal: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\` atau \`[Informasi Google News](https://news.google.com)\` atau \`[Portal BMKG](https://www.bmkg.go.id)\` atau \`[Kemendikbud](https://www.kemendikbud.go.id)\`.
+   - Paragraf 1: Lead utama (5W+1H dan Tanggal ${dateFormatted}).
+   - Paragraf 2-3: Detail berita, fakta kronologis, dan kutipan resmi narasumber (*"..." ujar...* / *"..." kata...*).
+   - Paragraf 4+: Konteks latar belakang, implikasi publik, dan penutup berita.
+3. GAMBAR ILUSTRASI AI DI DALAM ARTIKEL (INLINE IMAGE):
+   Di bagian tengah artikel (setelah paragraf 2 atau subjudul H2 pertama), SISIPKAN 1 TAG GAMBAR AI SPESIFIK BERIKUT:
+   <img src="https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian editorial news press photography ' + topic)}?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Foto Berita - ${topic}" />
+4. LINK OTOMATIS:
+   - Sisipkan minimal 1-2 link internal markdown yang relevan: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
+   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Informasi Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
 
 Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 {
   "title": "Judul Berita Faktual & SEO Friendly (50-70 karakter)",
-  "excerpt": "Ringkasan berita 2 kalimat lugas (120-150 karakter)",
-  "content": "Isi lengkap berita berformat Markdown sesuai instruksi pers di atas (minimal 450 kata).",
+  "excerpt": "Ringkasan berita 2 kalimat lugas memuat tanggal ${dateFormatted} (120-150 karakter)",
+  "content": "Isi lengkap berita berformat Markdown dengan Dateline & Tanggal (${dateFormatted}), lead 5W+1H, tag gambar AI inline, serta link internal/eksternal.",
   "tags": ["tag1", "tag2", "tag3"],
   "seoTitle": "Meta Title SEO Berisi Kata Kunci Utama",
   "seoDescription": "Meta Description SEO yang relevan",
   "seoKeywords": ["keyword1", "keyword2", "keyword3"],
+  "imagePrompt": "Editorial news photography depicting ${topic}, press style",
   "readingTime": 4
 }`;
 
@@ -145,7 +155,18 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 
     const jsonText = response.text || '{}';
     const parsedData = cleanAndParseJson(jsonText);
-    res.json({ success: true, data: parsedData });
+
+    // Generate real-time AI cover photo URL using Pollinations AI
+    const seed = Math.floor(Math.random() * 100000);
+    const coverImage = `https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian press editorial news cover photography ' + (parsedData.imagePrompt || topic))}?width=1200&height=675&nologo=true&seed=${seed}`;
+
+    res.json({ 
+      success: true, 
+      data: {
+        ...parsedData,
+        coverImage
+      } 
+    });
   } catch (error: any) {
     console.error('Error generating article:', error);
     res.status(500).json({ error: formatGeminiError(error, 'Gagal menghasilkan artikel dengan AI.') });
@@ -316,26 +337,37 @@ apiRouter.post(['/gemini/batch-generate-schedule', '/gemini/batch-generate-sched
 
     const ai = getGeminiClient(req);
 
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
     const prompt = `Anda adalah sistem Redaksi AI Auto-Content Creator untuk portal berita pers Indonesia (EraInspirasi.com).
 Buatkan persis ${count} artikel berita pers standar jurnalistik yang bervariasi secara otomatis dari pilihan kategori berikut: ${categories.join(', ')}.
+Tanggal Hari Ini: ${dateFormatted}.
 
 PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
-1. LEAD & DATELINE (5W+1H): Setiap artikel diawali dengan dateline cetak tebal, misal: "**JAKARTA, ERAINSPIRASI** — ..." atau "**SURABAYA, ERAINSPIRASI** — ..." dengan prinsip 5W+1H di paragraf pertama.
+1. LEAD & DATELINE TANGGAL (5W+1H): Setiap artikel wajib diawali dengan dateline cetak tebal memuat TANGGAL LENGKAP (${dateFormatted}), misal: "**JAKARTA, ERAINSPIRASI (${dateFormatted})** — ..." atau "**SURABAYA, ERAINSPIRASI (${dateFormatted})** — ..." dengan prinsip 5W+1H di paragraf pertama.
 2. PIRAMIDA TERBALIK: Fakta utama di awal, kutipan narasumber/pakar di tengah (*"..." kata/ujar...*), latar belakang di akhir.
-3. LINK OTOMATIS:
+3. GAMBAR ILUSTRASI AI INLINE:
+   Di bagian tengah artikel, sertakan 1 tag gambar AI inline dengan URL Pollinations AI berbasis topik berita, contoh:
+   <img src="https://image.pollinations.ai/prompt/indonesian%20editorial%20news%20press%20photography%20journalism?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Berita AI" />
+4. LINK OTOMATIS:
    - Minimal 1 link internal markdown seperti \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan lengkap ekonomi](/kategori/ekonomi)\`.
    - Minimal 1 link eksternal markdown ke sumber otoritas resmi seperti \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Portal Google News](https://news.google.com)\`, atau \`[Data BMKG](https://www.bmkg.go.id)\`.
-4. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan) dan BUKAN hanya tentang teknologi web.
+5. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan).
 
 Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
 [
   {
     "title": "Judul Berita Faktual & SEO Friendly",
-    "excerpt": "Ringkasan berita 2-3 kalimat",
-    "content": "Isi artikel berita lengkap berformat Markdown dengan H2, H3, poin bullet, dan paragraf informatif (minimal 400 kata). Sertakan pula 1 tag gambar markdown seperti: <img src=\\"https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80\\" style=\\"width: 75%; display: block; margin: 16px auto; rounded-xl\\" alt=\\"Ilustrasi Berita\\" />",
+    "excerpt": "Ringkasan berita 2-3 kalimat memuat tanggal ${dateFormatted}",
+    "content": "Isi artikel berita lengkap berformat Markdown dengan H2, H3, poin bullet, tag gambar AI inline, serta dateline & tanggal (${dateFormatted}).",
     "category": "Salah satu kategori pilihan di atas",
-    "tags": ["tag1", "tag2", "tag3"],
-    "coverImage": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80",
+    "tags": ["Berita Terkini", "EraInspirasi"],
+    "imagePrompt": "Description of press photography for this specific news topic",
     "readingTime": 4
   }
 ]`;
@@ -353,7 +385,6 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
     const articlesArray = cleanAndParseJson(jsonText);
 
     // Calculate progressive scheduled release dates
-    const now = new Date();
     const scheduledArticles = articlesArray.map((item: any, index: number) => {
       const scheduledTime = new Date(now.getTime() + (index + 1) * intervalHours * 60 * 60 * 1000);
       const slug = (item.title || `artikel-ai-${index + 1}`)
@@ -369,7 +400,7 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
         content: item.content,
         category: item.category || categories[index % categories.length],
         tags: item.tags || ['AutoAI', 'EraInspirasi'],
-        coverImage: item.coverImage || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+        coverImage: item.coverImage || `https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian press editorial news cover photography ' + (item.imagePrompt || item.title || 'news'))}?width=1200&height=675&nologo=true&seed=${Math.floor(Math.random()*100000)}`,
         authorName: 'AI Redaksi Auto-Scheduler',
         authorAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
         publishedAt: scheduledTime.toISOString(),

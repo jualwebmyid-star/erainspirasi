@@ -295,6 +295,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         setTitle(articleData.title || title);
         setExcerpt(articleData.excerpt || excerpt);
         setContent(articleData.content || content);
+        if (articleData.coverImage) {
+          setCoverImage(articleData.coverImage);
+        } else if (aiTopic) {
+          const seed = Math.floor(Math.random() * 100000);
+          setCoverImage(`https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian press editorial news cover photography ' + aiTopic)}?width=1200&height=675&nologo=true&seed=${seed}`);
+        }
         if (articleData.tags && Array.isArray(articleData.tags)) {
           setTagsInput(articleData.tags.join(', '));
         }
@@ -581,13 +587,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <span>⚡ Mix AI Auto-Batch & Jadwal Posting</span>
           </button>
 
-          {/* Single AI Draft Button */}
+          {/* AI Berita Umum Button */}
           <button
             onClick={() => setShowAiModal(true)}
             className="px-3 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow hover:opacity-95 transition flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Draf AI Topik</span>
+            <span>AI Berita Umum</span>
           </button>
 
           <button
@@ -1285,33 +1291,45 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
       </div>
 
-      {/* AI Generator Modal */}
+      {/* AI Berita Umum Modal */}
       {showAiModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 text-base">
                 <Sparkles className="w-5 h-5 text-purple-500" />
-                <span>Generasi Artikel AI (Gemini 3.6)</span>
+                <span>AI Berita Umum (5W+1H & Foto AI)</span>
               </h3>
               <button onClick={() => setShowAiModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
                 ×
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Masukkan topik yang ingin dibahas. AI Studio akan menyusun judul, rangkuman, tag, dan draf artikel Markdown lengkap secara otomatis.
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Masukkan topik berita umum. Redaksi AI akan menyusun artikel standar pers dengan format <strong>5W+1H</strong> (dilengkapi Dateline & Tanggal Terbit), secara otomatis menghasilkan <strong>Foto Sampul AI</strong> dan <strong>Gambar Ilustrasi Berita</strong> di dalam artikel.
             </p>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Topik Artikel</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Topik Berita Umum</label>
               <input
                 type="text"
-                placeholder="misal: Optimasi Kinerja Database PostgreSQL di Cloud SQL"
+                placeholder="misal: Peluncuran Jalur Kereta Cepat Baru atau Kebijakan Insentif Ekonomi UMKM"
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
                 className="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+            </div>
+
+            <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-[11px] text-indigo-900 dark:text-indigo-200 space-y-1">
+              <div className="font-bold flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>Otomatis Dilengkapi Foto AI:</span>
+              </div>
+              <ul className="list-disc list-inside space-y-0.5 text-[10px] text-indigo-700 dark:text-indigo-300">
+                <li>1 Foto Sampul Utama (Generated via AI Pollinations Engine)</li>
+                <li>1 Gambar Ilustrasi Berita di Tengah Artikel (Embedded Markdown)</li>
+                <li>Lead berita 5W+1H dengan Tanggal & Dateline resmi</li>
+              </ul>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -1329,12 +1347,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 {isAiGenerating ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Menyusun Artikel...</span>
+                    <span>Menyusun Berita 5W+1H & Foto...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Buat Draf Sekarang</span>
+                    <span>Generate AI Berita Sekarang</span>
                   </>
                 )}
               </button>

@@ -25,40 +25,48 @@ export async function testGeminiKeyDirect(apiKey: string) {
 }
 
 export async function generateArticleDirect(apiKey: string, body: { topic: string; category?: string; tone?: string; keywords?: string[] }) {
-  const { topic, category = 'Umum', tone = 'Informatif & Journalistic', keywords = [] } = body;
+  const { topic, category = 'Nasional', tone = 'Informatif & Journalistic', keywords = [] } = body;
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Anda adalah seorang Redaktur Utama Jurnalisme Berita Pers Nasional dan Pakar SEO. Buatkan artikel berita berformat pers standar profesional Indonesia mengenai topik: "${topic}".
+  const now = new Date();
+  const dateFormatted = now.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  const prompt = `Anda adalah Redaktur Utama Jurnalisme Berita Pers Nasional (EraInspirasi.com).
+Buatkan artikel berita berformat pers standar profesional Indonesia mengenai topik: "${topic}".
 Kategori: "${category}".
 Gaya Bahasa: "${tone}".
 Kata Kunci SEO: ${keywords.length > 0 ? keywords.join(', ') : 'sesuaikan dengan topik'}.
+Tanggal Hari Ini: ${dateFormatted}.
 
-PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
-1. LEAD BERITA (Dateline & 5W+1H):
-   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi dalam cetak tebal, contoh:
-   "**JAKARTA, ERAINSPIRASI** — [Paragraf utama memuat unsur 5W+1H (Who, What, Where, When, Why, How) secara padat dan lugas]."
+PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
+1. LEAD BERITA DENGAN DATELINE & TANGGAL (5W+1H):
+   Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi DAN TANGGAL LENGKAP (${dateFormatted}) dalam cetak tebal, contoh:
+   "**JAKARTA, ERAINSPIRASI (${dateFormatted})** — [Paragraf lead utama berita yang WAJIB memuat unsur 5W+1H secara lengkap dan padat: Who (Siapa), What (Apa), Where (Di mana), When (${dateFormatted}), Why (Mengapa), dan How (Bagaimana)]."
 2. STRUKTUR PIRAMIDA TERBALIK (Inverted Pyramid):
-   - Paragraf awal memuat fakta paling utama.
-   - Paragraf tengah memuat fakta detail & kutipan langsung dari narasumber/pakar (menggunakan format: *"..." ujar...* atau *"..." kata...*).
-   - Paragraf akhir memuat konteks historis, latar belakang, dan penutup berita.
-3. KANONIKAL & LINK OTOMATIS:
-   - SISIPKAN MINIMAL 1-2 LINK INTERNAL markdown yang relevan mengarah ke kategori atau portal terkait, contoh:
-     \`[baca juga berita nasional terkait](/kategori/nasional)\` atau \`[ulasan lengkap seputar ekonomi](/kategori/ekonomi)\` atau \`[artikel pilihan di EraInspirasi](/kategori/politik)\`.
-   - SISIPKAN MINIMAL 1-2 LINK EKSTERNAL markdown berkualitas ke situs otoritas/sumber resmi tepercaya, contoh:
-     \`[Sumber Resmi Wikipedia](https://id.wikipedia.org)\` atau \`[Informasi Google News](https://news.google.com)\` atau \`[Data BMKG](https://www.bmkg.go.id)\` atau \`[Portal Kemendikbud](https://www.kemendikbud.go.id)\` atau \`[Layanan Kominfo](https://www.kominfo.go.id)\`.
-4. FORMAT MARKDOWN:
-   Gunakan H2, H3, poin bullet jika relevan, serta cetak tebal pada istilah penting. Minimal 450-700 kata.
+   - Paragraf 1: Lead utama (5W+1H dan Tanggal ${dateFormatted}).
+   - Paragraf 2-3: Detail berita, fakta kronologis, dan kutipan resmi narasumber (*"..." ujar...* / *"..." kata...*).
+   - Paragraf 4+: Konteks latar belakang, implikasi publik, dan penutup berita.
+3. GAMBAR ILUSTRASI AI DI DALAM ARTIKEL (INLINE IMAGE):
+   Di bagian tengah artikel (setelah paragraf 2 atau subjudul H2 pertama), SISIPKAN 1 TAG GAMBAR AI SPESIFIK BERIKUT:
+   <img src="https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian editorial news press photography ' + topic)}?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Foto Berita - ${topic}" />
+4. LINK OTOMATIS:
+   - Sisipkan minimal 1-2 link internal markdown yang relevan: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
+   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Informasi Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
 
-Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus tambahan):
+Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus):
 {
-  "title": "Judul Berita yang Faktual, Menarik, dan SEO Friendly (60-70 karakter)",
-  "content": "Isi lengkap berita berformat Markdown sesuai instruksi pers di atas.",
-  "excerpt": "Ringkasan berita 2 kalimat lugas (120-150 karakter) untuk deskripsi meta.",
+  "title": "Judul Berita Faktual, Menarik, dan SEO Friendly (60-70 karakter)",
+  "content": "Isi lengkap berita berformat Markdown yang menyertakan Dateline & Tanggal (${dateFormatted}), lead 5W+1H, tag gambar AI inline, serta link internal/eksternal.",
+  "excerpt": "Ringkasan berita 2 kalimat lugas (120-150 karakter) memuat tanggal ${dateFormatted} dan fakta utama.",
   "category": "${category}",
-  "tags": ["Tag1", "Tag2", "Tag3"],
-  "seoTitle": "Judul Meta SEO Berisi Kata Kunci Utama",
-  "seoDescription": "Deskripsi Meta SEO menarik dan mengundang klik",
-  "schemaMarkup": "{\\"@context\\":\\"https://schema.org\\",\\"@type\\":\\"NewsArticle\\",\\"headline\\":\\"...\\",\\"description\\":\\"...\\"}"
+  "tags": ["Berita Terkini", "EraInspirasi", "Pers"],
+  "seoTitle": "Judul Meta SEO",
+  "seoDescription": "Deskripsi Meta SEO",
+  "imagePrompt": "Professional editorial news photography depicting ${topic}, 8k resolution, press news style"
 }`;
 
   const response = await ai.models.generateContent({
@@ -70,7 +78,14 @@ Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus tambahan):
   });
 
   const parsed = cleanJsonResponse(response.text || '{}');
-  return { success: true, ...parsed };
+  const seed = Math.floor(Math.random() * 100000);
+  const coverImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian press editorial news cover photography ' + (parsed.imagePrompt || topic))}?width=1200&height=675&nologo=true&seed=${seed}`;
+
+  return { 
+    success: true, 
+    coverImage: coverImageUrl,
+    ...parsed 
+  };
 }
 
 export async function rewriteSpinDirect(apiKey: string, body: { content: string; mode?: string; tone?: string }) {
