@@ -38,7 +38,7 @@ import {
   ExternalLink,
   Share2
 } from 'lucide-react';
-import { BlogPost } from '../types';
+import { BlogPost, SiteSettings } from '../types';
 import { OpenGraphPreview } from './OpenGraphPreview';
 
 interface MarkdownEditorProps {
@@ -46,6 +46,7 @@ interface MarkdownEditorProps {
   onSavePost: (post: Partial<BlogPost>) => void;
   onBatchSavePosts?: (posts: BlogPost[]) => void;
   onOpenImageUploader: (onSelectUrl: (url: string, alt: string) => void) => void;
+  siteSettings?: SiteSettings;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -53,6 +54,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSavePost,
   onBatchSavePosts,
   onOpenImageUploader,
+  siteSettings,
 }) => {
   const [title, setTitle] = useState(initialPost?.title || '');
   const [seoTitle, setSeoTitle] = useState(initialPost?.seoTitle || initialPost?.title || '');
@@ -145,18 +147,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setContent(content.substring(0, start) + replacement + content.substring(end));
   };
 
-  // Helper to attach custom Gemini API key from settings if present
-  const getGeminiHeaders = () => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const getGeminiApiKey = () => {
+    if (siteSettings?.geminiApiKey && siteSettings.geminiApiKey.trim()) {
+      return siteSettings.geminiApiKey.trim();
+    }
     try {
       const saved = localStorage.getItem('erainspirasi_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.geminiApiKey) {
-          headers['x-gemini-api-key'] = parsed.geminiApiKey.trim();
+        if (parsed.geminiApiKey && parsed.geminiApiKey.trim()) {
+          return parsed.geminiApiKey.trim();
         }
       }
     } catch (e) {}
+    return '';
+  };
+
+  // Helper to attach custom Gemini API key from settings if present
+  const getGeminiHeaders = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = getGeminiApiKey();
+    if (apiKey) {
+      headers['x-gemini-api-key'] = apiKey;
+    }
     return headers;
   };
 
@@ -188,6 +201,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
+          geminiApiKey: getGeminiApiKey(),
           count: batchCount,
           categories: selectedBatchCategories,
           intervalHours: batchIntervalHours,
@@ -221,6 +235,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
+          geminiApiKey: getGeminiApiKey(),
           topic: aiTopic,
           category,
           keywords: tagsInput.split(',').map((t) => t.trim()),
@@ -253,6 +268,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         method: 'POST',
         headers: getGeminiHeaders(),
         body: JSON.stringify({
+          geminiApiKey: getGeminiApiKey(),
           content,
           tone: rewriteTone,
           mode: 'rewrite',
@@ -280,7 +296,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const json = await safeFetchJson('/api/gemini/detect-humanize', {
         method: 'POST',
         headers: getGeminiHeaders(),
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ 
+          geminiApiKey: getGeminiApiKey(),
+          content 
+        }),
       });
 
       if (json.success) {

@@ -69,6 +69,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   const categories = categoriesList && categoriesList.length > 0 ? categoriesList : defaultCategories;
 
+  const handleToggleDarkMode = () => {
+    const nextDark = !darkMode;
+    if (nextDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('erainspirasi_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('erainspirasi_theme', 'light');
+    }
+    setDarkMode(nextDark);
+  };
+
   // IF LOGGED IN AS ADMIN: Render Clean Admin Top Info Bar (No top tabs; left sidebar handles navigation)
   if (user.role === 'admin') {
     return (
@@ -96,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => setDarkMode((prev) => !prev)}
+              onClick={handleToggleDarkMode}
               className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
               title="Ubah Mode Tampilan"
             >
@@ -272,13 +284,13 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* Dark Mode Switcher (Desktop Only - Hidden on Mobile HP) */}
+              {/* Dark Mode Switcher (Visible on Mobile HP & Desktop for Instant Access) */}
               <button
-                onClick={() => setDarkMode((prev) => !prev)}
-                className="hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-white transition-transform active:scale-95"
+                onClick={handleToggleDarkMode}
+                className="flex p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-white transition-transform active:scale-95 shrink-0"
                 title={darkMode ? 'Switch Light Mode' : 'Switch Dark Mode'}
               >
-                {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+                {darkMode ? <Sun className="w-4.5 h-4.5 sm:w-4 sm:h-4 text-amber-400" /> : <Moon className="w-4.5 h-4.5 sm:w-4 sm:h-4 text-slate-700 dark:text-slate-200" />}
               </button>
 
               {/* Login / Auth Button (Desktop Only - Hidden on Mobile HP) */}
@@ -435,9 +447,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => {
-                      setDarkMode((prev) => !prev);
-                    }}
+                    onClick={handleToggleDarkMode}
                     className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs hover:border-rose-500 transition"
                   >
                     {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}

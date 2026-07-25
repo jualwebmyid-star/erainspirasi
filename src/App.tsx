@@ -647,6 +647,7 @@ export default function App() {
                   onSavePost={handleSavePost}
                   onBatchSavePosts={handleBatchSavePosts}
                   onOpenImageUploader={handleOpenImagePicker}
+                  siteSettings={siteSettings}
                 />
               )}
 

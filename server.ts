@@ -16,13 +16,13 @@ app.use(express.json({ limit: '10mb' }));
 // Initialize Gemini Client with fallback to request header or body
 const getGeminiClient = (req?: express.Request) => {
   const apiKey = 
-    req?.headers['x-gemini-api-key'] as string ||
+    (req?.headers['x-gemini-api-key'] as string) ||
     req?.body?.geminiApiKey ||
     process.env.GEMINI_API_KEY ||
     process.env.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey.trim() === '') {
-    throw new Error('GEMINI_API_KEY belum dikonfigurasi. Masukkan API Key di Pengaturan Admin atau file .env.');
+    throw new Error('GEMINI_API_KEY belum dikonfigurasi. Masukkan API Key di Pengaturan Admin.');
   }
 
   return new GoogleGenAI({
@@ -33,6 +33,20 @@ const getGeminiClient = (req?: express.Request) => {
       },
     },
   });
+};
+
+const formatGeminiError = (error: any, defaultMsg: string = 'Gagal memproses AI.'): string => {
+  const message = error?.message || String(error || '');
+  if (message.includes('GEMINI_API_KEY belum dikonfigurasi')) {
+    return 'API Key Gemini belum diisi. Silakan masukkan API Key Anda di Pengaturan Admin (Menu Admin > Pengaturan Portal > Section 3).';
+  }
+  if (message.includes('API_KEY_INVALID') || message.includes('API key not valid') || message.includes('INVALID_ARGUMENT')) {
+    return 'API Key Gemini tidak valid. Mohon periksa dan masukkan API Key Google Gemini yang valid di Pengaturan Admin.';
+  }
+  if (message.includes('429') || message.includes('RESOURCE_EXHAUSTED') || message.includes('Quota exceeded')) {
+    return 'Batas kuota gratis API Key Gemini Anda telah tercapai (Quota Exceeded). Silakan tunggu beberapa menit atau gunakan API Key Gemini baru.';
+  }
+  return message || defaultMsg;
 };
 
 // 1. Health check
@@ -84,7 +98,7 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
     res.json({ success: true, data: parsedData });
   } catch (error: any) {
     console.error('Error generating article:', error);
-    res.status(500).json({ error: error.message || 'Gagal menghasilkan artikel dengan AI.' });
+    res.status(500).json({ error: formatGeminiError(error, 'Gagal menghasilkan artikel dengan AI.') });
   }
 });
 
@@ -126,7 +140,7 @@ Respon HANYA dalam format JSON:
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error rewriting article:', error);
-    res.status(500).json({ error: error.message || 'Gagal menulis ulang artikel.' });
+    res.status(500).json({ error: formatGeminiError(error, 'Gagal menulis ulang artikel.') });
   }
 });
 
@@ -167,7 +181,7 @@ Respon HANYA dalam format JSON:
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error detecting/humanizing AI content:', error);
-    res.status(500).json({ error: error.message || 'Gagal mendeteksi/meng-humanize konten.' });
+    res.status(500).json({ error: formatGeminiError(error, 'Gagal mendeteksi/meng-humanize konten.') });
   }
 });
 
@@ -221,7 +235,7 @@ Respon HANYA dalam format JSON:
     res.json({ success: true, ...parsed });
   } catch (error: any) {
     console.error('Error optimizing SEO:', error);
-    res.status(500).json({ error: error.message || 'Gagal mengoptimasi SEO.' });
+    res.status(500).json({ error: formatGeminiError(error, 'Gagal mengoptimasi SEO.') });
   }
 });
 
@@ -316,7 +330,7 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
     res.json({ success: true, posts: scheduledArticles });
   } catch (error: any) {
     console.error('Error in batch auto-generate schedule:', error);
-    res.status(500).json({ error: error.message || 'Gagal menghasilkan batch artikel AI.' });
+    res.status(500).json({ error: formatGeminiError(error, 'Gagal menghasilkan batch artikel AI.') });
   }
 });
 
