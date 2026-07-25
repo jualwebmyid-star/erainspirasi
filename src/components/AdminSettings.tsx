@@ -131,7 +131,15 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         body: JSON.stringify({ geminiApiKey: keyToTest }),
       });
 
-      const json = await res.json();
+      const text = await res.text();
+      let json: any = {};
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        console.error('Non-JSON server response:', text);
+        json = { error: `Respon server tidak valid (${res.status})` };
+      }
+
       if (res.ok && json.success) {
         setTestGeminiResult({
           success: true,

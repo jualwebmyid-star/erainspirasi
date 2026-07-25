@@ -69,13 +69,16 @@ const cleanAndParseJson = (text: string) => {
   return JSON.parse(cleaned);
 };
 
+// Initialize Express API Router
+const apiRouter = express.Router();
+
 // 1. Health check
-app.get('/api/health', (_req, res) => {
+apiRouter.get(['/health', '/health/'], (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
 // 1.5. Test Gemini API Key Connection Endpoint
-app.post(['/api/gemini/test-key', '/api/gemini/test-key/'], async (req, res) => {
+apiRouter.post(['/gemini/test-key', '/gemini/test-key/'], async (req, res) => {
   try {
     const ai = getGeminiClient(req);
     const response = await ai.models.generateContent({
@@ -90,7 +93,7 @@ app.post(['/api/gemini/test-key', '/api/gemini/test-key/'], async (req, res) => 
 });
 
 // 2. AI Article Generator Endpoint
-app.post(['/api/gemini/generate-article', '/api/gemini/generate-article/'], async (req, res) => {
+apiRouter.post(['/gemini/generate-article', '/gemini/generate-article/'], async (req, res) => {
   try {
     const { topic, category, tone = 'Informatif & Engaging', keywords = [] } = req.body;
 
@@ -138,7 +141,7 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 });
 
 // 3. AI Rewrite & Spinning Endpoint
-app.post(['/api/gemini/rewrite-spin', '/api/gemini/rewrite-spin/'], async (req, res) => {
+apiRouter.post(['/gemini/rewrite-spin', '/gemini/rewrite-spin/'], async (req, res) => {
   try {
     const { content, mode = 'rewrite', tone = 'Professional' } = req.body;
 
@@ -180,7 +183,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 4. AI Content Detection & Humanizer Endpoint
-app.post(['/api/gemini/detect-humanize', '/api/gemini/detect-humanize/'], async (req, res) => {
+apiRouter.post(['/gemini/detect-humanize', '/gemini/detect-humanize/'], async (req, res) => {
   try {
     const { content } = req.body;
 
@@ -221,7 +224,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 5. SEO Optimization & Schema Generator Endpoint
-app.post(['/api/gemini/seo-optimize', '/api/gemini/seo-optimize/', '/api/gemini/optimize-seo', '/api/gemini/optimize-seo/'], async (req, res) => {
+apiRouter.post(['/gemini/seo-optimize', '/gemini/seo-optimize/', '/gemini/optimize-seo', '/gemini/optimize-seo/'], async (req, res) => {
   try {
     const { title, content } = req.body;
 
@@ -275,7 +278,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 6. Image AI Alt Text Generator Endpoint
-app.post(['/api/gemini/generate-alt', '/api/gemini/generate-alt/'], async (req, res) => {
+apiRouter.post(['/gemini/generate-alt', '/gemini/generate-alt/'], async (req, res) => {
   try {
     const { imageName, topic } = req.body;
     const ai = getGeminiClient(req);
@@ -295,7 +298,7 @@ app.post(['/api/gemini/generate-alt', '/api/gemini/generate-alt/'], async (req, 
 });
 
 // 7. Auto Batch AI Content Generator & Scheduler Endpoint
-app.post(['/api/gemini/batch-generate-schedule', '/api/gemini/batch-generate-schedule/', '/api/gemini/batch-auto-generate', '/api/gemini/batch-auto-generate/'], async (req, res) => {
+apiRouter.post(['/gemini/batch-generate-schedule', '/gemini/batch-generate-schedule/', '/gemini/batch-auto-generate', '/gemini/batch-auto-generate/'], async (req, res) => {
   try {
     const { count = 3, categories = ['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'], intervalHours = 3 } = req.body;
 
@@ -369,12 +372,11 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
   }
 });
 
-// 7. OAuth Auth URL endpoint for AI Studio Preview Environment
-app.get('/api/auth/url', (_req, res) => {
+// 8. OAuth Auth URL endpoint for AI Studio Preview Environment
+apiRouter.get(['/auth/url', '/auth/url/'], (_req, res) => {
   const appUrl = process.env.APP_URL || 'http://localhost:3000';
   const redirectUri = `${appUrl}/auth/callback`;
 
-  // Provide OAuth URL simulation / actual OAuth provider authorize structure
   const params = new URLSearchParams({
     client_id: process.env.OAUTH_CLIENT_ID || 'lumina-client-demo-123',
     redirect_uri: redirectUri,
@@ -384,6 +386,14 @@ app.get('/api/auth/url', (_req, res) => {
 
   const providerUrl = process.env.OAUTH_PROVIDER_URL || 'https://github.com/login/oauth/authorize';
   res.json({ url: `${providerUrl}?${params}`, redirectUri });
+});
+
+// Mount the API Router
+app.use('/api', apiRouter);
+
+// Catch-all handler for ANY unhandled /api request to guarantee JSON output and prevent Vite HTML 404
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, error: `API endpoint '${req.originalUrl}' tidak ditemukan.` });
 });
 
 // OAuth Callback Route
