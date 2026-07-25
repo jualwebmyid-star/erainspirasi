@@ -823,9 +823,6 @@ export default function App() {
           <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 text-xs text-slate-500 dark:text-slate-400 mt-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
               
-              {/* Visitor Stats Widget Footer */}
-              <VisitorStatsWidget variant="footer" />
-
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
                   <span className="bg-rose-600 text-white font-black text-sm px-2 py-0.5 rounded-lg">ERA</span>

@@ -96,6 +96,7 @@ apiRouter.post(['/gemini/test-key', '/gemini/test-key/'], async (req, res) => {
 apiRouter.post(['/gemini/generate-article', '/gemini/generate-article/'], async (req, res) => {
   try {
     const { topic, category, tone = 'Informatif & Engaging', keywords = [] } = req.body;
+    const ai = getGeminiClient(req);
 
     if (!topic) {
       return res.status(400).json({ error: 'Topik artikel wajib diisi.' });
@@ -128,8 +129,11 @@ PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
    Di bagian tengah artikel (setelah paragraf 2 atau subjudul H2 pertama), SISIPKAN 1 TAG GAMBAR AI SPESIFIK BERIKUT:
    <img src="https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian editorial news press photography ' + topic)}?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Foto Berita - ${topic}" />
 4. LINK OTOMATIS:
-   - Sisipkan minimal 1-2 link internal markdown yang relevan: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
-   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Informasi Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
+   - Untuk LINK INTERNAL markdown, WAJIB gunakan JUDUL ARTIKEL BERITA LENGKAP sebagai teks link-nya (BUKAN kata generik seperti 'baca selengkapnya' atau 'klik disini'), contoh: "[Pemerintah Targetkan Pertumbuhan Ekonomi Nasional Tahun Ini](/kategori/nasional)" atau "[Kebijakan Baru Sektor Perbankan Indonesia](/kategori/ekonomi)".
+   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: "[Laporan Resmi Wikipedia](https://id.wikipedia.org)", "[Informasi Google News](https://news.google.com)", atau "[Portal BMKG](https://www.bmkg.go.id)".
+5. TOPIK BERITA UMUM PERS (TANPA BIAS TEKNOLOGI / AI):
+   - Isi berita HARUS murni tentang BERITA UMUM JURNALISTIK PERS (seperti Politik, Ekonomi, Hukum, Sosial, Otomotif, Olahraga, Gaya Hidup, Hiburan, atau Regional).
+   - DILARANG KERAS menyelipkan bahasan AI, Artificial Intelligence, Web Development, Next.js, React, atau coding kecuali jika topik secara spesifik memintanya.
 
 Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 {
@@ -333,7 +337,7 @@ apiRouter.post(['/gemini/generate-alt', '/gemini/generate-alt/'], async (req, re
 // 7. Auto Batch AI Content Generator & Scheduler Endpoint
 apiRouter.post(['/gemini/batch-generate-schedule', '/gemini/batch-generate-schedule/', '/gemini/batch-auto-generate', '/gemini/batch-auto-generate/'], async (req, res) => {
   try {
-    const { count = 3, categories = ['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'], intervalHours = 3 } = req.body;
+    const { count = 3, categories = ['Nasional', 'Politik', 'Ekonomi & Bisnis', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan', 'Inspirasi'], intervalHours = 3 } = req.body;
 
     const ai = getGeminiClient(req);
 
@@ -355,9 +359,10 @@ PETUNJUK FORMAT BERITA PERS STANDAR JURNALISTIK:
    Di bagian tengah artikel, sertakan 1 tag gambar AI inline dengan URL Pollinations AI berbasis topik berita, contoh:
    <img src="https://image.pollinations.ai/prompt/indonesian%20editorial%20news%20press%20photography%20journalism?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Berita AI" />
 4. LINK OTOMATIS:
-   - Minimal 1 link internal markdown seperti \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan lengkap ekonomi](/kategori/ekonomi)\`.
-   - Minimal 1 link eksternal markdown ke sumber otoritas resmi seperti \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Portal Google News](https://news.google.com)\`, atau \`[Data BMKG](https://www.bmkg.go.id)\`.
-5. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan).
+   - Untuk LINK INTERNAL markdown, WAJIB gunakan JUDUL ARTIKEL BERITA LENGKAP sebagai teks link-nya (BUKAN kata generik), contoh: "[Pemerintah Targetkan Pertumbuhan Ekonomi Nasional Tahun Ini](/kategori/nasional)".
+   - Sisipkan minimal 1 link eksternal markdown ke sumber otoritas resmi seperti "[Laporan Resmi Wikipedia](https://id.wikipedia.org)", "[Portal Google News](https://news.google.com)", atau "[Data BMKG](https://www.bmkg.go.id)".
+5. TOPIK BERITA UMUM PERS (DILARANG KERAS BIAS AI / CODING):
+   - Pastikan topik bervariasi murni seputar BERITA UMUM PERS (Nasional, Politik, Ekonomi, Hukum, Otomotif, Olahraga, Gaya Hidup, Hiburan). DILARANG menulis tentang AI atau Web Dev.
 
 Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
 [

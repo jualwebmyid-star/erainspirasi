@@ -171,6 +171,7 @@ export interface SiteSettings {
   whatsappContact?: string;
   headerBanner?: BannerConfig;
   sidebarBanner?: BannerConfig;
+  feedRow3Banner?: BannerConfig;
   facebookAppId?: string;
   facebookPageAccessToken?: string;
   twitterApiKey?: string;

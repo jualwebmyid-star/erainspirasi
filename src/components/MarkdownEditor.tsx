@@ -116,7 +116,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [batchCount, setBatchCount] = useState<number>(5);
   const [batchIntervalHours, setBatchIntervalHours] = useState<number>(3);
   const [selectedBatchCategories, setSelectedBatchCategories] = useState<string[]>([
-    'Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'
+    'Nasional', 'Politik', 'Ekonomi & Bisnis', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan', 'Inspirasi'
   ]);
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [batchNotification, setBatchNotification] = useState<string | null>(null);
@@ -1465,7 +1465,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 2. Pilih Kategori Campuran (Mixed Topics):
               </label>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'].map((catName) => {
+                {['Nasional', 'Politik', 'Ekonomi & Bisnis', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan', 'Inspirasi'].map((catName) => {
                   const isChecked = selectedBatchCategories.includes(catName);
                   return (
                     <label

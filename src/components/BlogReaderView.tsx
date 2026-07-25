@@ -19,7 +19,7 @@ import {
   Loader2,
   Sparkles
 } from 'lucide-react';
-import { BlogPost } from '../types';
+import { BlogPost, SiteSettings } from '../types';
 import { VisitorStatsWidget } from './VisitorStatsWidget';
 
 interface BlogReaderViewProps {
@@ -27,13 +27,15 @@ interface BlogReaderViewProps {
   onSelectPost: (post: BlogPost) => void;
   selectedCategory?: string;
   onSelectCategory?: (cat: string) => void;
+  siteSettings?: SiteSettings;
 }
 
 export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   posts,
   onSelectPost,
   selectedCategory: propsCategory = 'Semua',
-  onSelectCategory
+  onSelectCategory,
+  siteSettings,
 }) => {
   const [internalCategory, setInternalCategory] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -309,7 +311,7 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                   </span>
                   <div>
                     <h3 className="text-[11px] sm:text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                      SOROTAN 3 THUMBNAIL BERITA & INSPIRASI
+                      SOROTAN BERITA UTAMA
                     </h3>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400">
                       Rekomendasi visual pilihan redaksi EraInspirasi hari ini
@@ -484,38 +486,60 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                   </div>
 
                   {/* Banner Iklan di Baris Ke-3 Artikel (index === 2) */}
-                  {index === 2 && (
-                    <div className="p-5 my-6 rounded-2xl border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/50 to-rose-50/90 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-md">
-                          <span>IKLAN</span>
-                          <span className="text-[9px]">BARIS 3</span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-600 text-white uppercase tracking-wider">
-                              BANNER SPONSOR
-                            </span>
-                            <span className="text-xs text-slate-500 font-semibold">Ruang Iklan In-Feed</span>
+                  {index === 2 && (siteSettings?.feedRow3Banner?.isEnabled !== false) && (
+                    <div className="p-4 sm:p-5 my-6 rounded-2xl border border-rose-200 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/50 to-rose-50/90 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden">
+                      {siteSettings?.feedRow3Banner?.imageUrl ? (
+                        <a
+                          href={siteSettings.feedRow3Banner.targetUrl || 'https://erainspirasi.com/iklan'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full block hover:opacity-95 transition"
+                        >
+                          <img
+                            src={siteSettings.feedRow3Banner.imageUrl}
+                            alt={siteSettings.feedRow3Banner.altText || 'Banner Sponsor Baris 3'}
+                            className="w-full max-h-36 object-cover rounded-xl shadow-xs"
+                          />
+                        </a>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-md">
+                              <span>IKLAN</span>
+                              <span className="text-[9px]">BARIS 3</span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-600 text-white uppercase tracking-wider">
+                                  BANNER SPONSOR
+                                </span>
+                                <span className="text-xs text-slate-500 font-semibold">Ruang Iklan In-Feed Baris Ke-3</span>
+                              </div>
+                              <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">
+                                Banner Sponsor Pilihan Redaksi EraInspirasi.com
+                              </h4>
+                              <p className="text-xs text-slate-600 dark:text-slate-400">
+                                Pasang iklan bisnis, promosi, atau kampanye merek Anda di sini.
+                              </p>
+                            </div>
                           </div>
-                          <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">
-                            Slot Banner Iklan Baris Ke-3 Artikel EraInspirasi.com
-                          </h4>
-                          <p className="text-xs text-slate-600 dark:text-slate-400">
-                            Promosikan produk, usaha, event, atau kampanye bisnis Anda secara eksklusif.
-                          </p>
-                        </div>
-                      </div>
-                      <button className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shrink-0 shadow-md transition-all active:scale-95">
-                        Hubungi Tim Redaksi
-                      </button>
+                          <a
+                            href={siteSettings?.feedRow3Banner?.targetUrl || 'https://erainspirasi.com/iklan'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shrink-0 shadow-md transition-all active:scale-95"
+                          >
+                            Hubungi Redaksi
+                          </a>
+                        </>
+                      )}
                     </div>
                   )}
 
                 </React.Fragment>
               ))}
 
-              {/* LAZY LOAD / MUAT LEBIH BANYAK ARTIKEL BUTTON */}
+              {/* MUAT LEBIH BANYAK ARTIKEL BUTTON */}
               {visibleCount < filteredPosts.length ? (
                 <div className="pt-6 text-center">
                   <button
@@ -526,11 +550,11 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                     {isLoadingMore ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin text-rose-600 group-hover:text-white" />
-                        <span>Memuat Artikel Lama...</span>
+                        <span>Memuat Artikel...</span>
                       </>
                     ) : (
                       <>
-                        <span>Muat Lebih Banyak Artikel (Lazy Load)</span>
+                        <span>Muat Lebih Banyak Artikel</span>
                         <ArrowRight className="w-4 h-4 text-rose-600 group-hover:text-white group-hover:translate-x-1 transition-transform" />
                       </>
                     )}

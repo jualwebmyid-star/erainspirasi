@@ -54,49 +54,6 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   const [showTocMenu, setShowTocMenu] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [copyWarningToast, setCopyWarningToast] = useState(false);
-
-  // Anti-Copy & Anti-Select Protection (Active when JS is enabled)
-  useEffect(() => {
-    const handleCopyAttempt = (e: ClipboardEvent) => {
-      e.preventDefault();
-      setCopyWarningToast(true);
-      setTimeout(() => setCopyWarningToast(false), 3000);
-    };
-
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      setCopyWarningToast(true);
-      setTimeout(() => setCopyWarningToast(false), 3000);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent Ctrl+C, Ctrl+A, Ctrl+U, F12, Cmd+C, Cmd+A, Cmd+U
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A' || e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')
-      ) {
-        e.preventDefault();
-        setCopyWarningToast(true);
-        setTimeout(() => setCopyWarningToast(false), 3000);
-      }
-      if (e.key === 'F12') {
-        e.preventDefault();
-        setCopyWarningToast(true);
-        setTimeout(() => setCopyWarningToast(false), 3000);
-      }
-    };
-
-    document.addEventListener('copy', handleCopyAttempt);
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('copy', handleCopyAttempt);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
 
   // Filter 3 Related Articles in the same category
   const relatedPosts = (allPosts || [])
@@ -326,30 +283,14 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
             </div>
           )}
 
-          {/* Anti-Copy Warning Toast Banner */}
-          {copyWarningToast && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-slate-900/95 text-white border border-rose-500/50 shadow-2xl backdrop-blur-md flex items-center gap-3 animate-bounce text-xs sm:text-sm font-bold">
-              <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
-              <span>⚠️ Konten Artikel Dilindungi Hak Cipta EraInspirasi! Dilarang menyalin tanpa izin tertulis.</span>
-            </div>
-          )}
-
           {/* Hero Cover Image */}
           <div className="rounded-2xl overflow-hidden aspect-[16/9] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover select-none pointer-events-none" />
+            <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
           </div>
 
-          {/* Article Main Text Content with Pure CSS & JS Anti-Copy Protection */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-8 rounded-3xl shadow-xs space-y-4 copy-protected article-content no-copy">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 border-b border-slate-100 dark:border-slate-800 pb-2">
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                <ShieldAlert className="w-3.5 h-3.5" />
-                <span>Format Berita Pers Perspektif 5W+1H (EraInspirasi Redaksi)</span>
-              </span>
-              <span className="text-slate-400 dark:text-slate-500">🔒 Anti-Copy Protected</span>
-            </div>
-
-            <article className="prose dark:prose-invert max-w-none w-full space-y-4 text-slate-900 dark:text-slate-100 leading-relaxed text-sm sm:text-base copy-protected article-content no-copy">
+          {/* Article Main Text Content */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-8 rounded-3xl shadow-xs space-y-4">
+            <article className="prose dark:prose-invert max-w-none w-full space-y-4 text-slate-900 dark:text-slate-100 leading-relaxed text-sm sm:text-base">
               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{post.content}</ReactMarkdown>
             </article>
           </div>

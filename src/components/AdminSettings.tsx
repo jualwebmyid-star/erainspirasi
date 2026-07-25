@@ -74,6 +74,15 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
     }
   );
 
+  const [feedRow3Banner, setFeedRow3Banner] = useState<BannerConfig>(
+    settings.feedRow3Banner || {
+      imageUrl: '',
+      targetUrl: 'https://erainspirasi.com/iklan',
+      altText: 'Banner Sponsor Baris Ke-3 Artikel In-Feed',
+      isEnabled: true,
+    }
+  );
+
   // Social API Keys
   const [facebookAppId, setFacebookAppId] = useState(settings.facebookAppId || '');
   const [facebookPageAccessToken, setFacebookPageAccessToken] = useState(settings.facebookPageAccessToken || '');
@@ -101,6 +110,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       if (settings.whatsappContact) setWhatsappContact(settings.whatsappContact);
       if (settings.headerBanner) setHeaderBanner(settings.headerBanner);
       if (settings.sidebarBanner) setSidebarBanner(settings.sidebarBanner);
+      if (settings.feedRow3Banner) setFeedRow3Banner(settings.feedRow3Banner);
       if (settings.facebookAppId !== undefined) setFacebookAppId(settings.facebookAppId);
       if (settings.facebookPageAccessToken !== undefined) setFacebookPageAccessToken(settings.facebookPageAccessToken);
       if (settings.twitterApiKey !== undefined) setTwitterApiKey(settings.twitterApiKey);
@@ -194,6 +204,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       whatsappContact,
       headerBanner,
       sidebarBanner,
+      feedRow3Banner,
       facebookAppId,
       facebookPageAccessToken,
       twitterApiKey,
@@ -221,6 +232,12 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const handleUploadSidebarBannerClick = () => {
     onOpenImageUploader((url, alt) => {
       setSidebarBanner((prev) => ({ ...prev, imageUrl: url, altText: alt || prev.altText }));
+    });
+  };
+
+  const handleUploadFeedRow3BannerClick = () => {
+    onOpenImageUploader((url, alt) => {
+      setFeedRow3Banner((prev) => ({ ...prev, imageUrl: url, altText: alt || prev.altText }));
     });
   };
 
@@ -520,6 +537,77 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   <img src={sidebarBanner.imageUrl} alt={sidebarBanner.altText} className="max-h-28 max-w-[200px] object-cover rounded-lg mx-auto" />
                 ) : (
                   <div className="py-4 text-xs font-bold text-slate-400">Belum ada banner diunggah (Menampilkan Ruang Iklan Default)</div>
+                )}
+              </div>
+            </div>
+
+            {/* POSISI 3: BANNER SPONSOR BARIS KE-3 ARTIKEL IN-FEED */}
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4 lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-rose-600" />
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
+                    Posisi 3: Banner Sponsor Baris Ke-3 Artikel (In-Feed Reader & Detail)
+                  </span>
+                </div>
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={feedRow3Banner.isEnabled}
+                    onChange={(e) => setFeedRow3Banner((prev) => ({ ...prev, isEnabled: e.target.checked }))}
+                    className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
+                  />
+                  <span>Tampilkan</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    URL Gambar Banner In-Feed Baris Ke-3
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={feedRow3Banner.imageUrl}
+                      onChange={(e) => setFeedRow3Banner((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                      placeholder="https://domain.com/banner-row3.jpg"
+                      className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUploadFeedRow3BannerClick}
+                      className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Banner</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Tautan / Target Link Saat Banner Diklik
+                  </label>
+                  <input
+                    type="url"
+                    value={feedRow3Banner.targetUrl}
+                    onChange={(e) => setFeedRow3Banner((prev) => ({ ...prev, targetUrl: e.target.value }))}
+                    placeholder="https://sponsor.com/promo"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              </div>
+
+              {/* Preview Box */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Preview Banner In-Feed Baris Ke-3 Artikel</span>
+                {feedRow3Banner.imageUrl ? (
+                  <a href={feedRow3Banner.targetUrl} target="_blank" rel="noopener noreferrer" className="block max-w-xl mx-auto">
+                    <img src={feedRow3Banner.imageUrl} alt={feedRow3Banner.altText} className="max-h-28 w-full object-cover rounded-lg mx-auto hover:opacity-90 transition" />
+                  </a>
+                ) : (
+                  <div className="py-4 text-xs font-bold text-slate-400">Belum ada banner diunggah (Menampilkan Ruang Iklan Default Redaksi)</div>
                 )}
               </div>
             </div>

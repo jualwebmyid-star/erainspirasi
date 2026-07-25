@@ -54,8 +54,11 @@ PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
    Di bagian tengah artikel (setelah paragraf 2 atau subjudul H2 pertama), SISIPKAN 1 TAG GAMBAR AI SPESIFIK BERIKUT:
    <img src="https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian editorial news press photography ' + topic)}?width=800&height=450&nologo=true" style="width: 100%; max-width: 800px; display: block; margin: 20px auto; border-radius: 16px;" alt="Dokumentasi Foto Berita - ${topic}" />
 4. LINK OTOMATIS:
-   - Sisipkan minimal 1-2 link internal markdown yang relevan: \`[baca berita nasional terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
-   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: \`[Laporan Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Informasi Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
+   - Untuk LINK INTERNAL markdown, WAJIB gunakan JUDUL ARTIKEL BERITA LENGKAP sebagai teks link-nya (BUKAN kata generik seperti 'baca selengkapnya' atau 'klik disini'), contoh: "[Pemerintah Targetkan Pertumbuhan Ekonomi Nasional Tahun Ini](/kategori/nasional)" atau "[Kebijakan Baru Sektor Perbankan Indonesia](/kategori/ekonomi)".
+   - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: "[Laporan Resmi Wikipedia](https://id.wikipedia.org)", "[Informasi Google News](https://news.google.com)", atau "[Portal BMKG](https://www.bmkg.go.id)".
+5. TOPIK BERITA UMUM PERS (TANPA BIAS TEKNOLOGI / AI):
+   - Isi berita HARUS murni tentang BERITA UMUM JURNALISTIK PERS (seperti Politik, Ekonomi, Hukum, Sosial, Otomotif, Olahraga, Gaya Hidup, Hiburan, atau Regional).
+   - DILARANG KERAS menyelipkan bahasan AI, Artificial Intelligence, Web Development, Next.js, React, atau coding kecuali jika topik secara spesifik memintanya.
 
 Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus):
 {
@@ -216,9 +219,10 @@ PETUNJUK FORMAT BERITA STANDAR PERS & JURNALISTIK:
 1. LEAD & DATELINE (5W+1H): Setiap artikel diawali dengan dateline cetak tebal, misal: "**JAKARTA, ERAINSPIRASI** — ..." atau "**BANDUNG, ERAINSPIRASI** — ..." dengan prinsip 5W+1H di paragraf pertama.
 2. PIRAMIDA TERBALIK: Fakta utama di awal, kutipan narasumber/pakar di tengah (*"..." kata...*), latar belakang & konteks di akhir.
 3. LINK OTOMATIS:
-   - Minimal 1 link internal markdown seperti \`[baca selengkapnya di kategori terkait](/kategori/nasional)\` atau \`[ulasan ekonomi pilihan](/kategori/ekonomi)\`.
-   - Minimal 1 link eksternal markdown ke sumber otoritas resmi seperti \`[Sumber Resmi Wikipedia](https://id.wikipedia.org)\`, \`[Portal Google News](https://news.google.com)\`, atau \`[Portal BMKG](https://www.bmkg.go.id)\`.
-4. VARIASI TOPIK BANYAK: Pastikan topik beragam (Nasional, Politik, Ekonomi, Teknologi, Otomotif, Olahraga, Gaya Hidup, Hiburan) dan BUKAN hanya tentang teknologi web.
+   - Untuk LINK INTERNAL markdown, WAJIB gunakan JUDUL ARTIKEL BERITA LENGKAP sebagai teks link-nya (BUKAN kata generik), contoh: "[Pemerintah Targetkan Pertumbuhan Ekonomi Nasional Tahun Ini](/kategori/nasional)".
+   - Sisipkan minimal 1 link eksternal markdown ke sumber otoritas resmi seperti "[Sumber Resmi Wikipedia](https://id.wikipedia.org)", "[Portal Google News](https://news.google.com)", atau "[Portal BMKG](https://www.bmkg.go.id)".
+4. VARIASI TOPIK BANYAK BERITA UMUM PERS (TANPA BIAS CODING / AI):
+   - Pastikan topik beragam (Nasional, Politik, Ekonomi, Otomotif, Olahraga, Gaya Hidup, Hiburan) dan DILARANG menulis tentang AI atau Web Dev.
 
 Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
 [
