@@ -35,17 +35,32 @@ export async function generateArticleDirect(apiKey: string, body: { topic: strin
     year: 'numeric'
   });
 
+  // Filter out default tech keywords if topic does not explicitly mention tech/coding/AI
+  const cleanKeywords = (Array.isArray(keywords) ? keywords : []).filter((kw: string) => {
+    const lowerKw = kw.toLowerCase().trim();
+    const lowerTopic = topic.toLowerCase();
+    if (['nextjs', 'webdev', 'react', 'coding', 'web development', 'ai'].includes(lowerKw)) {
+      return lowerTopic.includes(lowerKw) || lowerTopic.includes('teknologi') || lowerTopic.includes('coding') || lowerTopic.includes('pemrograman') || lowerTopic.includes('ai');
+    }
+    return true;
+  });
+
   const prompt = `Anda adalah Redaktur Utama Jurnalisme Berita Pers Nasional (EraInspirasi.com).
 Buatkan artikel berita berformat pers standar profesional Indonesia mengenai topik: "${topic}".
 Kategori: "${category}".
 Gaya Bahasa: "${tone}".
-Kata Kunci SEO: ${keywords.length > 0 ? keywords.join(', ') : 'sesuaikan dengan topik'}.
+Kata Kunci SEO: ${cleanKeywords.length > 0 ? cleanKeywords.join(', ') : 'sesuaikan murni dengan topik ' + topic}.
 Tanggal Hari Ini: ${dateFormatted}.
+
+PERINGATAN KETAT RELEVANSI TOPIK:
+- Isi berita HARUS 100% MURNI DAN SPESIFIK membahas topik: "${topic}".
+- DILARANG KERAS menyelipkan atau menyebutkan bahasan AI, Artificial Intelligence, Web Development, Next.js, React, Coding, atau Pemrograman KECUALI JIKA topik "${topic}" secara eksplisit memintanya!
+- Jika topik adalah berita lokal, politik, pemerintahan, DPRD, hukum, ekonomi, dll (seperti DPRD Kota Makassar), tuliskan MURNI tentang dinamika politik/kebijakan/isu publik terkait instansi/daerah tersebut!
 
 PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
 1. LEAD BERITA DENGAN DATELINE & TANGGAL (5W+1H):
    Paragraf pertama WAJIB dimulai dengan dateline kota lokasi/redaksi DAN TANGGAL LENGKAP (${dateFormatted}) dalam cetak tebal, contoh:
-   "**JAKARTA, ERAINSPIRASI (${dateFormatted})** — [Paragraf lead utama berita yang WAJIB memuat unsur 5W+1H secara lengkap dan padat: Who (Siapa), What (Apa), Where (Di mana), When (${dateFormatted}), Why (Mengapa), dan How (Bagaimana)]."
+   "**MAKASSAR, ERAINSPIRASI (${dateFormatted})** — [Paragraf lead utama berita yang WAJIB memuat unsur 5W+1H secara lengkap dan padat: Who (Siapa), What (Apa), Where (Di mana), When (${dateFormatted}), Why (Mengapa), dan How (Bagaimana)]."
 2. STRUKTUR PIRAMIDA TERBALIK (Inverted Pyramid):
    - Paragraf 1: Lead utama (5W+1H dan Tanggal ${dateFormatted}).
    - Paragraf 2-3: Detail berita, fakta kronologis, dan kutipan resmi narasumber (*"..." ujar...* / *"..." kata...*).
@@ -56,9 +71,6 @@ PETUNJUK MUTLAK FORMAT BERITA PERS (5W+1H):
 4. LINK OTOMATIS:
    - Untuk LINK INTERNAL markdown, WAJIB gunakan JUDUL ARTIKEL BERITA LENGKAP sebagai teks link-nya (BUKAN kata generik seperti 'baca selengkapnya' atau 'klik disini'), contoh: "[Pemerintah Targetkan Pertumbuhan Ekonomi Nasional Tahun Ini](/kategori/nasional)" atau "[Kebijakan Baru Sektor Perbankan Indonesia](/kategori/ekonomi)".
    - Sisipkan minimal 1-2 link eksternal markdown ke sumber resmi tepercaya: "[Laporan Resmi Wikipedia](https://id.wikipedia.org)", "[Informasi Google News](https://news.google.com)", atau "[Portal BMKG](https://www.bmkg.go.id)".
-5. TOPIK BERITA UMUM PERS (TANPA BIAS TEKNOLOGI / AI):
-   - Isi berita HARUS murni tentang BERITA UMUM JURNALISTIK PERS (seperti Politik, Ekonomi, Hukum, Sosial, Otomotif, Olahraga, Gaya Hidup, Hiburan, atau Regional).
-   - DILARANG KERAS menyelipkan bahasan AI, Artificial Intelligence, Web Development, Next.js, React, atau coding kecuali jika topik secara spesifik memintanya.
 
 Format keluaran HARUS dalam JSON valid (tanpa markdown pembungkus):
 {

@@ -65,19 +65,19 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [title, setTitle] = useState(initialPost?.title || '');
   const [seoTitle, setSeoTitle] = useState(initialPost?.seoTitle || initialPost?.title || '');
   const [slug, setSlug] = useState(initialPost?.slug || '');
-  const [category, setCategory] = useState(initialPost?.category || 'Teknologi');
-  const [tagsInput, setTagsInput] = useState(initialPost?.tags.join(', ') || 'NextJS, AI, WebDev');
+  const [category, setCategory] = useState(initialPost?.category || 'Nasional');
+  const [tagsInput, setTagsInput] = useState(initialPost?.tags ? initialPost.tags.join(', ') : 'Berita Terkini, EraInspirasi, Pers');
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || '');
   const [seoDescription, setSeoDescription] = useState(
     initialPost?.seoDescription || initialPost?.excerpt || ''
   );
   const [content, setContent] = useState(
     initialPost?.content ||
-      `# Judul Artikel Anda Di Sini\n\nTulis isi tulisan Anda secara visual atau menggunakan markdown di sini...\n\n## Subheading Pertama\n\n* Poin penting satu\n* Poin penting dua\n\n<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" style="width: 75%; display: block; margin: 16px auto;" alt="Ilustrasi Teknologi" />\n\nTuliskan kelanjutan paragraf artikel Anda di bawah gambar ini dengan nyaman.`
+      `# Judul Berita Pers Utama\n\nTuliskan atau hasilkan isi artikel berita berformat 5W+1H di sini...\n\n## Subjudul Berita\n\n* Poin informasi penting satu\n* Poin informasi penting dua`
   );
   const [coverImage, setCoverImage] = useState(
     initialPost?.coverImage ||
-      'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80'
+      'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80'
   );
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>(
     initialPost?.status || 'published'
@@ -124,6 +124,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // AI Modal states
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
+  const [aiCategory, setAiCategory] = useState('Nasional');
+  const [aiKeywordsInput, setAiKeywordsInput] = useState('');
   const [showAiModal, setShowAiModal] = useState(false);
 
   // AI Rewrite states
@@ -259,6 +261,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setIsAiGenerating(true);
     const apiKey = getGeminiApiKey();
 
+    const requestKeywords = aiKeywordsInput.trim()
+      ? aiKeywordsInput.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+
     try {
       let articleData: any = null;
       try {
@@ -268,8 +274,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           body: JSON.stringify({
             geminiApiKey: apiKey,
             topic: aiTopic,
-            category,
-            keywords: tagsInput.split(',').map((t) => t.trim()),
+            category: aiCategory || category || 'Nasional',
+            keywords: requestKeywords,
           }),
         });
         if (json.success) {
@@ -280,8 +286,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         if (apiKey) {
           const directRes = await generateArticleDirect(apiKey, {
             topic: aiTopic,
-            category,
-            keywords: tagsInput.split(',').map((t) => t.trim()),
+            category: aiCategory || category || 'Nasional',
+            keywords: requestKeywords,
           });
           if (directRes.success) {
             articleData = directRes;
@@ -295,19 +301,25 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         setTitle(articleData.title || title);
         setExcerpt(articleData.excerpt || excerpt);
         setContent(articleData.content || content);
+        setCategory(articleData.category || aiCategory || category);
         if (articleData.coverImage) {
           setCoverImage(articleData.coverImage);
         } else if (aiTopic) {
           const seed = Math.floor(Math.random() * 100000);
           setCoverImage(`https://image.pollinations.ai/prompt/${encodeURIComponent('indonesian press editorial news cover photography ' + aiTopic)}?width=1200&height=675&nologo=true&seed=${seed}`);
         }
-        if (articleData.tags && Array.isArray(articleData.tags)) {
+        if (articleData.tags && Array.isArray(articleData.tags) && articleData.tags.length > 0) {
           setTagsInput(articleData.tags.join(', '));
+        } else if (requestKeywords.length > 0) {
+          setTagsInput(requestKeywords.join(', '));
+        } else {
+          setTagsInput('Berita Terkini, EraInspirasi, Pers');
         }
         if (articleData.seoTitle) setSeoTitle(articleData.seoTitle);
         if (articleData.seoDescription) setSeoDescription(articleData.seoDescription);
         setShowAiModal(false);
         setAiTopic('');
+        setAiKeywordsInput('');
       } else {
         alert(`Gagal AI Generator.`);
       }
@@ -1313,11 +1325,43 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Topik Berita Umum</label>
               <input
                 type="text"
-                placeholder="misal: Peluncuran Jalur Kereta Cepat Baru atau Kebijakan Insentif Ekonomi UMKM"
+                placeholder="misal: Sidang Paripurna DPRD Kota Makassar atau Kebijakan Insentif Ekonomi UMKM"
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
                 className="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori Berita</label>
+                <select
+                  value={aiCategory}
+                  onChange={(e) => setAiCategory(e.target.value)}
+                  className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none"
+                >
+                  <option value="Politik">🏛️ Politik & Kebijakan Publik</option>
+                  <option value="Nasional">🇮🇩 Nasional & Pemerintahan</option>
+                  <option value="Ekonomi & Bisnis">📈 Ekonomi & Bisnis</option>
+                  <option value="Hukum & Kriminal">⚖️ Hukum & Kriminalitas</option>
+                  <option value="Otomotif">🚗 Otomotif & Transportasi</option>
+                  <option value="Olahraga">⚽ Olahraga</option>
+                  <option value="Gaya Hidup & Kesehatan">🌿 Gaya Hidup & Kesehatan</option>
+                  <option value="Hiburan">🎬 Hiburan & Seni</option>
+                  <option value="Teknologi">💻 Teknologi & Gadget</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kata Kunci SEO (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="misal: DPRD, Makassar, Kebijakan"
+                  value={aiKeywordsInput}
+                  onChange={(e) => setAiKeywordsInput(e.target.value)}
+                  className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none"
+                />
+              </div>
             </div>
 
             <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 text-[11px] text-indigo-900 dark:text-indigo-200 space-y-1">
