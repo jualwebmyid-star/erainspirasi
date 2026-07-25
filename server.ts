@@ -11,7 +11,18 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-gemini-api-key');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize Gemini Client with fallback to request header or body
 const getGeminiClient = (req?: express.Request) => {
@@ -64,11 +75,11 @@ app.get('/api/health', (_req, res) => {
 });
 
 // 1.5. Test Gemini API Key Connection Endpoint
-app.post('/api/gemini/test-key', async (req, res) => {
+app.post(['/api/gemini/test-key', '/api/gemini/test-key/'], async (req, res) => {
   try {
     const ai = getGeminiClient(req);
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: 'Tes koneksi API Key Gemini. Respon singkat 1 kata "Terhubung".',
     });
     res.json({ success: true, message: 'Koneksi ke Google Gemini AI Berhasil!', sample: response.text?.trim() });
@@ -79,7 +90,7 @@ app.post('/api/gemini/test-key', async (req, res) => {
 });
 
 // 2. AI Article Generator Endpoint
-app.post('/api/gemini/generate-article', async (req, res) => {
+app.post(['/api/gemini/generate-article', '/api/gemini/generate-article/'], async (req, res) => {
   try {
     const { topic, category, tone = 'Informatif & Engaging', keywords = [] } = req.body;
 
@@ -109,7 +120,7 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -127,7 +138,7 @@ Respon HANYA dalam format JSON valid dengan struktur schema berikut:
 });
 
 // 3. AI Rewrite & Spinning Endpoint
-app.post('/api/gemini/rewrite-spin', async (req, res) => {
+app.post(['/api/gemini/rewrite-spin', '/api/gemini/rewrite-spin/'], async (req, res) => {
   try {
     const { content, mode = 'rewrite', tone = 'Professional' } = req.body;
 
@@ -152,7 +163,7 @@ Respon HANYA dalam format JSON:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -169,7 +180,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 4. AI Content Detection & Humanizer Endpoint
-app.post('/api/gemini/detect-humanize', async (req, res) => {
+app.post(['/api/gemini/detect-humanize', '/api/gemini/detect-humanize/'], async (req, res) => {
   try {
     const { content } = req.body;
 
@@ -193,7 +204,7 @@ Respon HANYA dalam format JSON:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -210,7 +221,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 5. SEO Optimization & Schema Generator Endpoint
-app.post('/api/gemini/seo-optimize', async (req, res) => {
+app.post(['/api/gemini/seo-optimize', '/api/gemini/seo-optimize/', '/api/gemini/optimize-seo', '/api/gemini/optimize-seo/'], async (req, res) => {
   try {
     const { title, content } = req.body;
 
@@ -248,7 +259,7 @@ Respon HANYA dalam format JSON:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -264,7 +275,7 @@ Respon HANYA dalam format JSON:
 });
 
 // 6. Image AI Alt Text Generator Endpoint
-app.post('/api/gemini/generate-alt', async (req, res) => {
+app.post(['/api/gemini/generate-alt', '/api/gemini/generate-alt/'], async (req, res) => {
   try {
     const { imageName, topic } = req.body;
     const ai = getGeminiClient(req);
@@ -272,7 +283,7 @@ app.post('/api/gemini/generate-alt', async (req, res) => {
     const prompt = `Buatkan atribut ALT text SEO yang deskriptif dan ramah pembaca layar (screen reader) untuk gambar blog dengan nama file "${imageName}" dan konteks artikel "${topic || 'Teknologi Modern'}". Balas singkat dalam 1 kalimat (max 12 kata).`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
     });
 
@@ -284,7 +295,7 @@ app.post('/api/gemini/generate-alt', async (req, res) => {
 });
 
 // 7. Auto Batch AI Content Generator & Scheduler Endpoint
-app.post('/api/gemini/batch-generate-schedule', async (req, res) => {
+app.post(['/api/gemini/batch-generate-schedule', '/api/gemini/batch-generate-schedule/', '/api/gemini/batch-auto-generate', '/api/gemini/batch-auto-generate/'], async (req, res) => {
   try {
     const { count = 3, categories = ['Teknologi', 'AI & Penulisan', 'Bisnis & UMKM', 'Inspirasi', 'Nasional', 'Otomotif'], intervalHours = 3 } = req.body;
 
@@ -308,7 +319,7 @@ Respon HANYA dalam format JSON valid sebagai Array dari Object dengan struktur:
 ]`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
