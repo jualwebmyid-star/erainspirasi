@@ -83,8 +83,12 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   // Lazy load subset
   const visiblePosts = filteredPosts.slice(0, visibleCount);
 
-  // Featured Hero Slider items (top 4 posts)
-  const heroSliderPosts = posts.slice(0, 4);
+  // Featured Hero Slider items: prioritize published posts marked as isFeatured, sorted by publishedAt
+  const publishedPosts = posts.filter((p) => p.status === 'published');
+  const featuredHeadlinePosts = publishedPosts.filter((p) => p.isFeatured);
+  const heroSliderPosts = featuredHeadlinePosts.length > 0
+    ? featuredHeadlinePosts.slice(0, 5)
+    : publishedPosts.slice(0, 5);
 
   // 3-Thumbnail Mini Carousel posts (items for mini slider)
   const miniCarouselPool = posts.length >= 3 ? posts : posts;
@@ -111,7 +115,20 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   }, [heroSliderPosts.length]);
 
   // Popular posts sorted by views
-  const popularPosts = [...posts].sort((a, b) => b.viewCount - a.viewCount).slice(0, 5);
+  const popularPosts = [...posts].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5);
+
+  // Categories ranked by total article views (Paling Banyak Dibaca)
+  const categoriesWithStats = Array.from(new Set(posts.map((p) => p.category)))
+    .map((catName) => {
+      const catPosts = posts.filter((p) => p.category === catName);
+      const totalViews = catPosts.reduce((acc, curr) => acc + (curr.viewCount || 0), 0);
+      return {
+        name: catName,
+        count: catPosts.length,
+        views: totalViews,
+      };
+    })
+    .sort((a, b) => b.views - a.views);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -487,7 +504,7 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
 
                   {/* Banner Iklan di Baris Ke-3 Artikel (index === 2) */}
                   {index === 2 && (siteSettings?.feedRow3Banner?.isEnabled !== false) && (
-                    <div className="p-4 sm:p-5 my-6 rounded-2xl border border-rose-200 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/50 to-rose-50/90 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden">
+                    <div className="my-6 rounded-2xl overflow-hidden shadow-md border border-slate-200 dark:border-slate-800">
                       {siteSettings?.feedRow3Banner?.imageUrl ? (
                         <a
                           href={siteSettings.feedRow3Banner.targetUrl || 'https://erainspirasi.com/iklan'}
@@ -498,11 +515,11 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                           <img
                             src={siteSettings.feedRow3Banner.imageUrl}
                             alt={siteSettings.feedRow3Banner.altText || 'Banner Sponsor Baris 3'}
-                            className="w-full max-h-36 object-cover rounded-xl shadow-xs"
+                            className="w-full h-auto max-h-[320px] sm:max-h-[420px] object-cover sm:object-fill rounded-2xl"
                           />
                         </a>
                       ) : (
-                        <>
+                        <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-50/90 via-amber-50/50 to-rose-50/90 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/40 flex flex-col sm:flex-row items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white font-black text-xs flex flex-col items-center justify-center shrink-0 shadow-md">
                               <span>IKLAN</span>
@@ -531,7 +548,7 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                           >
                             Hubungi Redaksi
                           </a>
-                        </>
+                        </div>
                       )}
                     </div>
                   )}
@@ -623,6 +640,56 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Widget KATEGORI POPULER (Paling Banyak Dibaca) */}
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b-2 border-rose-600">
+              <h4 className="text-sm font-black text-slate-900 dark:text-slate-100 flex items-center gap-2 uppercase tracking-wide">
+                <Filter className="w-4 h-4 text-rose-600" />
+                <span>KATEGORI TERPOPULER</span>
+              </h4>
+              <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950 px-2 py-0.5 rounded-md">
+                DIBACA
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              {categoriesWithStats.map((cat, idx) => (
+                <button
+                  key={cat.name}
+                  onClick={() => handleCategorySelect(cat.name)}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all text-xs font-bold ${
+                    selectedCategory === cat.name
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-800 dark:text-slate-200 hover:text-rose-600'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-5 h-5 rounded-md text-[10px] font-black flex items-center justify-center shrink-0 ${
+                      selectedCategory === cat.name ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="truncate">{cat.name}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span className={`px-2 py-0.5 rounded-full font-extrabold ${
+                      selectedCategory === cat.name
+                        ? 'bg-white/20 text-white'
+                        : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
+                    }`}>
+                      {cat.count} Artikel
+                    </span>
+                    <span className="flex items-center gap-0.5 opacity-80 font-mono">
+                      <Eye className="w-3 h-3" />
+                      {cat.views.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 

@@ -439,12 +439,21 @@ export default function App() {
     };
   }, []);
 
-  // Deep-linking URL Slug Sync & Parser for Shareable Links
+  // Deep-linking URL Slug Sync & Parser for Shareable Links (Articles, Categories, Static Pages)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+
+    // 1. Static Page Permalink Check (?page=kebijakan-privasi or ?static=... or ?p=...)
     const pageParam = params.get('page') || params.get('static');
     if (pageParam && staticPages.length > 0) {
-      const matchedPage = staticPages.find((p) => p.slug === pageParam || p.id === pageParam);
+      const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
+      const matchedPage = staticPages.find(
+        (p) =>
+          p.slug.toLowerCase() === cleanPageParam ||
+          p.id.toLowerCase() === cleanPageParam ||
+          p.title.toLowerCase().replace(/\s+/g, '-') === cleanPageParam
+      );
       if (matchedPage) {
         setSelectedStaticPageSlug(matchedPage.slug);
         setSelectedPost(null);
@@ -453,25 +462,59 @@ export default function App() {
       }
     }
 
-    if (posts.length === 0) return;
-    const postParam = params.get('post') || params.get('article') || params.get('p');
-    if (postParam) {
-      const matched = posts.find((p) => p.slug === postParam || p.id === postParam);
-      if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
-        setSelectedPost(matched);
-      }
-    } else if (!selectedPost && !selectedStaticPageSlug) {
-      // Default Portal Home Page Open Graph Tags
-      updateOpenGraphTags({
-        title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
-        description: siteSettings.siteTagline || 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.',
-        image: siteSettings.logoUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://erainspirasi.com',
-        type: 'website',
-        siteName: siteSettings.siteName || 'EraInspirasi Portal',
-      });
+    // 2. Category Permalink Check (?category=Otomotif or ?cat=otomotif or ?kategori=otomotif)
+    const catParam = params.get('category') || params.get('cat') || params.get('kategori');
+    if (catParam) {
+      const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
+      const matchedCategoryObj = categories.find(
+        (c) =>
+          c.name.toLowerCase() === cleanCatParam ||
+          c.slug.toLowerCase() === cleanCatParam ||
+          c.id.toLowerCase() === cleanCatParam
+      );
+      const matchedPostCategory = posts.find(
+        (p) =>
+          p.category.toLowerCase() === cleanCatParam ||
+          p.category.toLowerCase().replace(/\s+/g, '-') === cleanCatParam
+      )?.category;
+
+      const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : (matchedPostCategory || catParam);
+
+      setSelectedCategory(finalCatName);
+      setSelectedPost(null);
+      setSelectedStaticPageSlug(null);
+      setCurrentTab('reader');
+      return;
     }
-  }, [posts, staticPages, siteSettings]);
+
+    // 3. Article Post Permalink Check (?post=judul-artikel or ?article=... or ?p=...)
+    if (posts.length > 0) {
+      const postParam = params.get('post') || params.get('article') || params.get('p');
+      if (postParam) {
+        const cleanPostParam = decodeURIComponent(postParam).toLowerCase().trim();
+        const matched = posts.find(
+          (p) =>
+            p.slug.toLowerCase() === cleanPostParam ||
+            p.id.toLowerCase() === cleanPostParam
+        );
+        if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
+          setSelectedPost(matched);
+          setSelectedStaticPageSlug(null);
+          setCurrentTab('reader');
+        }
+      } else if (!selectedPost && !selectedStaticPageSlug) {
+        // Default Portal Home Page Open Graph Tags
+        updateOpenGraphTags({
+          title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
+          description: siteSettings.siteTagline || 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.',
+          image: siteSettings.logoUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+          url: window.location.origin,
+          type: 'website',
+          siteName: siteSettings.siteName || 'EraInspirasi Portal',
+        });
+      }
+    }
+  }, [posts, staticPages, categories, siteSettings]);
 
   // Update browser tab title with slogan and favicon icon
   useEffect(() => {
@@ -537,6 +580,9 @@ export default function App() {
     setSelectedStaticPageSlug(slug);
     setSelectedPost(null);
     setCurrentTab('static-page-view');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `?page=${encodeURIComponent(slug)}`);
+    }
   };
 
   const handleAddComment = async (postId: string, content: string, parentId?: string) => {
@@ -587,6 +633,7 @@ export default function App() {
         category: savedPostData.category || 'Tekno & Gadget',
         tags: savedPostData.tags || ['Inovasi', 'Digital'],
         status: savedPostData.status || 'published',
+        isFeatured: savedPostData.isFeatured !== undefined ? savedPostData.isFeatured : true,
         publishedAt: new Date().toISOString(),
         readingTime: savedPostData.readingTime || 3,
         viewCount: 1,

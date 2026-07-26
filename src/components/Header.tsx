@@ -276,18 +276,18 @@ export const Header: React.FC<HeaderProps> = ({
                 href={siteSettings.headerBanner.targetUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:flex items-center justify-center overflow-hidden rounded-2xl w-[480px] xl:w-[600px] h-[85px] xl:h-[95px] border border-slate-200 dark:border-slate-800 shadow-sm hover:opacity-95 transition bg-slate-900/5 dark:bg-slate-950/40"
+                className="hidden lg:flex items-center justify-center overflow-hidden rounded-2xl w-[580px] xl:w-[728px] h-[95px] xl:h-[115px] border border-slate-200 dark:border-slate-800 shadow-md hover:opacity-95 transition bg-slate-900/5 dark:bg-slate-950/40"
               >
                 <img
                   src={siteSettings.headerBanner.imageUrl}
                   alt={siteSettings.headerBanner.altText || 'Banner Header'}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover sm:object-fill"
                 />
               </a>
             ) : (
-              <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-4 py-2.5 w-[480px] xl:w-[600px] h-[85px] xl:h-[95px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm">
+              <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-5 py-3 w-[580px] xl:w-[728px] h-[95px] xl:h-[115px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="px-2 py-1 bg-rose-600 text-white font-black text-[10px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
+                  <div className="px-2.5 py-1.5 bg-rose-600 text-white font-black text-[10px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
                     IKLAN 728x90
                   </div>
                   <div>
@@ -299,7 +299,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </div>
                 </div>
-                <span className="hidden xl:inline-block px-3 py-1.5 bg-rose-600 text-white text-[10px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
+                <span className="hidden xl:inline-block px-3.5 py-2 bg-rose-600 text-white text-[11px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
                   Pasang Iklan →
                 </span>
               </div>

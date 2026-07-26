@@ -50,6 +50,7 @@ export interface BlogPost {
   seoKeywords?: string[];
   aiScore?: number; // 0 - 100 AI likelihood score
   humanized?: boolean;
+  isFeatured?: boolean; // Headline / Hero Slider flag
 }
 
 export type SocialPlatform = 'x' | 'linkedin' | 'facebook' | 'instagram' | 'threads';

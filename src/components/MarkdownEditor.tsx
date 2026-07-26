@@ -82,6 +82,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'trash'>(
     initialPost?.status || 'published'
   );
+  const [isFeatured, setIsFeatured] = useState<boolean>(
+    initialPost?.isFeatured !== undefined ? initialPost.isFeatured : true
+  );
   const [scheduledAt, setScheduledAt] = useState(
     initialPost?.scheduledAt || new Date(Date.now() + 86400000).toISOString().slice(0, 16)
   );
@@ -566,6 +569,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       content,
       coverImage,
       status,
+      isFeatured,
       scheduledAt: status === 'scheduled' ? scheduledAt : undefined,
       publishedAt: initialPost?.publishedAt || new Date().toISOString(),
       readingTime: readingTimeMinutes,
@@ -1145,6 +1149,22 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 <option value="draft">📝 Draf (Simpan Saja)</option>
                 <option value="scheduled">⏰ Terjadwal Otomatis</option>
               </select>
+            </div>
+
+            {/* Headline / Hero Slider Toggle */}
+            <div className="p-3 rounded-2xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 space-y-1">
+              <label className="flex items-center gap-2 cursor-pointer font-extrabold text-xs text-rose-900 dark:text-rose-200">
+                <input
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 accent-rose-600 cursor-pointer shrink-0"
+                />
+                <span>🔥 Tampilkan di Headline Slider Utama</span>
+              </label>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-6 leading-tight">
+                Artikel akan langsung tampil sebagai headline slider teratas di halaman depan portal.
+              </p>
             </div>
 
             {status === 'scheduled' && (
