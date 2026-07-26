@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tag, Plus, Trash2, Edit3, Save, X, FolderPlus, CheckCircle, LayoutGrid } from 'lucide-react';
+import { Tag, Plus, Trash2, Edit3, Save, X, FolderPlus, CheckCircle, LayoutGrid, Copy, Check, ExternalLink } from 'lucide-react';
 import { CategoryItem } from '../types';
 
 interface CategoryManagerProps {
@@ -7,6 +7,7 @@ interface CategoryManagerProps {
   onAddCategory: (cat: CategoryItem) => void;
   onUpdateCategory: (cat: CategoryItem) => void;
   onDeleteCategory: (id: string) => void;
+  onSelectCategoryToView?: (categoryName: string) => void;
 }
 
 export const CategoryManager: React.FC<CategoryManagerProps> = ({
@@ -14,9 +15,11 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
   onAddCategory,
   onUpdateCategory,
   onDeleteCategory,
+  onSelectCategoryToView,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   const [formName, setFormName] = useState('');
   const [formSlug, setFormSlug] = useState('');
@@ -270,56 +273,96 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
         </form>
       )}
 
-      {/* Category Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((cat) => (
-          <div
-            key={cat.id}
-            className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-4 hover:border-rose-400 transition"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${cat.color}`}>
-                  {cat.name}
-                </span>
-                <span className="text-xs font-bold text-slate-400">
-                  {cat.articleCount} Artikel
-                </span>
+      {/* Compact Category Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {categories.map((cat) => {
+          const permalinkUrl = `${window.location.origin}/?category=${encodeURIComponent(cat.name)}`;
+          const isCopied = copiedSlug === cat.id;
+
+          const handleCopyPermalink = () => {
+            navigator.clipboard.writeText(permalinkUrl);
+            setCopiedSlug(cat.id);
+            setTimeout(() => setCopiedSlug(null), 2500);
+          };
+
+          return (
+            <div
+              key={cat.id}
+              className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between gap-2 hover:border-rose-400 dark:hover:border-rose-600 transition"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${cat.color}`}>
+                    {cat.name}
+                  </span>
+                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
+                    {cat.articleCount} Artikel
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 text-[10px]">
+                  <span className="px-2 py-0.5 rounded-md font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    {cat.location === 'header' ? '📌 Header Nav' : cat.location === 'footer' ? '🦶 Footer' : '⚡ Header & Footer'}
+                  </span>
+                  <span className="font-mono text-slate-400 truncate max-w-[120px]">
+                    /?cat={cat.slug}
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1 italic">
+                  "{cat.description || 'Kategori Berita'}"
+                </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                  {cat.location === 'header' ? '📌 Header Nav' : cat.location === 'footer' ? '🦶 Footer' : '⚡ Header & Footer'}
-                </span>
-              </div>
+              {/* Action Bar & Permalink Copy */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleCopyPermalink}
+                    className={`px-2 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 transition ${
+                      isCopied
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 hover:text-rose-600'
+                    }`}
+                    title="Salin Permalink Kategori"
+                  >
+                    {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{isCopied ? 'Tersalin!' : 'Salin Link'}</span>
+                  </button>
 
-              <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                /kategori/{cat.slug}
-              </div>
+                  {onSelectCategoryToView && (
+                    <button
+                      type="button"
+                      onClick={() => onSelectCategoryToView(cat.name)}
+                      className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 transition"
+                      title="Lihat Tampilan Kategori"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-                {cat.description}
-              </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleStartEdit(cat)}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    title="Edit Kategori"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteCategory(cat.id)}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    title="Hapus Kategori"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
-
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <button
-                onClick={() => handleStartEdit(cat)}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 hover:text-rose-600 text-slate-600 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => onDeleteCategory(cat.id)}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus</span>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

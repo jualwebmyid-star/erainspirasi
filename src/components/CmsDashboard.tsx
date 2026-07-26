@@ -309,7 +309,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
                           </div>
                         </td>
                         <td className="py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">
-                          {post.viewCount} Dibaca
+                          {(post.viewCount || 0).toLocaleString('id-ID')} Dibaca
                         </td>
                         <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">

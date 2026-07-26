@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Plus, Trash2, Edit3, Save, X, Eye, ShieldCheck, LayoutGrid } from 'lucide-react';
+import { FileText, Plus, Trash2, Edit3, Save, X, Eye, ShieldCheck, LayoutGrid, Copy, Check, ExternalLink } from 'lucide-react';
 import { StaticPageItem } from '../types';
 
 interface StaticPageManagerProps {
@@ -19,6 +19,7 @@ export const StaticPageManager: React.FC<StaticPageManagerProps> = ({
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -258,66 +259,94 @@ export const StaticPageManager: React.FC<StaticPageManagerProps> = ({
 
       {/* Pages Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {staticPages.map((page) => (
-          <div
-            key={page.id}
-            className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-4 hover:border-rose-400 transition"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                  /p/{page.slug}
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {page.updatedAt}
-                </span>
+        {staticPages.map((page) => {
+          const permalinkUrl = `${window.location.origin}/?page=${page.slug}`;
+          const isCopied = copiedSlug === page.id;
+
+          const handleCopyPermalink = () => {
+            navigator.clipboard.writeText(permalinkUrl);
+            setCopiedSlug(page.id);
+            setTimeout(() => setCopiedSlug(null), 2500);
+          };
+
+          return (
+            <div
+              key={page.id}
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3 hover:border-rose-400 transition"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                    /?page={page.slug}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {page.updatedAt}
+                  </span>
+                </div>
+
+                <h3 className="font-black text-slate-900 dark:text-slate-100 text-sm">
+                  {page.title}
+                </h3>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                    {page.location === 'header' ? '📌 Header Nav' : page.location === 'both' ? '⚡ Header & Footer' : '🦶 Footer Saja'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                  {page.metaDescription}
+                </p>
               </div>
 
-              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">
-                {page.title}
-              </h3>
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleCopyPermalink}
+                    className={`px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition ${
+                      isCopied
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 hover:text-rose-600'
+                    }`}
+                    title="Salin Permalink Halaman Statis"
+                  >
+                    {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{isCopied ? 'Tersalin!' : 'Salin Permalink'}</span>
+                  </button>
 
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                  {page.location === 'header' ? '📌 Header Nav' : page.location === 'both' ? '⚡ Header & Footer' : '🦶 Footer Saja'}
-                </span>
+                  {onViewPagePublic && (
+                    <button
+                      onClick={() => onViewPagePublic(page.slug)}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
+                      title="Lihat Tampilan Publik"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-rose-500" />
+                      <span className="hidden sm:inline">Lihat</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleStartEdit(page)}
+                    className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    title="Edit Halaman"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeletePage(page.id)}
+                    className="p-1.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    title="Hapus Halaman"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-
-              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                {page.metaDescription}
-              </p>
             </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-              {onViewPagePublic && (
-                <button
-                  onClick={() => onViewPagePublic(page.slug)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
-                >
-                  <Eye className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Lihat Tampilan</span>
-                </button>
-              )}
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleStartEdit(page)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 hover:text-rose-600 text-slate-600 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={() => onDeletePage(page.id)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Hapus</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

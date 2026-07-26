@@ -473,6 +473,33 @@ export default function App() {
     }
   }, [posts, staticPages, siteSettings]);
 
+  // Update browser tab title with slogan and favicon icon
+  useEffect(() => {
+    if (selectedPost) {
+      document.title = `${selectedPost.title} | ${siteSettings.siteName || 'EraInspirasi'}`;
+    } else if (selectedStaticPageSlug) {
+      const page = staticPages.find((p) => p.slug === selectedStaticPageSlug);
+      if (page) {
+        document.title = `${page.title} - ${siteSettings.siteName || 'EraInspirasi'}`;
+      }
+    } else {
+      const name = siteSettings.siteName || 'EraInspirasi';
+      const slogan = siteSettings.siteSlogan || siteSettings.siteTagline || 'Portal Berita Terdepan, Edukasi & Inspirasi';
+      document.title = `${name} - ${slogan}`;
+    }
+
+    // Dynamic favicon icon update
+    if (siteSettings.siteIcon) {
+      let iconLink: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!iconLink) {
+        iconLink = document.createElement('link');
+        iconLink.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(iconLink);
+      }
+      iconLink.href = siteSettings.siteIcon;
+    }
+  }, [selectedPost, selectedStaticPageSlug, siteSettings, staticPages]);
+
   // Handlers
   const handleLogout = () => {
     setUser({
@@ -497,7 +524,7 @@ export default function App() {
 
   const handleSelectPostToRead = (post: BlogPost) => {
     setPosts((prev) =>
-      prev.map((p) => (p.id === post.id ? { ...p, viewCount: p.viewCount + 1 } : p))
+      prev.map((p) => (p.id === post.id ? { ...p, viewCount: (p.viewCount || 0) + 1 } : p))
     );
     setSelectedPost(post);
     setSelectedStaticPageSlug(null);

@@ -161,6 +161,8 @@ export interface BannerConfig {
 export interface SiteSettings {
   siteName: string;
   siteTagline: string;
+  siteSlogan?: string;
+  siteIcon?: string;
   logoUrl?: string;
   geminiApiKey?: string;
   openaiApiKey?: string;

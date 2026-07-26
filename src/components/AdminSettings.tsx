@@ -42,6 +42,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
 }) => {
   const [siteName, setSiteName] = useState(settings.siteName || 'EraInspirasi');
   const [siteTagline, setSiteTagline] = useState(settings.siteTagline || 'Portal Berita, Edukasi & Inspirasi Digital');
+  const [siteSlogan, setSiteSlogan] = useState(settings.siteSlogan || 'Portal Berita Terdepan, Edukasi & Inspirasi Publik');
+  const [siteIcon, setSiteIcon] = useState(settings.siteIcon || '');
   const [logoUrl, setLogoUrl] = useState(settings.logoUrl || '');
   
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey || '');
@@ -105,6 +107,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
     if (settings) {
       if (settings.siteName) setSiteName(settings.siteName);
       if (settings.siteTagline) setSiteTagline(settings.siteTagline);
+      if (settings.siteSlogan) setSiteSlogan(settings.siteSlogan);
+      if (settings.siteIcon !== undefined) setSiteIcon(settings.siteIcon);
       if (settings.logoUrl !== undefined) setLogoUrl(settings.logoUrl);
       if (settings.geminiApiKey !== undefined) setGeminiApiKey(settings.geminiApiKey);
       if (settings.openaiApiKey !== undefined) setOpenaiApiKey(settings.openaiApiKey);
@@ -202,6 +206,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
     const updated: SiteSettings = {
       siteName,
       siteTagline,
+      siteSlogan,
+      siteIcon,
       logoUrl,
       geminiApiKey: geminiApiKey.trim(),
       openaiApiKey: openaiApiKey.trim(),
@@ -224,13 +230,19 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
     };
 
     onSaveSettings(updated);
-    setSavedNotification('✓ Pengaturan Portal, Logo, Banner Iklan, API Key & Sosmed berhasil disimpan ke Database Cloud!');
+    setSavedNotification('✓ Pengaturan Portal, Logo, Icon Web, Banner Iklan & API berhasil disimpan ke Database Cloud!');
     setTimeout(() => setSavedNotification(null), 4000);
   };
 
   const handleUploadLogoClick = () => {
     onOpenImageUploader((url) => {
       setLogoUrl(url);
+    });
+  };
+
+  const handleUploadIconClick = () => {
+    onOpenImageUploader((url) => {
+      setSiteIcon(url);
     });
   };
 
@@ -343,6 +355,43 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   placeholder="Contoh: Portal Berita, Edukasi & Inspirasi Digital"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">
+                  Slogan Tampilan Bar Browser (Tab Title)
+                </label>
+                <input
+                  type="text"
+                  value={siteSlogan}
+                  onChange={(e) => setSiteSlogan(e.target.value)}
+                  placeholder="Contoh: Portal Berita Terdepan, Edukasi & Inspirasi Publik"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">Slogan ini akan langsung tampil di tab judul browser & hasil pencarian Google.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">
+                  Icon Web / Favicon (Tampil di Tab Bar Browser)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={siteIcon}
+                    onChange={(e) => setSiteIcon(e.target.value)}
+                    placeholder="https://domain.com/favicon.png atau upload"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUploadIconClick}
+                    className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition shadow-sm"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Icon</span>
+                  </button>
+                </div>
               </div>
 
               <div>
