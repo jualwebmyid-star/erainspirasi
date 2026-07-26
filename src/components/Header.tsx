@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Bell, 
@@ -15,7 +15,7 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
-import { UserProfile, HeaderMenuItem, SiteSettings } from '../types';
+import { UserProfile, HeaderMenuItem, SiteSettings, BlogPost } from '../types';
 
 interface HeaderProps {
   currentTab: string;
@@ -34,6 +34,8 @@ interface HeaderProps {
   headerMenuItems?: HeaderMenuItem[];
   onOpenStaticPage?: (slug: string) => void;
   siteSettings?: SiteSettings;
+  posts?: BlogPost[];
+  onSelectPost?: (post: BlogPost) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -53,8 +55,23 @@ export const Header: React.FC<HeaderProps> = ({
   headerMenuItems,
   onOpenStaticPage,
   siteSettings,
+  posts,
+  onSelectPost,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [tickerIndex, setTickerIndex] = useState(0);
+
+  const headlinePosts = posts && posts.length > 0
+    ? posts.filter((p) => p.status === 'published')
+    : [];
+
+  useEffect(() => {
+    if (headlinePosts.length <= 1) return;
+    const timer = setInterval(() => {
+      setTickerIndex((prev) => (prev + 1) % headlinePosts.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [headlinePosts.length]);
 
   const defaultCategories = [
     'Beranda',
@@ -144,15 +161,36 @@ export const Header: React.FC<HeaderProps> = ({
 
             <div className="w-px h-3.5 bg-slate-700" />
 
-            {/* Ticker marquee / headline highlight */}
-            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
-              <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs">
+            {/* Ticker marquee / headline highlight with vertical sliding animation */}
+            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap h-6">
+              <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs z-10">
                 <Flame className="w-3 h-3 fill-current animate-pulse" />
                 HEADLINE
               </span>
-              <span className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate">
-                Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-              </span>
+              
+              <div className="relative h-6 overflow-hidden flex-1">
+                <div 
+                  className="transition-transform duration-500 ease-in-out flex flex-col"
+                  style={{ transform: `translateY(-${tickerIndex * 24}px)` }}
+                >
+                  {headlinePosts.length > 0 ? (
+                    headlinePosts.map((hp) => (
+                      <span 
+                        key={hp.id}
+                        onClick={() => onSelectPost && onSelectPost(hp)}
+                        className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center transition-colors"
+                        title={hp.title}
+                      >
+                        {hp.title}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-slate-200 font-medium h-6 flex items-center truncate">
+                      Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -346,14 +384,34 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* 4. MOBILE HEADLINE TICKER BAR (Mobile HP Only: lg:hidden) - Positioned below Sticky Nav & Banner */}
       <div className="lg:hidden bg-slate-900 text-slate-300 text-[11px] py-1.5 px-3 border-b border-slate-800">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[9px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs">
+        <div className="flex items-center gap-2 overflow-hidden h-6">
+          <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[9px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs z-10">
             <Flame className="w-3 h-3 fill-current animate-pulse" />
             HEADLINE
           </span>
-          <span className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate text-[11px]">
-            Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-          </span>
+          <div className="relative h-6 overflow-hidden flex-1">
+            <div 
+              className="transition-transform duration-500 ease-in-out flex flex-col"
+              style={{ transform: `translateY(-${tickerIndex * 24}px)` }}
+            >
+              {headlinePosts.length > 0 ? (
+                headlinePosts.map((hp) => (
+                  <span 
+                    key={hp.id}
+                    onClick={() => onSelectPost && onSelectPost(hp)}
+                    className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center text-[11px] transition-colors"
+                    title={hp.title}
+                  >
+                    {hp.title}
+                  </span>
+                ))
+              ) : (
+                <span className="text-slate-200 font-medium h-6 flex items-center truncate text-[11px]">
+                  Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

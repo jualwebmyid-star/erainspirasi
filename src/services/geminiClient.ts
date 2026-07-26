@@ -269,9 +269,18 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
 
   const posts = parsedArray.map((p: any, idx: number) => {
     const scheduledTime = new Date(now.getTime() + idx * intervalHours * 3600000);
+    const cleanTitle = p.title || `Berita Terkini ${idx + 1}`;
+    const cleanSlug = cleanTitle
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
     return {
-      id: `ai-batch-${Date.now()}-${idx}`,
-      title: p.title || `Berita Terkini ${idx + 1}`,
+      id: `post-${Date.now()}-${idx}`,
+      title: cleanTitle,
+      slug: cleanSlug,
       content: p.content || '',
       excerpt: p.excerpt || '',
       category: p.category || categories[idx % categories.length] || 'Nasional',

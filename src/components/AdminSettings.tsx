@@ -213,7 +213,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
     };
 
     onSaveSettings(updated);
-    setSavedNotification('✓ Pengaturan Portal, Logo, Banner Iklan, API Key & Sosmed berhasil disimpan ke Database Firebase!');
+    setSavedNotification('✓ Pengaturan Portal, Logo, Banner Iklan, API Key & Sosmed berhasil disimpan ke Database Cloud!');
     setTimeout(() => setSavedNotification(null), 4000);
   };
 
@@ -276,13 +276,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xs text-amber-400 uppercase tracking-wider">Database Terhubung: Firebase Firestore Cloud</span>
+              <span className="font-extrabold text-xs text-amber-400 uppercase tracking-wider">Database Terhubung: Database Cloud Terpusat</span>
               <span className="flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
                 <Radio className="w-3 h-3 animate-pulse text-emerald-400" /> Real-time Sync Active
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Seluruh artikel, komentar, pengaturan banner, dan kategori tersimpan aman secara terpusat di cloud database Firebase.
+              Seluruh artikel, komentar, pengaturan banner, dan kategori tersimpan aman secara terpusat di cloud database.
             </p>
           </div>
         </div>

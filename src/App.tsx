@@ -407,15 +407,26 @@ export default function App() {
 
   // Deep-linking URL Slug Sync & Parser for Shareable Links
   useEffect(() => {
-    if (posts.length === 0) return;
     const params = new URLSearchParams(window.location.search);
+    const pageParam = params.get('page') || params.get('static');
+    if (pageParam && staticPages.length > 0) {
+      const matchedPage = staticPages.find((p) => p.slug === pageParam || p.id === pageParam);
+      if (matchedPage) {
+        setSelectedStaticPageSlug(matchedPage.slug);
+        setSelectedPost(null);
+        setCurrentTab('static-page-view');
+        return;
+      }
+    }
+
+    if (posts.length === 0) return;
     const postParam = params.get('post') || params.get('article') || params.get('p');
     if (postParam) {
       const matched = posts.find((p) => p.slug === postParam || p.id === postParam);
       if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
         setSelectedPost(matched);
       }
-    } else if (!selectedPost) {
+    } else if (!selectedPost && !selectedStaticPageSlug) {
       // Default Portal Home Page Open Graph Tags
       updateOpenGraphTags({
         title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
@@ -426,7 +437,7 @@ export default function App() {
         siteName: siteSettings.siteName || 'EraInspirasi Portal',
       });
     }
-  }, [posts, siteSettings]);
+  }, [posts, staticPages, siteSettings]);
 
   // Handlers
   const handleLogout = () => {
@@ -556,11 +567,47 @@ export default function App() {
   };
 
   const handleDeletePost = async (id: string) => {
+    const postToDelete = posts.find((p) => p.id === id);
+    if (!postToDelete) return;
+    const confirmMove = window.confirm(
+      `Apakah Anda yakin ingin memindahkan artikel "${postToDelete.title}" ke Trash (Sampah)?\n\nArtikel tidak akan tampil di portal publik, namun dapat dipulihkan kapan saja.`
+    );
+    if (!confirmMove) return;
+
+    const trashedPost: BlogPost = { ...postToDelete, status: 'trash' };
+    setPosts((prev) => prev.map((p) => (p.id === id ? trashedPost : p)));
+    try {
+      await setDoc(doc(db, 'posts', id), { status: 'trash' }, { merge: true });
+    } catch (err) {
+      console.warn('Firebase move to trash article error:', err);
+    }
+  };
+
+  const handleRestorePost = async (id: string) => {
+    const postToRestore = posts.find((p) => p.id === id);
+    if (!postToRestore) return;
+    const restoredPost: BlogPost = { ...postToRestore, status: 'draft' };
+    setPosts((prev) => prev.map((p) => (p.id === id ? restoredPost : p)));
+    try {
+      await setDoc(doc(db, 'posts', id), { status: 'draft' }, { merge: true });
+    } catch (err) {
+      console.warn('Firebase restore article error:', err);
+    }
+  };
+
+  const handlePermanentDeletePost = async (id: string) => {
+    const postToDelete = posts.find((p) => p.id === id);
+    if (!postToDelete) return;
+    const confirmPermanent = window.confirm(
+      `PERINGATAN: Apakah Anda benar-benar yakin ingin menghapus PERMANEN artikel "${postToDelete.title}"?\n\nTindakan ini tidak dapat dibatalkan!`
+    );
+    if (!confirmPermanent) return;
+
     setPosts((prev) => prev.filter((p) => p.id !== id));
     try {
       await deleteDoc(doc(db, 'posts', id));
     } catch (err) {
-      console.warn('Firebase delete article error:', err);
+      console.warn('Firebase permanent delete article error:', err);
     }
   };
 
@@ -636,6 +683,8 @@ export default function App() {
                     setCurrentTab('editor');
                   }}
                   onDeletePost={handleDeletePost}
+                  onRestorePost={handleRestorePost}
+                  onPermanentDeletePost={handlePermanentDeletePost}
                   onNavigateTab={(tab) => setCurrentTab(tab)}
                   onImportWpPosts={handleBatchSavePosts}
                 />
@@ -734,6 +783,7 @@ export default function App() {
                     onSelectPost={handleSelectPostToRead}
                     selectedCategory={selectedCategory}
                     onSelectCategory={(cat) => setSelectedCategory(cat)}
+                    siteSettings={siteSettings}
                   />
                 )
               )}
@@ -786,6 +836,8 @@ export default function App() {
             headerMenuItems={headerMenuItems}
             onOpenStaticPage={handleOpenStaticPage}
             siteSettings={siteSettings}
+            posts={posts}
+            onSelectPost={handleSelectPostToRead}
           />
 
 
@@ -816,6 +868,7 @@ export default function App() {
                 onSelectPost={handleSelectPostToRead}
                 selectedCategory={selectedCategory}
                 onSelectCategory={(cat) => setSelectedCategory(cat)}
+                siteSettings={siteSettings}
               />
             )}
           </main>

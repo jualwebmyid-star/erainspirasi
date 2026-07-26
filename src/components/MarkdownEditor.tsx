@@ -79,7 +79,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialPost?.coverImage ||
       'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80'
   );
-  const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>(
+  const [status, setStatus] = useState<'draft' | 'published' | 'scheduled' | 'trash'>(
     initialPost?.status || 'published'
   );
   const [scheduledAt, setScheduledAt] = useState(

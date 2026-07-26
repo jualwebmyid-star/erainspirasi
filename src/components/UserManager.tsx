@@ -36,7 +36,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ usersList, onUpdateUse
             <span>Manajemen User & Hak Akses Peran</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Kelola pengguna terdaftar dari Google Auth & Firebase, dan atur peran sebagai Admin, Kontributor/Jurnalis, atau Pengunjung.
+            Kelola pengguna terdaftar dari Google Auth & Akun Email, dan atur peran sebagai Admin, Kontributor/Jurnalis, atau Pembaca.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ usersList, onUpdateUse
 
                   <td className="py-3 px-3">
                     <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                      {u.provider === 'google' ? '🌐 Google Auth' : u.provider === 'email' ? '🔥 Firebase Email' : u.provider}
+                      {u.provider === 'google' ? '🌐 Google Auth' : u.provider === 'email' ? '📧 Email & Password' : u.provider}
                     </span>
                   </td>
 

@@ -38,7 +38,7 @@ export interface BlogPost {
   };
   category: string;
   tags: string[];
-  status: 'draft' | 'published' | 'scheduled';
+  status: 'draft' | 'published' | 'scheduled' | 'trash';
   publishedAt: string;
   scheduledAt?: string;
   readingTime: number; // in minutes
