@@ -9,19 +9,32 @@ import {
   Code2, 
   Search, 
   FileText, 
-  RefreshCw 
+  RefreshCw,
+  Download,
+  Radio,
+  Send
 } from 'lucide-react';
-import { BlogPost } from '../types';
+import { BlogPost, CategoryItem, StaticPage } from '../types';
+import { generateSitemapXml, pingSearchEngines, downloadSitemapFile } from '../utils/sitemapGenerator';
 
 interface SeoOptimizerProps {
   article: BlogPost;
+  allPosts?: BlogPost[];
+  allCategories?: CategoryItem[];
+  staticPages?: StaticPage[];
 }
 
-export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
+export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ 
+  article, 
+  allPosts = [], 
+  allCategories = [], 
+  staticPages = [] 
+}) => {
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [copiedSitemap, setCopiedSitemap] = useState(false);
   const [activeTab, setActiveTab] = useState<'serp' | 'opengraph' | 'schema' | 'sitemap'>('serp');
-  const [isAuditing, setIsAuditing] = useState(false);
+  const [isPinging, setIsPinging] = useState(false);
+  const [pingStatus, setPingStatus] = useState<string | null>(null);
 
   // Calculate mock or real SEO Score based on title & meta length
   const titleLength = article.seoTitle?.length || article.title.length;
@@ -61,21 +74,14 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
     description: article.seoDescription || article.excerpt
   };
 
-  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${originUrl}/</loc>
-    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>
-    <changefreq>always</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${originUrl}/?post=${article.slug}</loc>
-    <lastmod>${article.publishedAt.slice(0, 10)}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-</urlset>`;
+  // Generate full dynamic sitemap or single article fallback
+  const sitemapPosts = allPosts.length > 0 ? allPosts : [article];
+  const fullSitemapXml = generateSitemapXml({
+    posts: sitemapPosts,
+    categories: allCategories,
+    staticPages,
+    baseUrl: originUrl,
+  });
 
   const handleCopySchema = () => {
     navigator.clipboard.writeText(JSON.stringify(jsonLdSchema, null, 2));
@@ -84,9 +90,21 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
   };
 
   const handleCopySitemap = () => {
-    navigator.clipboard.writeText(sitemapXml);
+    navigator.clipboard.writeText(fullSitemapXml);
     setCopiedSitemap(true);
     setTimeout(() => setCopiedSitemap(false), 2000);
+  };
+
+  const handleDownloadSitemap = () => {
+    downloadSitemapFile(fullSitemapXml, 'sitemap.xml');
+  };
+
+  const handlePingGoogle = async () => {
+    setIsPinging(true);
+    setPingStatus(null);
+    const res = await pingSearchEngines(`${originUrl}/sitemap.xml`);
+    setIsPinging(false);
+    setPingStatus(res.message);
   };
 
   return (
@@ -253,21 +271,58 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
           </div>
         )}
 
-        {/* 4. Sitemap.xml */}
+        {/* 4. Sitemap.xml Dynamic Engine */}
         {activeTab === 'sitemap' && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Peta Situs (sitemap.xml)</h4>
-              <button
-                onClick={handleCopySitemap}
-                className="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5"
-              >
-                {copiedSitemap ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedSitemap ? 'Disalin!' : 'Salin Sitemap XML'}</span>
-              </button>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                  <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
+                  <span>Peta Situs Otomatis Real-time (sitemap.xml)</span>
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Memuat otomatis {sitemapPosts.length} artikel, {allCategories.length} kategori, dan {staticPages.length} halaman statis.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handlePingGoogle}
+                  disabled={isPinging}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-rose-600 hover:bg-rose-500 text-white shadow-sm flex items-center gap-1.5 transition disabled:opacity-50"
+                  title="Kirimkan notifikasi ping otomatis ke Google Bot & Bing"
+                >
+                  {isPinging ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span>{isPinging ? 'Mengirim Ping...' : 'Ping Google & Bing'}</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadSitemap}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 flex items-center gap-1.5 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Unduh XML</span>
+                </button>
+
+                <button
+                  onClick={handleCopySitemap}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1.5 transition"
+                >
+                  {copiedSitemap ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedSitemap ? 'Disalin!' : 'Salin XML'}</span>
+                </button>
+              </div>
             </div>
-            <pre className="p-4 rounded-2xl bg-slate-900 text-sky-300 font-mono text-xs overflow-x-auto border border-slate-800 leading-relaxed">
-              {sitemapXml}
+
+            {pingStatus && (
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>{pingStatus}</span>
+              </div>
+            )}
+
+            <pre className="p-4 rounded-2xl bg-slate-900 text-sky-300 font-mono text-xs overflow-x-auto border border-slate-800 leading-relaxed max-h-80">
+              {fullSitemapXml}
             </pre>
           </div>
         )}

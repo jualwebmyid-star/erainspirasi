@@ -152,6 +152,8 @@ export interface StaticPageItem {
   location?: 'header' | 'footer' | 'both';
 }
 
+export type StaticPage = StaticPageItem;
+
 export interface BannerConfig {
   imageUrl: string;
   targetUrl: string;

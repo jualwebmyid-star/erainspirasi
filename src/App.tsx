@@ -21,6 +21,7 @@ import { SearchModal } from './components/SearchModal';
 import { VisitorStatsWidget } from './components/VisitorStatsWidget';
 import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
 import { updateOpenGraphTags } from './utils/seo';
+import { pingSearchEngines } from './utils/sitemapGenerator';
 
 import { 
   INITIAL_POSTS, 
@@ -686,6 +687,9 @@ export default function App() {
       console.warn('Firebase save article error:', err);
     }
 
+    // Auto-ping Google & Bing for real-time sitemap indexing
+    pingSearchEngines();
+
     setEditingPost(null);
     setCurrentTab('reader');
   };
@@ -699,6 +703,8 @@ export default function App() {
         console.warn('Firebase batch save article error:', err);
       }
     }
+    // Auto-ping Google & Bing after batch import/generator
+    pingSearchEngines();
   };
 
   const handleDeletePost = async (id: string) => {
@@ -894,7 +900,14 @@ export default function App() {
 
               {currentTab === 'analytics' && <AnalyticsDashboard analytics={analytics} />}
 
-              {currentTab === 'seo' && <SeoOptimizer article={posts[0]} />}
+              {currentTab === 'seo' && (
+                <SeoOptimizer 
+                  article={posts[0]} 
+                  allPosts={posts} 
+                  allCategories={categories} 
+                  staticPages={staticPages} 
+                />
+              )}
 
               {currentTab === 'reader' && (
                 selectedPost ? (

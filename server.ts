@@ -509,10 +509,22 @@ app.get(['/sitemap.xml', '/sitemap'], (req, res) => {
     <priority>0.8</priority>
   </url>`).join('');
 
-  const categories = ['Nasional', 'Teknologi', 'Edukasi', 'Bisnis', 'Gaya Hidup', 'Opini', 'Inspirasi'];
+  const categories = [
+    { name: 'Nasional', slug: 'nasional' },
+    { name: 'Politik', slug: 'politik' },
+    { name: 'Ekonomi & Bisnis', slug: 'ekonomi-bisnis' },
+    { name: 'Otomotif', slug: 'otomotif' },
+    { name: 'Olahraga', slug: 'olahraga' },
+    { name: 'Gaya Hidup', slug: 'gaya-hidup' },
+    { name: 'Hiburan', slug: 'hiburan' },
+    { name: 'Tekno & Gadget', slug: 'tekno-gadget' },
+    { name: 'Edukasi', slug: 'edukasi' },
+    { name: 'Inspirasi', slug: 'inspirasi' },
+  ];
+
   const categoryUrls = categories.map((c) => `
   <url>
-    <loc>${baseUrl}/?category=${encodeURIComponent(c)}</loc>
+    <loc>${baseUrl}/?category=${c.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

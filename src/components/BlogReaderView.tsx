@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { BlogPost, SiteSettings } from '../types';
 import { VisitorStatsWidget } from './VisitorStatsWidget';
+import { InteractivePollWidget } from './InteractivePollWidget';
 
 interface BlogReaderViewProps {
   posts: BlogPost[];
@@ -52,6 +53,18 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   // Lazy Load State for older articles
   const [visibleCount, setVisibleCount] = useState<number>(4);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
+  // Breaking news ticker state (Feature #1)
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const breakingPosts = posts.filter((p) => p.status === 'published' || !p.status).slice(0, 6);
+
+  useEffect(() => {
+    if (breakingPosts.length === 0) return;
+    const interval = setInterval(() => {
+      setTickerIndex((prev) => (prev + 1) % breakingPosts.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [breakingPosts.length]);
 
   const selectedCategory = onSelectCategory ? propsCategory : internalCategory;
   const handleCategorySelect = (cat: string) => {
@@ -149,8 +162,81 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-6 pb-16">
       
+      {/* FEATURE 1: BREAKING NEWS LIVE TICKER */}
+      {breakingPosts.length > 0 && (
+        <div className="bg-slate-900 text-white rounded-2xl p-2 sm:p-2.5 border border-slate-800 shadow-md flex items-center justify-between gap-3 overflow-hidden">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-black text-[10px] tracking-widest uppercase flex items-center gap-1 shrink-0 animate-pulse shadow-sm">
+              <Flame className="w-3.5 h-3.5 fill-current" />
+              SEKILAS INFO
+            </span>
+            <span className="hidden sm:inline text-slate-500 font-bold text-xs">•</span>
+          </div>
+
+          {/* Current Ticker Article */}
+          <div
+            onClick={() => onSelectPost(breakingPosts[tickerIndex])}
+            className="flex-1 min-w-0 cursor-pointer group flex items-center gap-2"
+          >
+            <span className="text-[10px] sm:text-xs text-rose-400 font-bold shrink-0 hidden sm:inline">
+              [{breakingPosts[tickerIndex].category}]
+            </span>
+            <p className="text-xs font-bold text-slate-100 group-hover:text-rose-400 transition truncate">
+              {breakingPosts[tickerIndex].title}
+            </p>
+          </div>
+
+          {/* Ticker Nav Controls */}
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={() => setTickerIndex((prev) => (prev === 0 ? breakingPosts.length - 1 : prev - 1))}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition text-xs"
+              title="Info Sebelumnya"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setTickerIndex((prev) => (prev + 1) % breakingPosts.length)}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition text-xs"
+              title="Info Berikutnya"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* FEATURE 2: TRENDING HASHTAGS BAR */}
+      {allTags.length > 0 && (
+        <div className="flex items-center gap-2 bg-gradient-to-r from-rose-50/80 via-white to-amber-50/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-amber-950/20 p-2.5 rounded-2xl border border-rose-100 dark:border-rose-900/40 shadow-2xs overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 shrink-0 pr-2 border-r border-rose-200 dark:border-rose-800/60">
+            <Sparkles className="w-3.5 h-3.5 text-rose-600 fill-rose-600" />
+            <span className="text-[11px] font-black uppercase text-rose-700 dark:text-rose-300 tracking-wider">
+              Trending Topik:
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {allTags.slice(0, 8).map((tag) => (
+              <button
+                key={`trending-${tag}`}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all whitespace-nowrap flex items-center gap-1 ${
+                  selectedTag === tag
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 hover:text-rose-700 border border-slate-200/80 dark:border-slate-700'
+                }`}
+              >
+                <Tag className="w-3 h-3 text-rose-500" />
+                <span>#{tag}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Category Pills & Quick Filter Toolbar (Compact on Mobile) */}
       <div className="bg-white dark:bg-slate-900 p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3">
         
@@ -642,6 +728,9 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
               })}
             </div>
           </div>
+
+          {/* FEATURE 5: INTERACTIVE POLL WIDGET */}
+          <InteractivePollWidget />
 
           {/* Widget KATEGORI POPULER (Paling Banyak Dibaca) */}
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3.5">
