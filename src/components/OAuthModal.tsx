@@ -16,10 +16,9 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
   currentUser,
   onUpdateUser,
 }) => {
-  const isProduction = process.env.NODE_ENV === 'production';
   const [authMode, setAuthMode] = useState<'google' | 'email'>('google');
-  const [email, setEmail] = useState('admin@erainspirasi.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -146,31 +145,31 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Switcher (Shown in dev or when email login enabled) */}
-        {!isProduction && (
-          <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 text-[11px] font-bold">
-            <button
-              onClick={() => setAuthMode('google')}
-              className={`py-2 rounded-xl transition ${
-                authMode === 'google'
-                  ? 'bg-rose-600 text-white shadow-md font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-white'
-              }`}
-            >
-              🌐 Google Auth (Pembaca)
-            </button>
-            <button
-              onClick={() => setAuthMode('email')}
-              className={`py-2 rounded-xl transition ${
-                authMode === 'email'
-                  ? 'bg-rose-600 text-white shadow-md font-extrabold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-white'
-              }`}
-            >
-              🔑 Email & Sandi
-            </button>
-          </div>
-        )}
+        {/* Tab Switcher */}
+        <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 text-[11px] font-bold">
+          <button
+            type="button"
+            onClick={() => setAuthMode('google')}
+            className={`py-2 rounded-xl transition ${
+              authMode === 'google'
+                ? 'bg-rose-600 text-white shadow-md font-extrabold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-white'
+            }`}
+          >
+            🌐 Google Auth (Pembaca)
+          </button>
+          <button
+            type="button"
+            onClick={() => setAuthMode('email')}
+            className={`py-2 rounded-xl transition ${
+              authMode === 'email'
+                ? 'bg-rose-600 text-white shadow-md font-extrabold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-white'
+            }`}
+          >
+            🔑 Redaksi (Admin/Staf)
+          </button>
+        </div>
 
         {/* Status User Terkoneksi */}
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
@@ -239,9 +238,21 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Email Pengguna
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Email Redaksi / Staf
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@erainspirasi.com');
+                    setPassword('admin123');
+                  }}
+                  className="text-[10px] text-rose-600 hover:underline font-bold"
+                >
+                  Isi Akses Demo Admin
+                </button>
+              </div>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
@@ -278,8 +289,12 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2 active:scale-95 mt-2"
             >
               <LogIn className="w-4 h-4" />
-              <span>{isLoading ? 'Memverifikasi...' : 'Masuk Sistem Portal'}</span>
+              <span>{isLoading ? 'Memverifikasi...' : 'Masuk Sistem Redaksi'}</span>
             </button>
+
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-[10px] text-slate-500 text-center">
+              🔑 Akun Redaksi: <span className="font-bold text-slate-700 dark:text-slate-300">admin@erainspirasi.com</span> | Sandi: <span className="font-bold text-slate-700 dark:text-slate-300">admin123</span>
+            </div>
           </form>
         )}
 

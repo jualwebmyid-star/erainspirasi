@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
   Bell, 
@@ -161,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <div className="w-px h-3.5 bg-slate-700" />
 
-            {/* Ticker marquee / headline highlight with vertical sliding animation */}
+            {/* Ticker marquee / headline highlight with vertical sliding Framer Motion animation */}
             <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap h-6">
               <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs z-10">
                 <Flame className="w-3 h-3 fill-current animate-pulse" />
@@ -169,27 +170,33 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               
               <div className="relative h-6 overflow-hidden flex-1">
-                <div 
-                  className="transition-transform duration-500 ease-in-out flex flex-col"
-                  style={{ transform: `translateY(-${tickerIndex * 24}px)` }}
-                >
-                  {headlinePosts.length > 0 ? (
-                    headlinePosts.map((hp) => (
-                      <span 
-                        key={hp.id}
-                        onClick={() => onSelectPost && onSelectPost(hp)}
-                        className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center transition-colors"
-                        title={hp.title}
-                      >
-                        {hp.title}
-                      </span>
-                    ))
+                <AnimatePresence mode="wait">
+                  {headlinePosts.length > 0 && headlinePosts[tickerIndex] ? (
+                    <motion.span 
+                      key={headlinePosts[tickerIndex].id}
+                      initial={{ y: 18, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -18, opacity: 0 }}
+                      transition={{ duration: 0.4, ease: 'easeInOut' }}
+                      onClick={() => onSelectPost && onSelectPost(headlinePosts[tickerIndex])}
+                      className="absolute inset-0 text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center transition-colors"
+                      title={headlinePosts[tickerIndex].title}
+                    >
+                      {headlinePosts[tickerIndex].title}
+                    </motion.span>
                   ) : (
-                    <span className="text-slate-200 font-medium h-6 flex items-center truncate">
+                    <motion.span 
+                      key="fallback-headline-desktop"
+                      initial={{ y: 18, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -18, opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute inset-0 text-slate-200 font-medium h-6 flex items-center truncate"
+                    >
                       Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-                    </span>
+                    </motion.span>
                   )}
-                </div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -390,27 +397,33 @@ export const Header: React.FC<HeaderProps> = ({
             HEADLINE
           </span>
           <div className="relative h-6 overflow-hidden flex-1">
-            <div 
-              className="transition-transform duration-500 ease-in-out flex flex-col"
-              style={{ transform: `translateY(-${tickerIndex * 24}px)` }}
-            >
-              {headlinePosts.length > 0 ? (
-                headlinePosts.map((hp) => (
-                  <span 
-                    key={hp.id}
-                    onClick={() => onSelectPost && onSelectPost(hp)}
-                    className="text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center text-[11px] transition-colors"
-                    title={hp.title}
-                  >
-                    {hp.title}
-                  </span>
-                ))
+            <AnimatePresence mode="wait">
+              {headlinePosts.length > 0 && headlinePosts[tickerIndex] ? (
+                <motion.span 
+                  key={headlinePosts[tickerIndex].id}
+                  initial={{ y: 18, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -18, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: 'easeInOut' }}
+                  onClick={() => onSelectPost && onSelectPost(headlinePosts[tickerIndex])}
+                  className="absolute inset-0 text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center text-[11px] transition-colors"
+                  title={headlinePosts[tickerIndex].title}
+                >
+                  {headlinePosts[tickerIndex].title}
+                </motion.span>
               ) : (
-                <span className="text-slate-200 font-medium h-6 flex items-center truncate text-[11px]">
+                <motion.span 
+                  key="fallback-headline-mobile"
+                  initial={{ y: 18, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -18, opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 text-slate-200 font-medium h-6 flex items-center truncate text-[11px]"
+                >
                   Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-                </span>
+                </motion.span>
               )}
-            </div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
