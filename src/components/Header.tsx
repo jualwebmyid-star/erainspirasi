@@ -276,7 +276,7 @@ export const Header: React.FC<HeaderProps> = ({
                 href={siteSettings.headerBanner.targetUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:flex items-center justify-center overflow-hidden rounded-2xl w-[580px] xl:w-[728px] h-[95px] xl:h-[115px] border border-slate-200 dark:border-slate-800 shadow-md hover:opacity-95 transition bg-slate-900/5 dark:bg-slate-950/40"
+                className="hidden lg:flex items-center justify-center overflow-hidden rounded-2xl w-[380px] xl:w-[480px] max-w-full h-[95px] xl:h-[110px] border border-slate-200 dark:border-slate-800 shadow-md hover:opacity-95 transition bg-slate-900/5 dark:bg-slate-950/40 shrink-0"
               >
                 <img
                   src={siteSettings.headerBanner.imageUrl}
@@ -285,36 +285,35 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </a>
             ) : (
-              <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-5 py-3 w-[580px] xl:w-[728px] h-[95px] xl:h-[115px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="px-2.5 py-1.5 bg-rose-600 text-white font-black text-[10px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
-                    IKLAN 728x90
+              <div className="hidden lg:flex items-center justify-between border border-dashed border-rose-300 dark:border-rose-900/80 bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 dark:from-rose-950/30 dark:via-slate-900 dark:to-rose-950/30 rounded-2xl px-4 py-2.5 w-[380px] xl:w-[480px] max-w-full h-[95px] xl:h-[110px] text-xs transition hover:border-rose-500 group cursor-pointer shadow-sm shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="px-2 py-1 bg-rose-600 text-white font-black text-[9px] rounded-lg uppercase tracking-widest shrink-0 shadow-sm">
+                    IKLAN
                   </div>
                   <div>
                     <div className="font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 transition line-clamp-1">
-                      Ruang Iklan Banner Header Sebelah Logo
+                      Ruang Iklan Banner Header
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1">
-                      Hubungi Redaksi EraInspirasi untuk Kerjasama Banner & Advertorial
+                    <div className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-1">
+                      Hubungi Redaksi untuk Kerjasama Banner
                     </div>
                   </div>
                 </div>
-                <span className="hidden xl:inline-block px-3.5 py-2 bg-rose-600 text-white text-[11px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
-                  Pasang Iklan →
+                <span className="hidden xl:inline-block px-3 py-1.5 bg-rose-600 text-white text-[10px] font-extrabold rounded-xl shrink-0 shadow-md group-hover:bg-rose-500 transition">
+                  Pasang →
                 </span>
               </div>
             )}
 
             {/* Right: Actions for Desktop & Mobile */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Quick Search Trigger (Always Visible on Mobile & Desktop) */}
+              {/* Quick Search Trigger (Icon only mode as requested) */}
               <button
                 onClick={onOpenSearch}
-                className="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-800 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:text-white transition flex items-center gap-1.5 text-xs font-bold"
+                className="p-2 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-800 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:text-white transition flex items-center justify-center shrink-0"
                 title="Cari Berita"
               >
-                <Search className="w-4.5 h-4.5 sm:w-4 sm:h-4 text-rose-600" />
-                <span className="hidden sm:inline">Cari Berita</span>
+                <Search className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-rose-600" />
               </button>
 
               {/* Push Notification Toggle (Desktop Only - Hidden on Mobile HP) */}

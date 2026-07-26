@@ -585,6 +585,20 @@ export default function App() {
     }
   };
 
+  const handleSelectCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    setSelectedPost(null);
+    setSelectedStaticPageSlug(null);
+    setCurrentTab('reader');
+    if (typeof window !== 'undefined') {
+      if (cat === 'Semua' || cat === 'Beranda') {
+        window.history.pushState({}, '', window.location.pathname);
+      } else {
+        window.history.pushState({}, '', `?category=${encodeURIComponent(cat)}`);
+      }
+    }
+  };
+
   const handleAddComment = async (postId: string, content: string, parentId?: string) => {
     const newComment: Comment = {
       id: `c-${Date.now()}`,
@@ -762,15 +776,7 @@ export default function App() {
                 }
               }}
               selectedCategory={selectedCategory}
-              onSelectCategory={(cat) => {
-                setSelectedCategory(cat);
-                setSelectedPost(null);
-                setSelectedStaticPageSlug(null);
-                setCurrentTab('reader');
-                if (typeof window !== 'undefined') {
-                  window.history.pushState({}, '', window.location.pathname);
-                }
-              }}
+              onSelectCategory={handleSelectCategory}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
               user={user}
@@ -894,7 +900,7 @@ export default function App() {
                     posts={posts}
                     onSelectPost={handleSelectPostToRead}
                     selectedCategory={selectedCategory}
-                    onSelectCategory={(cat) => setSelectedCategory(cat)}
+                    onSelectCategory={handleSelectCategory}
                     siteSettings={siteSettings}
                   />
                 )
@@ -927,15 +933,7 @@ export default function App() {
               }
             }}
             selectedCategory={selectedCategory}
-            onSelectCategory={(cat) => {
-              setSelectedCategory(cat);
-              setSelectedPost(null);
-              setSelectedStaticPageSlug(null);
-              setCurrentTab('reader');
-              if (typeof window !== 'undefined') {
-                window.history.pushState({}, '', window.location.pathname);
-              }
-            }}
+            onSelectCategory={handleSelectCategory}
             darkMode={darkMode}
             setDarkMode={setDarkMode}
             user={user}
@@ -979,7 +977,7 @@ export default function App() {
                 posts={posts}
                 onSelectPost={handleSelectPostToRead}
                 selectedCategory={selectedCategory}
-                onSelectCategory={(cat) => setSelectedCategory(cat)}
+                onSelectCategory={handleSelectCategory}
                 siteSettings={siteSettings}
               />
             )}
