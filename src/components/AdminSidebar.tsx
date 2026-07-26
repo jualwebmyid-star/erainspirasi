@@ -13,6 +13,7 @@ import {
   Moon, 
   LogOut, 
   ChevronRight,
+  ChevronDown,
   ChevronLeft,
   ShieldCheck,
   Flame,
@@ -43,6 +44,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   // Auto-collapse sidebar if in 'editor' view for maximum writing space
   const [isCollapsed, setIsCollapsed] = useState(currentTab === 'editor');
 
+  const isSettingsSubmenuActive = ['settings', 'social', 'seo', 'header-menu', 'users'].includes(currentTab);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(isSettingsSubmenuActive);
+
   // Sync collapse state when switching to editor view
   useEffect(() => {
     if (currentTab === 'editor') {
@@ -50,18 +54,26 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     }
   }, [currentTab]);
 
-  const adminNavItems = [
+  useEffect(() => {
+    if (isSettingsSubmenuActive) {
+      setIsSettingsOpen(true);
+    }
+  }, [isSettingsSubmenuActive]);
+
+  const mainNavItems = [
     { id: 'dashboard', label: 'CMS Redaksi', icon: LayoutDashboard },
     { id: 'editor', label: 'Editor AI', icon: PenTool },
-    { id: 'settings', label: 'Pengaturan Portal & API', icon: Settings },
-    { id: 'users', label: 'Kelola User & Role', icon: Users },
     { id: 'categories', label: 'Kelola Kategori', icon: Tag },
-    { id: 'header-menu', label: 'Kelola Menu Header', icon: LayoutList },
     { id: 'static-pages', label: 'Halaman Statis', icon: FileText },
-    { id: 'social', label: 'Otomasi Medsos', icon: Share2 },
     { id: 'analytics', label: 'Analitik Portal', icon: BarChart3 },
+  ];
+
+  const settingsSubmenuItems = [
+    { id: 'settings', label: 'Setting Portal dan API', icon: Settings },
+    { id: 'social', label: 'Otomatisasi Medsos', icon: Share2 },
     { id: 'seo', label: 'Optimasi SEO', icon: Globe2 },
-    { id: 'reader', label: 'Lihat Portal Publik', icon: Newspaper },
+    { id: 'header-menu', label: 'Kelola Menu Header', icon: LayoutList },
+    { id: 'users', label: 'Kelola User dan Role', icon: Users },
   ];
 
   return (
@@ -140,10 +152,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             </div>
           )}
 
-          {adminNavItems.map((item) => {
+          {mainNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
-            const isPublicLink = item.id === 'reader';
 
             return (
               <button
@@ -153,13 +164,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 className={`w-full ${isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2.5 justify-between'} rounded-2xl text-xs font-extrabold transition-all flex items-center group active:scale-95 ${
                   isActive
                     ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
-                    : isPublicLink
-                    ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 border border-rose-200/60 dark:border-rose-900/40'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'} truncate`}>
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : isPublicLink ? 'text-rose-600' : 'text-slate-500 dark:text-slate-400 group-hover:text-rose-600'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-rose-600'}`} />
                   {!isCollapsed && <span className="truncate">{item.label}</span>}
                 </div>
                 {!isCollapsed && (
@@ -168,6 +177,102 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               </button>
             );
           })}
+
+          {/* GROUP MENU: PENGATURAN PORTAL */}
+          <div className="pt-2">
+            {!isCollapsed ? (
+              <div className="space-y-1">
+                <button
+                  onClick={() => setIsSettingsOpen((prev) => !prev)}
+                  className={`w-full px-3 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center justify-between group ${
+                    isSettingsSubmenuActive
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <Settings className={`w-4 h-4 shrink-0 ${isSettingsSubmenuActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                    <span className="truncate uppercase tracking-wide text-[11px]">Pengaturan Portal</span>
+                  </div>
+                  {isSettingsOpen ? (
+                    <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                  )}
+                </button>
+
+                {/* Submenus List */}
+                {isSettingsOpen && (
+                  <div className="pl-3 space-y-1 border-l-2 border-slate-200 dark:border-slate-800 ml-3.5 my-1">
+                    {settingsSubmenuItems.map((sub) => {
+                      const SubIcon = sub.icon;
+                      const isSubActive = currentTab === sub.id;
+
+                      return (
+                        <button
+                          key={sub.id}
+                          onClick={() => setCurrentTab(sub.id)}
+                          title={sub.label}
+                          className={`w-full px-2.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between group active:scale-95 ${
+                            isSubActive
+                              ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-white' : 'text-slate-400 group-hover:text-rose-600'}`} />
+                            <span className="truncate text-[11px]">{sub.label}</span>
+                          </div>
+                          <ChevronRight className={`w-3 h-3 shrink-0 ${isSubActive ? 'text-white' : 'opacity-0 group-hover:opacity-100 text-slate-400'}`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Collapsed Sidebar View for Settings Submenus */
+              <div className="space-y-1 pt-1 border-t border-slate-200 dark:border-slate-800">
+                {settingsSubmenuItems.map((sub) => {
+                  const SubIcon = sub.icon;
+                  const isSubActive = currentTab === sub.id;
+
+                  return (
+                    <button
+                      key={sub.id}
+                      onClick={() => setCurrentTab(sub.id)}
+                      title={sub.label}
+                      className={`w-full p-2.5 justify-center rounded-2xl text-xs font-extrabold transition-all flex items-center active:scale-95 ${
+                        isSubActive
+                          ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/25'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <SubIcon className={`w-4 h-4 shrink-0 ${isSubActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* PUBLIC READER LINK */}
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() => setCurrentTab('reader')}
+              title="Lihat Portal Publik"
+              className={`w-full ${isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2.5 justify-between'} rounded-2xl text-xs font-extrabold transition-all flex items-center group active:scale-95 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 border border-rose-200/60 dark:border-rose-900/40`}
+            >
+              <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'} truncate`}>
+                <Newspaper className="w-4 h-4 shrink-0 text-rose-600" />
+                {!isCollapsed && <span className="truncate">Lihat Portal Publik</span>}
+              </div>
+              {!isCollapsed && (
+                <ChevronRight className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 text-rose-400" />
+              )}
+            </button>
+          </div>
+
         </div>
 
       </div>

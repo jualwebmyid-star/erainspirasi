@@ -345,6 +345,40 @@ export default function App() {
     };
   }, []);
 
+  // Auto-publish scheduled articles whose scheduledAt time has arrived or passed
+  useEffect(() => {
+    if (posts.length === 0) return;
+    const checkScheduled = () => {
+      const now = new Date();
+      posts.forEach(async (p) => {
+        if (p.status === 'scheduled') {
+          const scheduledTime = p.scheduledAt ? new Date(p.scheduledAt) : null;
+          if (scheduledTime && scheduledTime.getTime() <= now.getTime()) {
+            console.log(`Auto-publishing scheduled article: ${p.title}`);
+            const updated: BlogPost = {
+              ...p,
+              status: 'published',
+              publishedAt: new Date().toISOString(),
+            };
+            setPosts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
+            try {
+              await setDoc(doc(db, 'posts', p.id), {
+                status: 'published',
+                publishedAt: new Date().toISOString(),
+              }, { merge: true });
+            } catch (err) {
+              console.warn('Firebase auto-publish scheduled error:', err);
+            }
+          }
+        }
+      });
+    };
+
+    checkScheduled();
+    const timer = setInterval(checkScheduled, 10000);
+    return () => clearInterval(timer);
+  }, [posts]);
+
   // Real-time Firebase Firestore Sync for Settings, Categories, Menu & Static Pages
   useEffect(() => {
     let unsubSite: () => void;
@@ -681,6 +715,10 @@ export default function App() {
                   onSelectPostToEdit={(post) => {
                     setEditingPost(post);
                     setCurrentTab('editor');
+                  }}
+                  onSelectPostToRead={(post) => {
+                    handleSelectPostToRead(post);
+                    setCurrentTab('reader');
                   }}
                   onDeletePost={handleDeletePost}
                   onRestorePost={handleRestorePost}
