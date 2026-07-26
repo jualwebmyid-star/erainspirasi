@@ -494,27 +494,101 @@ app.get(['/auth/callback', '/auth/callback/'], (_req, res) => {
   `);
 });
 
-// Helper to dynamically inject Open Graph (OG) meta tags into index.html for WhatsApp & Social Media Crawlers
+// XML Sitemap Endpoint for Google & Search Engine Indexing
+app.get(['/sitemap.xml', '/sitemap'], (req, res) => {
+  const host = req.get('host') || 'erainspirasi.com';
+  const protocol = req.protocol || 'https';
+  const baseUrl = `${protocol}://${host}`;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const postsUrls = INITIAL_POSTS.map((p) => `
+  <url>
+    <loc>${baseUrl}/?post=${encodeURIComponent(p.slug || p.id)}</loc>
+    <lastmod>${(p.publishedAt || today).slice(0, 10)}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`).join('');
+
+  const categories = ['Nasional', 'Teknologi', 'Edukasi', 'Bisnis', 'Gaya Hidup', 'Opini', 'Inspirasi'];
+  const categoryUrls = categories.map((c) => `
+  <url>
+    <loc>${baseUrl}/?category=${encodeURIComponent(c)}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`).join('');
+
+  const staticPageUrls = ['tentang-kami', 'kontak', 'kebijakan-privasi', 'pedoman-media-siber', 'redaksi', 'karir'].map((sp) => `
+  <url>
+    <loc>${baseUrl}/?page=${sp}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>`).join('');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>always</changefreq>
+    <priority>1.0</priority>
+  </url>${postsUrls}${categoryUrls}${staticPageUrls}
+</urlset>`;
+
+  res.header('Content-Type', 'application/xml; charset=utf-8');
+  res.status(200).send(xml);
+});
+
+// Robots.txt Endpoint
+app.get('/robots.txt', (req, res) => {
+  const host = req.get('host') || 'erainspirasi.com';
+  const protocol = req.protocol || 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  const content = `User-agent: *
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+
+  res.header('Content-Type', 'text/plain; charset=utf-8');
+  res.status(200).send(content);
+});
+
+// Helper to dynamically inject Open Graph (OG), Schema.org, & Meta tags into index.html for Social Crawlers & Google
 function getDynamicOgHtml(rawHtml: string, req: express.Request): string {
   const postParam = (req.query.post || req.query.article || req.query.slug || req.query.p || '') as string;
 
   let title = 'EraInspirasi - Portal Berita, Edukasi & Inspirasi';
   let description = 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.';
   let image = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80';
+  let keywords = 'berita terkini, portal berita indonesia, erainspirasi, edukasi, teknologi, inspirasi, kabar nusantara';
+  let postObj: any = null;
 
   const host = req.get('host') || 'erainspirasi.com';
   const protocol = req.protocol || 'https';
   const fullUrl = `${protocol}://${host}${req.originalUrl}`;
 
   if (postParam) {
-    const post = INITIAL_POSTS.find(
+    postObj = INITIAL_POSTS.find(
       (p) => p.slug === postParam || p.id === postParam || p.slug.toLowerCase() === postParam.toLowerCase()
     );
 
-    if (post) {
-      title = post.seoTitle || post.title;
-      description = post.seoDescription || post.excerpt || post.title;
-      image = post.coverImage || image;
+    if (postObj) {
+      title = postObj.seoTitle || postObj.title;
+      description = postObj.seoDescription || postObj.excerpt || postObj.title;
+      image = postObj.coverImage || image;
+      if (postObj.tags && Array.isArray(postObj.tags)) {
+        keywords = postObj.tags.join(', ') + ', berita, ' + postObj.category;
+      }
     } else {
       const formattedSlugTitle = postParam
         .replace(/[-_]/g, ' ')
@@ -526,9 +600,14 @@ function getDynamicOgHtml(rawHtml: string, req: express.Request): string {
 
   const safeTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const safeDesc = description.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeKeywords = keywords.replace(/"/g, '&quot;');
 
   let html = rawHtml;
   html = html.replace(/<title>.*?<\/title>/gi, `<title>${safeTitle}</title>`);
+  html = html.replace(/<meta\s+name="description"\s+content=".*?"\s*\/?>/gi, `<meta name="description" content="${safeDesc}" />`);
+  html = html.replace(/<meta\s+name="keywords"\s+content=".*?"\s*\/?>/gi, `<meta name="keywords" content="${safeKeywords}" />`);
+  html = html.replace(/<link\s+rel="canonical"\s+href=".*?"\s*\/?>/gi, `<link rel="canonical" href="${fullUrl}" />`);
+
   html = html.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, `<meta property="og:title" content="${safeTitle}" />`);
   html = html.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, `<meta property="og:description" content="${safeDesc}" />`);
   html = html.replace(/<meta\s+property="og:image"\s+content=".*?"\s*\/?>/gi, `<meta property="og:image" content="${image}" />`);
@@ -537,6 +616,42 @@ function getDynamicOgHtml(rawHtml: string, req: express.Request): string {
   html = html.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:title" content="${safeTitle}" />`);
   html = html.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:description" content="${safeDesc}" />`);
   html = html.replace(/<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:image" content="${image}" />`);
+
+  // Inject Rich Schema.org JSON-LD for Google Search Console
+  const schemaObj = postObj
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: safeTitle,
+        image: [image],
+        datePublished: postObj.publishedAt || new Date().toISOString(),
+        dateModified: postObj.publishedAt || new Date().toISOString(),
+        author: {
+          '@type': 'Person',
+          name: postObj.author?.name || 'Redaksi EraInspirasi',
+        },
+        publisher: {
+          '@type': 'NewsMediaOrganization',
+          name: 'EraInspirasi',
+          logo: {
+            '@type': 'ImageObject',
+            url: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+          },
+        },
+        description: safeDesc,
+        mainEntityOfPage: fullUrl,
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'NewsMediaOrganization',
+        name: 'EraInspirasi',
+        url: `${protocol}://${host}`,
+        logo: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+        slogan: 'Portal Berita, Edukasi & Inspirasi Digital',
+      };
+
+  const schemaJsonScript = `<script type="application/ld+json">${JSON.stringify(schemaObj)}</script>`;
+  html = html.replace(/<script type="application\/ld\+json" id="ld-json-schema">.*?<\/script>/s, schemaJsonScript);
 
   return html;
 }

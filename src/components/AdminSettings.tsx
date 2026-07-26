@@ -90,6 +90,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [twitterApiSecret, setTwitterApiSecret] = useState(settings.twitterApiSecret || '');
   const [instagramAccessToken, setInstagramAccessToken] = useState(settings.instagramAccessToken || '');
 
+  // SEO & Google Indexing States
+  const [googleSiteVerification, setGoogleSiteVerification] = useState(settings.googleSiteVerification || '');
+  const [googleAnalyticsId, setGoogleAnalyticsId] = useState(settings.googleAnalyticsId || '');
+  const [canonicalDomain, setCanonicalDomain] = useState(settings.canonicalDomain || 'https://erainspirasi.com');
+
   const [savedNotification, setSavedNotification] = useState<string | null>(null);
   
   // Test Gemini Key state
@@ -116,6 +121,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       if (settings.twitterApiKey !== undefined) setTwitterApiKey(settings.twitterApiKey);
       if (settings.twitterApiSecret !== undefined) setTwitterApiSecret(settings.twitterApiSecret);
       if (settings.instagramAccessToken !== undefined) setInstagramAccessToken(settings.instagramAccessToken);
+      if (settings.googleSiteVerification !== undefined) setGoogleSiteVerification(settings.googleSiteVerification);
+      if (settings.googleAnalyticsId !== undefined) setGoogleAnalyticsId(settings.googleAnalyticsId);
+      if (settings.canonicalDomain) setCanonicalDomain(settings.canonicalDomain);
     }
   }, [settings]);
 
@@ -210,6 +218,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       twitterApiKey,
       twitterApiSecret,
       instagramAccessToken,
+      googleSiteVerification: googleSiteVerification.trim(),
+      googleAnalyticsId: googleAnalyticsId.trim(),
+      canonicalDomain: canonicalDomain.trim(),
     };
 
     onSaveSettings(updated);
@@ -882,6 +893,114 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* SECTION 6: SEO ON-PAGE & GOOGLE SEARCH CONSOLE */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+              <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                    6. Pengaturan SEO On-Page, Google Indexing & Google Search Console
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Konfigurasi meta verifikasi Google, sitemap.xml otomatis, dan integrasi Google Search Console agar artikel cepat di-index Google.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Kode Verifikasi Google Search Console (HTML Tag)
+                  </label>
+                  <input
+                    type="text"
+                    value={googleSiteVerification}
+                    onChange={(e) => setGoogleSiteVerification(e.target.value)}
+                    placeholder="Contoh: google-site-verification-1234567890"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Dapatkan dari Google Search Console &gt; Settings &gt; Ownership Verification &gt; HTML Tag.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Google Analytics 4 Measurement ID (GA4)
+                  </label>
+                  <input
+                    type="text"
+                    value={googleAnalyticsId}
+                    onChange={(e) => setGoogleAnalyticsId(e.target.value)}
+                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Melacak jumlah pengunjung portal secara real-time via Google Analytics 4.
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    URL Domain Utama (Canonical Root URL)
+                  </label>
+                  <input
+                    type="text"
+                    value={canonicalDomain}
+                    onChange={(e) => setCanonicalDomain(e.target.value)}
+                    placeholder="https://erainspirasi.com"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              </div>
+
+              {/* Box Panduan Google Indexing */}
+              <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span>Panduan Cara Mendaftarkan Website ke Google Search Console</span>
+                  </span>
+                  <a
+                    href="https://search.google.com/search-console"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 transition"
+                  >
+                    <span>Buka Google Search Console</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
+                <ol className="list-decimal list-inside text-indigo-950 dark:text-indigo-300 space-y-1.5 text-[11px]">
+                  <li>Buka <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="underline font-bold">Google Search Console</a> dan login dengan akun Google Anda.</li>
+                  <li>Masukkan URL domain/website Anda (contoh: <code className="bg-white/80 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">https://erainspirasi.com</code>).</li>
+                  <li>Pilih metode verifikasi <strong>HTML Tag</strong>, lalu salin kode uniknya ke kolom di atas.</li>
+                  <li>Buka menu <strong>Sitemaps</strong> di Google Search Console, lalu masukkan link berikut:
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <code className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] select-all">
+                        {window.location.origin}/sitemap.xml
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/sitemap.xml`);
+                          alert('✓ Link Sitemap.xml berhasil disalin ke clipboard!');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold text-[10px] hover:bg-indigo-500 transition"
+                      >
+                        Salin Link Sitemap
+                      </button>
+                    </div>
+                  </li>
+                  <li>Googlebot akan memindai dan mengindeks seluruh artikel portal Anda secara otomatis dalam beberapa jam!</li>
+                </ol>
+              </div>
+
             </div>
 
           </div>

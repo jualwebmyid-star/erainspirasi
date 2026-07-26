@@ -177,5 +177,8 @@ export interface SiteSettings {
   twitterApiKey?: string;
   twitterApiSecret?: string;
   instagramAccessToken?: string;
+  googleSiteVerification?: string;
+  googleAnalyticsId?: string;
+  canonicalDomain?: string;
 }
 

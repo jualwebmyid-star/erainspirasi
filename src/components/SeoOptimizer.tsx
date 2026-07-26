@@ -33,12 +33,14 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
 
   const seoScore = (isTitleOk ? 35 : 20) + (isDescOk ? 35 : 20) + (isAltOk ? 30 : 15);
 
+  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://erainspirasi.com';
+
   const jsonLdSchema = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    '@type': 'NewsArticle',
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://lumina-blog.id/post/${article.slug}`
+      '@id': `${originUrl}/?post=${article.slug}`
     },
     headline: article.seoTitle || article.title,
     image: [article.coverImage],
@@ -49,11 +51,11 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
       name: article.author.name
     },
     publisher: {
-      '@type': 'Organization',
-      name: 'Lumina Blog Studio',
+      '@type': 'NewsMediaOrganization',
+      name: 'EraInspirasi',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://lumina-blog.id/logo.png'
+        url: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80'
       }
     },
     description: article.seoDescription || article.excerpt
@@ -62,15 +64,15 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://lumina-blog.id/</loc>
+    <loc>${originUrl}/</loc>
     <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>
-    <changefreq>daily</changefreq>
+    <changefreq>always</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://lumina-blog.id/post/${article.slug}</loc>
+    <loc>${originUrl}/?post=${article.slug}</loc>
     <lastmod>${article.publishedAt.slice(0, 10)}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 </urlset>`;
@@ -199,7 +201,7 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5 font-sans max-w-2xl shadow-sm">
               <div className="flex items-center gap-2 text-xs text-slate-600">
                 <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px]">🌐</span>
-                <span className="text-slate-700 truncate">https://lumina-blog.id › post › {article.slug}</span>
+                <span className="text-slate-700 truncate">{originUrl} › post › {article.slug}</span>
               </div>
               <h3 className="text-lg font-medium text-blue-800 hover:underline cursor-pointer leading-tight">
                 {article.seoTitle || article.title}
@@ -220,7 +222,7 @@ export const SeoOptimizer: React.FC<SeoOptimizerProps> = ({ article }) => {
             <div className="max-w-md rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-md">
               <img src={article.coverImage} alt="Social Preview" className="w-full aspect-[1.91/1] object-cover" />
               <div className="p-4 space-y-1">
-                <div className="text-[10px] font-bold uppercase text-slate-400">LUMINA-BLOG.ID</div>
+                <div className="text-[10px] font-bold uppercase text-slate-400">ERAINSPIRASI.COM</div>
                 <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 leading-snug">
                   {article.seoTitle || article.title}
                 </h4>
