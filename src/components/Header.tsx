@@ -62,9 +62,9 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
 
-  const headlinePosts = posts && posts.length > 0
-    ? posts.filter((p) => p.status === 'published')
-    : [];
+  const publishedPosts = posts ? posts.filter((p) => p.status === 'published' || !p.status) : [];
+  const featuredPosts = publishedPosts.filter((p) => p.isFeatured === true);
+  const headlinePosts = featuredPosts.length > 0 ? featuredPosts : publishedPosts;
 
   useEffect(() => {
     if (headlinePosts.length <= 1) return;
