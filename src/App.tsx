@@ -462,20 +462,21 @@ export default function App() {
       }
     }
 
-    // 2. Category Permalink Check (?category=Otomotif or ?cat=otomotif or ?kategori=otomotif)
+    // 2. Category Permalink Check (?category=gaya-hidup or ?cat=gaya-hidup or ?kategori=gaya-hidup)
     const catParam = params.get('category') || params.get('cat') || params.get('kategori');
     if (catParam) {
       const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
       const matchedCategoryObj = categories.find(
         (c) =>
-          c.name.toLowerCase() === cleanCatParam ||
           c.slug.toLowerCase() === cleanCatParam ||
+          c.name.toLowerCase() === cleanCatParam ||
+          c.name.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam ||
           c.id.toLowerCase() === cleanCatParam
       );
       const matchedPostCategory = posts.find(
         (p) =>
           p.category.toLowerCase() === cleanCatParam ||
-          p.category.toLowerCase().replace(/\s+/g, '-') === cleanCatParam
+          p.category.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam
       )?.category;
 
       const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : (matchedPostCategory || catParam);
@@ -585,6 +586,17 @@ export default function App() {
     }
   };
 
+  const getCategorySlug = (catName: string) => {
+    const found = categories.find((c) => c.name.toLowerCase() === catName.toLowerCase());
+    if (found && found.slug) return found.slug;
+    return catName
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const handleSelectCategory = (cat: string) => {
     setSelectedCategory(cat);
     setSelectedPost(null);
@@ -594,7 +606,8 @@ export default function App() {
       if (cat === 'Semua' || cat === 'Beranda') {
         window.history.pushState({}, '', window.location.pathname);
       } else {
-        window.history.pushState({}, '', `?category=${encodeURIComponent(cat)}`);
+        const catSlug = getCategorySlug(cat);
+        window.history.pushState({}, '', `?category=${catSlug}`);
       }
     }
   };
