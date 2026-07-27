@@ -337,15 +337,6 @@ export default function App() {
           const loadedPosts: BlogPost[] = snapshot.docs.map((docSnap) => docSnap.data() as BlogPost);
           loadedPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
           setPosts(loadedPosts);
-        } else {
-          // Seed default posts to Firebase Firestore
-          INITIAL_POSTS.forEach(async (post) => {
-            try {
-              await setDoc(doc(db, 'posts', post.id), post);
-            } catch (err) {
-              console.warn('Seeding initial post to Firebase error:', err);
-            }
-          });
         }
       }, (err) => {
         console.warn('Firestore snapshot listener warning:', err);
@@ -359,12 +350,20 @@ export default function App() {
     };
   }, []);
 
+  // Keep postsRef updated for scheduled check without resetting timers
+  const postsRef = React.useRef(posts);
+  useEffect(() => {
+    postsRef.current = posts;
+  }, [posts]);
+
   // Auto-publish scheduled articles whose scheduledAt time has arrived or passed
   useEffect(() => {
-    if (posts.length === 0) return;
     const checkScheduled = () => {
       const now = new Date();
-      posts.forEach(async (p) => {
+      const currentPosts = postsRef.current;
+      if (!currentPosts || currentPosts.length === 0) return;
+
+      currentPosts.forEach(async (p) => {
         if (p.status === 'scheduled') {
           const scheduledTime = p.scheduledAt ? new Date(p.scheduledAt) : null;
           if (scheduledTime && scheduledTime.getTime() <= now.getTime()) {
@@ -388,10 +387,9 @@ export default function App() {
       });
     };
 
-    checkScheduled();
-    const timer = setInterval(checkScheduled, 10000);
+    const timer = setInterval(checkScheduled, 20000);
     return () => clearInterval(timer);
-  }, [posts]);
+  }, []);
 
   // Real-time Firebase Firestore Sync for Settings, Categories, Menu & Static Pages
   useEffect(() => {
@@ -407,8 +405,6 @@ export default function App() {
           const data = snap.data() as SiteSettings;
           setSiteSettings(data);
           localStorage.setItem('erainspirasi_settings', JSON.stringify(data));
-        } else {
-          setDoc(doc(db, 'settings', 'site'), siteSettings).catch(console.warn);
         }
       });
 
@@ -416,8 +412,6 @@ export default function App() {
       unsubCat = onSnapshot(doc(db, 'settings', 'categories'), (snap) => {
         if (snap.exists() && snap.data()?.items) {
           setCategories(snap.data().items as CategoryItem[]);
-        } else {
-          setDoc(doc(db, 'settings', 'categories'), { items: categories }).catch(console.warn);
         }
       });
 
@@ -425,8 +419,6 @@ export default function App() {
       unsubMenu = onSnapshot(doc(db, 'settings', 'headerMenu'), (snap) => {
         if (snap.exists() && snap.data()?.items) {
           setHeaderMenuItems(snap.data().items as HeaderMenuItem[]);
-        } else {
-          setDoc(doc(db, 'settings', 'headerMenu'), { items: headerMenuItems }).catch(console.warn);
         }
       });
 
@@ -435,10 +427,6 @@ export default function App() {
         if (!snapshot.empty) {
           const loadedPages = snapshot.docs.map((d) => d.data() as StaticPageItem);
           setStaticPages(loadedPages);
-        } else {
-          staticPages.forEach((page) => {
-            setDoc(doc(db, 'staticPages', page.id), page).catch(console.warn);
-          });
         }
       });
     } catch (e) {
@@ -529,7 +517,7 @@ export default function App() {
         });
       }
     }
-  }, [posts, staticPages, categories, siteSettings]);
+  }, [posts.length, staticPages.length, categories.length, siteSettings.siteName]);
 
   // Update browser tab title with slogan and favicon icon
   useEffect(() => {
