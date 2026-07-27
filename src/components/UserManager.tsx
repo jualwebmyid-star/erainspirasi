@@ -14,8 +14,8 @@ export const UserManager: React.FC<UserManagerProps> = ({ usersList, onUpdateUse
 
   const filteredUsers = usersList.filter((u) => {
     const matchesSearch =
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRoleFilter === 'all' || u.role === selectedRoleFilter;
     return matchesSearch && matchesRole;
   });

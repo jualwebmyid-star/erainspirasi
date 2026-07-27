@@ -192,5 +192,6 @@ export interface SiteSettings {
   googleDriveAccountEmail?: string;
   lastBackupDate?: string;
   showReaderViewsCount?: boolean;
+  defaultViewMode?: 'list' | 'grid' | 'compact';
 }
 

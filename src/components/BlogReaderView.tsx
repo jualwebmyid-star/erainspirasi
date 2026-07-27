@@ -17,11 +17,13 @@ import {
   ChevronRight,
   Volume2,
   Loader2,
-  Sparkles
+  Sparkles,
+  LayoutGrid,
+  List,
+  Rows
 } from 'lucide-react';
 import { BlogPost, SiteSettings } from '../types';
 import { VisitorStatsWidget } from './VisitorStatsWidget';
-import { InteractivePollWidget } from './InteractivePollWidget';
 
 interface BlogReaderViewProps {
   posts: BlogPost[];
@@ -38,12 +40,28 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   onSelectCategory,
   siteSettings,
 }) => {
+  // Public reader view only shows published articles
+  const publicPosts = posts.filter(
+    (p) => p.status === 'published' || (!p.status && p.status !== 'draft' && p.status !== 'scheduled' && p.status !== 'trash')
+  );
+
   const [internalCategory, setInternalCategory] = useState<string>('Semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   
+  // View mode state connected to SiteSettings
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'compact'>(
+    siteSettings?.defaultViewMode || 'list'
+  );
+
+  useEffect(() => {
+    if (siteSettings?.defaultViewMode) {
+      setViewMode(siteSettings.defaultViewMode);
+    }
+  }, [siteSettings?.defaultViewMode]);
+
   // Main Hero Slider state
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -56,7 +74,7 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
 
   // Breaking news ticker state (Feature #1)
   const [tickerIndex, setTickerIndex] = useState(0);
-  const breakingPosts = posts.filter((p) => p.status === 'published' || !p.status).slice(0, 6);
+  const breakingPosts = publicPosts.slice(0, 6);
 
   useEffect(() => {
     if (breakingPosts.length === 0) return;
@@ -78,17 +96,17 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   };
 
   // Extract unique categories & tags
-  const categories = ['Semua', ...Array.from(new Set(posts.map((p) => p.category)))];
-  const allTags = Array.from(new Set(posts.flatMap((p) => p.tags)));
+  const categories = ['Semua', ...Array.from(new Set(publicPosts.map((p) => p.category).filter((c): c is string => Boolean(c))))];
+  const allTags = Array.from(new Set(publicPosts.flatMap((p) => p.tags || [])));
 
   // Filter posts based on category, search, and tag
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = publicPosts.filter((post) => {
     const matchesCategory = selectedCategory === 'Semua' || post.category === selectedCategory;
-    const matchesTag = !selectedTag || post.tags.includes(selectedTag);
+    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.tags || []).some((t) => t?.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesCategory && matchesTag && matchesSearch;
   });
@@ -96,8 +114,8 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
   // Lazy load subset
   const visiblePosts = filteredPosts.slice(0, visibleCount);
 
-  // Featured Hero Slider items: prioritize published posts marked as isFeatured, sorted by publishedAt
-  const publishedPosts = posts.filter((p) => p.status === 'published');
+  // Featured Hero Slider items: prioritize published posts marked as isFeatured
+  const publishedPosts = publicPosts;
   const featuredHeadlinePosts = publishedPosts.filter((p) => p.isFeatured);
   const heroSliderPosts = featuredHeadlinePosts.length > 0
     ? featuredHeadlinePosts.slice(0, 5)
@@ -458,14 +476,60 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
           )}
 
           
-          <div className="flex items-center justify-between pb-3 border-b-2 border-rose-600">
-            <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2 uppercase tracking-wide">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-rose-600 gap-2">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2 uppercase tracking-wide">
               <span className="w-3 h-3 rounded-full bg-rose-600" />
               <span>BERITA TERBARU & INSPIRASI</span>
             </h3>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              Menampilkan {visiblePosts.length} dari {filteredPosts.length} Artikel
-            </span>
+
+            <div className="flex items-center gap-3">
+              {/* View Switcher Controls */}
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                    viewMode === 'list'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                  title="Tampilan List"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">List</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                    viewMode === 'grid'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                  title="Tampilan Grid Kartu"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('compact')}
+                  className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                    viewMode === 'compact'
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                  title="Tampilan Ringkas / Kompak"
+                >
+                  <Rows className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Kompak</span>
+                </button>
+              </div>
+
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 hidden md:inline">
+                {visiblePosts.length}/{filteredPosts.length} Artikel
+              </span>
+            </div>
           </div>
 
           {filteredPosts.length === 0 ? (
@@ -479,89 +543,155 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 gap-5'
+                : viewMode === 'compact'
+                ? 'space-y-2.5'
+                : 'space-y-5'
+            }>
               {visiblePosts.map((post, index) => (
                 <React.Fragment key={post.id}>
                   
-                  {/* Article Card */}
-                  <div
-                    onClick={() => onSelectPost(post)}
-                    className="group cursor-pointer p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-rose-400 dark:hover:border-rose-600 transition-all duration-300 flex flex-col sm:flex-row gap-5 items-start"
-                  >
-                    {/* Image Thumbnail */}
-                    <div className="w-full sm:w-52 h-40 shrink-0 rounded-xl overflow-hidden relative bg-slate-100 dark:bg-slate-900">
-                      <img
-                        src={post.coverImage}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute top-2.5 left-2.5">
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-rose-600 text-white shadow uppercase">
-                          {post.category}
-                        </span>
+                  {/* COMPACT MODE */}
+                  {viewMode === 'compact' ? (
+                    <div
+                      onClick={() => onSelectPost(post)}
+                      className="group cursor-pointer p-2.5 sm:p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-rose-400 dark:hover:border-rose-600 transition-all flex items-center gap-3"
+                    >
+                      <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden relative bg-slate-100 dark:bg-slate-800">
+                        <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       </div>
-                    </div>
-
-                    {/* Article Details */}
-                    <div className="flex-1 space-y-2 flex flex-col justify-between h-full min-w-0">
-                      <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-                          <Calendar className="w-3.5 h-3.5 text-rose-500" />
-                          <span>
-                            {new Date(post.publishedAt).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric'
-                            })}
-                          </span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          <span className="px-1.5 py-0.2 rounded bg-rose-600 text-white font-extrabold uppercase">{post.category}</span>
                           <span>•</span>
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{post.readingTime} mnt baca</span>
+                          <span>{new Date(post.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                          {siteSettings?.showReaderViewsCount !== false && (
+                            <>
+                              <span>•</span>
+                              <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{post.viewCount}</span>
+                            </>
+                          )}
                         </div>
-
-                        <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-snug">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 transition-colors line-clamp-1 leading-snug">
                           {post.title}
                         </h4>
-
-                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mt-1">
-                          {post.excerpt}
-                        </p>
                       </div>
-
-                      {/* Author, Views & "Selengkapnya" Action Button */}
-                      <div className="pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={post.author.avatar}
-                            alt={post.author.name}
-                            className="w-5 h-5 rounded-full object-cover"
-                          />
-                          <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">{post.author.name}</span>
+                    </div>
+                  ) : viewMode === 'grid' ? (
+                    /* GRID CARD MODE */
+                    <div
+                      onClick={() => onSelectPost(post)}
+                      className="group cursor-pointer p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-rose-400 dark:hover:border-rose-600 transition-all flex flex-col justify-between space-y-3"
+                    >
+                      <div className="w-full h-44 rounded-xl overflow-hidden relative bg-slate-100 dark:bg-slate-800">
+                        <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-2.5 left-2.5">
+                          <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-rose-600 text-white shadow uppercase">
+                            {post.category}
+                          </span>
                         </div>
-
-                        <div className="flex items-center gap-3">
-                          {siteSettings?.showReaderViewsCount !== false && (
-                            <span className="flex items-center gap-1 font-semibold text-slate-500 text-[11px]">
-                              <Eye className="w-3.5 h-3.5 text-slate-400" />
-                              {post.viewCount}
-                            </span>
-                          )}
-
-                          {/* Tombol Selengkapnya / Read More */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectPost(post);
-                            }}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-600 dark:hover:text-white font-extrabold text-xs transition-all shadow-sm active:scale-95"
-                          >
-                            <span>Selengkapnya</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
+                      </div>
+                      <div className="space-y-1.5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-400 mb-1">
+                            <Calendar className="w-3 h-3 text-rose-500" />
+                            <span>{new Date(post.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          </div>
+                          <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug">
+                            {post.title}
+                          </h4>
+                        </div>
+                        <div className="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 text-xs">
+                          <span className="text-[11px] font-medium text-slate-500">{post.author.name}</span>
+                          <span className="flex items-center gap-1 font-bold text-rose-600 text-[11px]">
+                            Baca <ArrowRight className="w-3 h-3" />
+                          </span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* DEFAULT LIST MODE */
+                    <div
+                      onClick={() => onSelectPost(post)}
+                      className="group cursor-pointer p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-rose-400 dark:hover:border-rose-600 transition-all duration-300 flex flex-col sm:flex-row gap-5 items-start"
+                    >
+                      {/* Image Thumbnail */}
+                      <div className="w-full sm:w-52 h-40 shrink-0 rounded-xl overflow-hidden relative bg-slate-100 dark:bg-slate-900">
+                        <img
+                          src={post.coverImage}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute top-2.5 left-2.5">
+                          <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-rose-600 text-white shadow uppercase">
+                            {post.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Article Details */}
+                      <div className="flex-1 space-y-2 flex flex-col justify-between h-full min-w-0">
+                        <div>
+                          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
+                            <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                            <span>
+                              {new Date(post.publishedAt).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                              })}
+                            </span>
+                            <span>•</span>
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{post.readingTime} mnt baca</span>
+                          </div>
+
+                          <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-snug">
+                            {post.title}
+                          </h4>
+
+                          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mt-1">
+                            {post.excerpt}
+                          </p>
+                        </div>
+
+                        {/* Author, Views & "Selengkapnya" Action Button */}
+                        <div className="pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={post.author.avatar}
+                              alt={post.author.name}
+                              className="w-5 h-5 rounded-full object-cover"
+                            />
+                            <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">{post.author.name}</span>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {siteSettings?.showReaderViewsCount !== false && (
+                              <span className="flex items-center gap-1 font-semibold text-slate-500 text-[11px]">
+                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                {post.viewCount}
+                              </span>
+                            )}
+
+                            {/* Tombol Selengkapnya / Read More */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectPost(post);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-600 dark:hover:text-white font-extrabold text-xs transition-all shadow-sm active:scale-95"
+                            >
+                              <span>Selengkapnya</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Banner Iklan di Baris Ke-3 Artikel (index === 2) */}
                   {index === 2 && (siteSettings?.feedRow3Banner?.isEnabled !== false) && (
@@ -707,9 +837,6 @@ export const BlogReaderView: React.FC<BlogReaderViewProps> = ({
               })}
             </div>
           </div>
-
-          {/* FEATURE 5: INTERACTIVE POLL WIDGET */}
-          <InteractivePollWidget />
 
           {/* Widget KATEGORI POPULER (Paling Banyak Dibaca) */}
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3.5">

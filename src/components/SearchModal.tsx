@@ -22,10 +22,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   const results = query.trim()
     ? posts.filter(
         (p) =>
-          p.title.toLowerCase().includes(query.toLowerCase()) ||
-          p.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()) ||
-          p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()))
+          p.title?.toLowerCase().includes(query.toLowerCase()) ||
+          p.excerpt?.toLowerCase().includes(query.toLowerCase()) ||
+          p.category?.toLowerCase().includes(query.toLowerCase()) ||
+          (p.tags || []).some((t) => t?.toLowerCase().includes(query.toLowerCase()))
       )
     : posts.slice(0, 4);
 

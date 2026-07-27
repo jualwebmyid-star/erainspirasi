@@ -46,7 +46,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   onImportWpPosts,
 }) => {
   const [showWpImporterModal, setShowWpImporterModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'scheduled' | 'trash'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'scheduled' | 'trash'>('published');
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);

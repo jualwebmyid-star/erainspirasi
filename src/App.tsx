@@ -464,9 +464,9 @@ export default function App() {
       const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
       const matchedPage = staticPages.find(
         (p) =>
-          p.slug.toLowerCase() === cleanPageParam ||
-          p.id.toLowerCase() === cleanPageParam ||
-          p.title.toLowerCase().replace(/\s+/g, '-') === cleanPageParam
+          p.slug?.toLowerCase() === cleanPageParam ||
+          p.id?.toLowerCase() === cleanPageParam ||
+          p.title?.toLowerCase().replace(/\s+/g, '-') === cleanPageParam
       );
       if (matchedPage) {
         setSelectedStaticPageSlug(matchedPage.slug);
@@ -482,15 +482,15 @@ export default function App() {
       const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
       const matchedCategoryObj = categories.find(
         (c) =>
-          c.slug.toLowerCase() === cleanCatParam ||
-          c.name.toLowerCase() === cleanCatParam ||
-          c.name.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam ||
-          c.id.toLowerCase() === cleanCatParam
+          c.slug?.toLowerCase() === cleanCatParam ||
+          c.name?.toLowerCase() === cleanCatParam ||
+          c.name?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam ||
+          c.id?.toLowerCase() === cleanCatParam
       );
       const matchedPostCategory = posts.find(
         (p) =>
-          p.category.toLowerCase() === cleanCatParam ||
-          p.category.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam
+          p.category?.toLowerCase() === cleanCatParam ||
+          p.category?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam
       )?.category;
 
       const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : (matchedPostCategory || catParam);
@@ -509,8 +509,8 @@ export default function App() {
         const cleanPostParam = decodeURIComponent(postParam).toLowerCase().trim();
         const matched = posts.find(
           (p) =>
-            p.slug.toLowerCase() === cleanPostParam ||
-            p.id.toLowerCase() === cleanPostParam
+            p.slug?.toLowerCase() === cleanPostParam ||
+            p.id?.toLowerCase() === cleanPostParam
         );
         if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
           setSelectedPost(matched);
@@ -601,9 +601,10 @@ export default function App() {
   };
 
   const getCategorySlug = (catName: string) => {
-    const found = categories.find((c) => c.name.toLowerCase() === catName.toLowerCase());
+    if (!catName) return 'berita';
+    const found = categories.find((c) => c.name?.toLowerCase() === catName.toLowerCase());
     if (found && found.slug) return found.slug;
-    return catName
+    return (catName || '')
       .toLowerCase()
       .trim()
       .replace(/&/g, '')
@@ -1063,50 +1064,45 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Column 2: Langganan Berita & Inspirasi Terkini Card (6 Cols) */}
+                {/* Column 2: Minimalist Langganan Buletin Card */}
                 <div className="lg:col-span-6">
-                  <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-rose-900 via-slate-900 to-slate-950 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mr-10 -mt-10 w-36 h-36 rounded-full bg-rose-500/20 blur-2xl pointer-events-none" />
-
-                    <div className="relative z-10 space-y-3">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/30 text-rose-200 text-[10px] font-black uppercase tracking-wider">
-                        <Mail className="w-3.5 h-3.5" />
-                        <span>BULLETIN DIGITAL</span>
+                  <div className="p-4 sm:p-4.5 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-2 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-600/30 text-rose-300 text-[10px] font-black uppercase tracking-wider">
+                        <Mail className="w-3 h-3" />
+                        <span>BULETIN DIGITAL</span>
                       </div>
-
-                      <h4 className="text-base sm:text-lg font-black text-white leading-tight">
-                        Langganan Berita & Inspirasi Terkini
-                      </h4>
-
-                      <p className="text-slate-300 text-xs leading-relaxed">
-                        Dapatkan artikel inspiratif, edukasi karir, dan tren teknologi langsung di email Anda setiap minggu.
-                      </p>
-
-                      {footerSubscribed ? (
-                        <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 shrink-0" />
-                          <span>Terima kasih! Anda berhasil berlangganan bulletin EraInspirasi.</span>
-                        </div>
-                      ) : (
-                        <form onSubmit={handleFooterSubscribe} className="flex flex-col sm:flex-row gap-2 pt-1">
-                          <input
-                            type="email"
-                            required
-                            placeholder="Masukkan alamat email Anda..."
-                            value={footerEmail}
-                            onChange={(e) => setFooterEmail(e.target.value)}
-                            className="flex-1 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-rose-400"
-                          />
-                          <button
-                            type="submit"
-                            className="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 shrink-0 active:scale-95"
-                          >
-                            <span>Daftar Gratis</span>
-                            <Send className="w-3.5 h-3.5" />
-                          </button>
-                        </form>
-                      )}
+                      <span className="text-[10px] text-slate-400">Gratis setiap minggu</span>
                     </div>
+
+                    <h4 className="text-sm font-bold text-white">
+                      Langganan Berita & Inspirasi Terkini
+                    </h4>
+
+                    {footerSubscribed ? (
+                      <div className="p-2 rounded-xl bg-emerald-900/40 text-emerald-300 border border-emerald-700/50 text-xs font-semibold flex items-center gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                        <span>Terima kasih! Anda berhasil berlangganan buletin.</span>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleFooterSubscribe} className="flex gap-2 pt-0.5">
+                        <input
+                          type="email"
+                          required
+                          placeholder="Email Anda..."
+                          value={footerEmail}
+                          onChange={(e) => setFooterEmail(e.target.value)}
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-rose-400"
+                        />
+                        <button
+                          type="submit"
+                          className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
+                        >
+                          <span>Daftar</span>
+                          <Send className="w-3 h-3" />
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
 
