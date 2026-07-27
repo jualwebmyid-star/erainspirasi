@@ -183,7 +183,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             {!isCollapsed ? (
               <div className="space-y-1">
                 <button
-                  onClick={() => setIsSettingsOpen((prev) => !prev)}
+                  onClick={() => {
+                    setIsSettingsOpen(true);
+                    setCurrentTab('settings');
+                  }}
                   className={`w-full px-3 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center justify-between group ${
                     isSettingsSubmenuActive
                       ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80'

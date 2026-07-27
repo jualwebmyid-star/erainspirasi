@@ -16,7 +16,8 @@ import {
   RotateCcw,
   AlertTriangle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 import { BlogPost, Comment } from '../types';
 import { WordPressImporter } from './WordPressImporter';
@@ -29,7 +30,7 @@ interface CmsDashboardProps {
   onDeletePost: (id: string) => void;
   onRestorePost?: (id: string) => void;
   onPermanentDeletePost?: (id: string) => void;
-  onNavigateTab: (tab: 'editor' | 'social' | 'analytics' | 'seo') => void;
+  onNavigateTab: (tab: 'editor' | 'social' | 'analytics' | 'seo' | 'settings') => void;
   onImportWpPosts?: (posts: BlogPost[]) => void;
 }
 
@@ -147,7 +148,19 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
       </div>
 
       {/* Quick Tool Navigation Shortcuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div
+          onClick={() => onNavigateTab('settings')}
+          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-rose-900 to-rose-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md border border-rose-800/50"
+        >
+          <div className="flex items-center justify-between">
+            <Settings className="w-5 h-5 text-rose-300" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200">Konfigurasi</span>
+          </div>
+          <h4 className="font-bold text-base">Setting Portal & API</h4>
+          <p className="text-xs text-rose-200">Atur logo, slogan, Gemini API Key, banner iklan & auto backup drive.</p>
+        </div>
+
         <div
           onClick={() => onNavigateTab('social')}
           className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-indigo-900 to-purple-900 text-white space-y-2 hover:scale-[1.01] transition shadow-md"
@@ -156,8 +169,8 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             <Share2 className="w-5 h-5 text-indigo-300" />
             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">Auto-Post</span>
           </div>
-          <h4 className="font-bold text-base">Syndication Media Sosial</h4>
-          <p className="text-xs text-indigo-200">Jadwalkan & kirim postingan autokonten langsung ke X, LinkedIn & Threads.</p>
+          <h4 className="font-bold text-base">Syndication Medsos</h4>
+          <p className="text-xs text-indigo-200">Jadwalkan & kirim postingan autokonten langsung ke X & IG.</p>
         </div>
 
         <div
@@ -168,8 +181,8 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             <BarChart3 className="w-5 h-5 text-emerald-400" />
             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Live Metrics</span>
           </div>
-          <h4 className="font-bold text-base">Analitik Trafik Real-Time</h4>
-          <p className="text-xs text-slate-300">Pantau statistik pembaca, tingkat retensi, dan ekspor laporan klien.</p>
+          <h4 className="font-bold text-base">Analitik Trafik</h4>
+          <p className="text-xs text-slate-300">Pantau statistik pembaca, tingkat retensi, & ekspor laporan.</p>
         </div>
 
         <div
@@ -180,8 +193,8 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             <Globe className="w-5 h-5 text-purple-300" />
             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Schema.org</span>
           </div>
-          <h4 className="font-bold text-base">SEO Optimizer & SERP</h4>
-          <p className="text-xs text-purple-200">Audit meta tag, pratinjau hasil pencarian Google & generator JSON-LD.</p>
+          <h4 className="font-bold text-base">SEO Optimizer</h4>
+          <p className="text-xs text-purple-200">Audit meta tag, pratinjau SERP Google & generator JSON-LD.</p>
         </div>
       </div>
 

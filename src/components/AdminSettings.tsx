@@ -25,7 +25,8 @@ import {
   Layers,
   LayoutGrid,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Cloud
 } from 'lucide-react';
 import { SiteSettings, BannerConfig } from '../types';
 
@@ -362,10 +363,42 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
       )}
 
+      {/* Quick Jump Navigation Tabs */}
+      <div className="sticky top-16 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
+        {[
+          { id: 'sec-1', label: '1. Identitas & Logo', icon: Building },
+          { id: 'sec-2', label: '2. Banner Iklan', icon: ImageIcon },
+          { id: 'sec-3', label: '3. API Key Gemini AI', icon: Sparkles },
+          { id: 'sec-4', label: '4. Tautan Sosmed', icon: Share2 },
+          { id: 'sec-5', label: '5. API Media Sosial', icon: Share2 },
+          { id: 'sec-6', label: '6. SEO & Google Indexing', icon: Globe },
+          { id: 'sec-7', label: '7. Auto Backup Drive', icon: Cloud },
+          { id: 'sec-8', label: '8. Tampilan Views', icon: Eye },
+        ].map((item) => {
+          const IconComp = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                const el = document.getElementById(item.id);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-slate-700 transition flex items-center gap-1.5 shrink-0"
+            >
+              <IconComp className="w-3.5 h-3.5 text-rose-500" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <form onSubmit={handleSave} className="space-y-6">
         
         {/* SECTION 1: IDENTITAS PORTAL & UPLOAD LOGO */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5">
+        <div id="sec-1" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
             <Building className="w-5 h-5 text-rose-600" />
             <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
@@ -496,7 +529,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 2: MANAJEMEN UPLOAD BANNER IKLAN (2 POSISI) */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-6">
+        <div id="sec-2" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-6 scroll-mt-28">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-rose-600" />
@@ -720,7 +753,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 3: KONFIGURASI API KEY AI (GEMINI & OPENAI) */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5">
+        <div id="sec-3" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-500" />
@@ -837,7 +870,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 4: KONEKSI API MEDIA SOSIAL & AUTOPILOT */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5">
+        <div id="sec-4" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Share2 className="w-5 h-5 text-rose-600" />
@@ -927,7 +960,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+            <div id="sec-5" className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 scroll-mt-28">
               <h4 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
                 <Key className="w-3.5 h-3.5 text-rose-600" />
                 <span>B. Kunci API & Access Token Otomatisasi Posting Sosmed</span>
@@ -989,7 +1022,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </div>
 
             {/* SECTION 6: SEO ON-PAGE & GOOGLE SEARCH CONSOLE */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+            <div id="sec-6" className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5 scroll-mt-28">
               <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
                   <Globe className="w-5 h-5" />
@@ -1097,7 +1130,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </div>
 
             {/* SECTION 7: AUTOBACKUP GOOGLE DRIVE (BERITA & GAMBAR TIAP MINGGU) */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+            <div id="sec-7" className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5 scroll-mt-28">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
@@ -1216,7 +1249,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </div>
 
             {/* SECTION 8: PENGATURAN TAMPILAN PEMBACA (READER VIEW TOGGLE) */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+            <div id="sec-8" className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4 scroll-mt-28">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400">
