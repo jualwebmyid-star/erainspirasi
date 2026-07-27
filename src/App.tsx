@@ -444,79 +444,91 @@ export default function App() {
   // Deep-linking URL Slug Sync & Parser for Shareable Links (Articles, Categories, Static Pages)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
 
-    // 1. Static Page Permalink Check (?page=kebijakan-privasi or ?static=... or ?p=...)
-    const pageParam = params.get('page') || params.get('static');
-    if (pageParam && staticPages.length > 0) {
-      const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
-      const matchedPage = staticPages.find(
-        (p) =>
-          p.slug?.toLowerCase() === cleanPageParam ||
-          p.id?.toLowerCase() === cleanPageParam ||
-          p.title?.toLowerCase().replace(/\s+/g, '-') === cleanPageParam
-      );
-      if (matchedPage) {
-        setSelectedStaticPageSlug(matchedPage.slug);
-        setSelectedPost(null);
-        setCurrentTab('static-page-view');
-        return;
-      }
-    }
+    const parseUrl = () => {
+      const params = new URLSearchParams(window.location.search);
 
-    // 2. Category Permalink Check (?category=gaya-hidup or ?cat=gaya-hidup or ?kategori=gaya-hidup)
-    const catParam = params.get('category') || params.get('cat') || params.get('kategori');
-    if (catParam) {
-      const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
-      const matchedCategoryObj = categories.find(
-        (c) =>
-          c.slug?.toLowerCase() === cleanCatParam ||
-          c.name?.toLowerCase() === cleanCatParam ||
-          c.name?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam ||
-          c.id?.toLowerCase() === cleanCatParam
-      );
-      const matchedPostCategory = posts.find(
-        (p) =>
-          p.category?.toLowerCase() === cleanCatParam ||
-          p.category?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam
-      )?.category;
-
-      const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : (matchedPostCategory || catParam);
-
-      setSelectedCategory(finalCatName);
-      setSelectedPost(null);
-      setSelectedStaticPageSlug(null);
-      setCurrentTab('reader');
-      return;
-    }
-
-    // 3. Article Post Permalink Check (?post=judul-artikel or ?article=... or ?p=...)
-    if (posts.length > 0) {
-      const postParam = params.get('post') || params.get('article') || params.get('p');
-      if (postParam) {
-        const cleanPostParam = decodeURIComponent(postParam).toLowerCase().trim();
-        const matched = posts.find(
+      // 1. Static Page Permalink Check (?page=kebijakan-privasi or ?static=...)
+      const pageParam = params.get('page') || params.get('static');
+      if (pageParam && staticPages.length > 0) {
+        const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
+        const matchedPage = staticPages.find(
           (p) =>
-            p.slug?.toLowerCase() === cleanPostParam ||
-            p.id?.toLowerCase() === cleanPostParam
+            p.slug?.toLowerCase() === cleanPageParam ||
+            p.id?.toLowerCase() === cleanPageParam ||
+            p.title?.toLowerCase().replace(/\s+/g, '-') === cleanPageParam
         );
-        if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
-          setSelectedPost(matched);
+        if (matchedPage) {
+          if (selectedStaticPageSlug !== matchedPage.slug || currentTab !== 'static-page-view') {
+            setSelectedStaticPageSlug(matchedPage.slug);
+            setSelectedPost(null);
+            setCurrentTab('static-page-view');
+          }
+          return;
+        }
+      }
+
+      // 2. Category Permalink Check (?category=gaya-hidup or ?cat=gaya-hidup or ?kategori=gaya-hidup)
+      const catParam = params.get('category') || params.get('cat') || params.get('kategori');
+      if (catParam) {
+        const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
+        const matchedCategoryObj = categories.find(
+          (c) =>
+            c.slug?.toLowerCase() === cleanCatParam ||
+            c.name?.toLowerCase() === cleanCatParam ||
+            c.name?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam ||
+            c.id?.toLowerCase() === cleanCatParam
+        );
+        const matchedPostCategory = posts.find(
+          (p) =>
+            p.category?.toLowerCase() === cleanCatParam ||
+            p.category?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === cleanCatParam
+        )?.category;
+
+        const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : (matchedPostCategory || catParam);
+
+        if (selectedCategory !== finalCatName || selectedPost !== null || selectedStaticPageSlug !== null) {
+          setSelectedCategory(finalCatName);
+          setSelectedPost(null);
           setSelectedStaticPageSlug(null);
           setCurrentTab('reader');
         }
-      } else if (!selectedPost && !selectedStaticPageSlug) {
-        // Default Portal Home Page Open Graph Tags
-        updateOpenGraphTags({
-          title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
-          description: siteSettings.siteTagline || 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.',
-          image: siteSettings.logoUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
-          url: window.location.origin,
-          type: 'website',
-          siteName: siteSettings.siteName || 'EraInspirasi Portal',
-        });
+        return;
       }
-    }
+
+      // 3. Article Post Permalink Check (?post=judul-artikel or ?article=... or ?p=...)
+      if (posts.length > 0) {
+        const postParam = params.get('post') || params.get('article') || params.get('p');
+        if (postParam) {
+          const cleanPostParam = decodeURIComponent(postParam).toLowerCase().trim();
+          const matched = posts.find(
+            (p) =>
+              p.slug?.toLowerCase() === cleanPostParam ||
+              p.id?.toLowerCase() === cleanPostParam
+          );
+          if (matched && (!selectedPost || selectedPost.id !== matched.id)) {
+            setSelectedPost(matched);
+            setSelectedStaticPageSlug(null);
+            setCurrentTab('reader');
+          }
+        } else if (!selectedPost && !selectedStaticPageSlug) {
+          // Default Portal Home Page Open Graph Tags
+          updateOpenGraphTags({
+            title: siteSettings.siteName || 'EraInspirasi - Portal Berita, Edukasi & Inspirasi',
+            description: siteSettings.siteTagline || 'Portal berita digital terdepan Indonesia dengan informasi terkini, artikel edukasi, dan inspirasi publik.',
+            image: siteSettings.logoUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80',
+            url: window.location.origin,
+            type: 'website',
+            siteName: siteSettings.siteName || 'EraInspirasi Portal',
+          });
+        }
+      }
+    };
+
+    parseUrl();
+
+    window.addEventListener('popstate', parseUrl);
+    return () => window.removeEventListener('popstate', parseUrl);
   }, [posts.length, staticPages.length, categories.length, siteSettings.siteName]);
 
   // Update browser tab title with slogan and favicon icon
@@ -534,17 +546,19 @@ export default function App() {
       document.title = `${name} - ${slogan}`;
     }
 
-    // Dynamic favicon icon update
-    if (siteSettings.siteIcon) {
+    // Dynamic favicon icon update (only if valid non-empty URL)
+    if (siteSettings.siteIcon && siteSettings.siteIcon.trim().length > 0) {
       let iconLink: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
       if (!iconLink) {
         iconLink = document.createElement('link');
         iconLink.rel = 'icon';
         document.getElementsByTagName('head')[0].appendChild(iconLink);
       }
-      iconLink.href = siteSettings.siteIcon;
+      if (iconLink.getAttribute('href') !== siteSettings.siteIcon.trim()) {
+        iconLink.href = siteSettings.siteIcon.trim();
+      }
     }
-  }, [selectedPost, selectedStaticPageSlug, siteSettings, staticPages]);
+  }, [selectedPost, selectedStaticPageSlug, siteSettings.siteName, siteSettings.siteIcon, staticPages]);
 
   // Handlers
   const handleLogout = () => {
