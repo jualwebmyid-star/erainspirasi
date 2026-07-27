@@ -1031,17 +1031,17 @@ export default function App() {
                 {/* Column 1: Logo, Bio & Social Links (6 Cols) */}
                 <div className="lg:col-span-6 space-y-4">
                   <div className="flex items-center gap-3">
-                    {siteSettings?.siteLogo ? (
+                    {siteSettings?.logoUrl ? (
                       <img
-                        src={siteSettings.siteLogo}
-                        alt={siteSettings?.siteTitle || 'Logo'}
+                        src={siteSettings.logoUrl}
+                        alt={siteSettings?.siteName || 'Logo'}
                         className="h-9 sm:h-10 w-auto object-contain"
                       />
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="bg-rose-600 text-white font-black text-sm px-2.5 py-1 rounded-lg">ERA</span>
                         <span className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-base">
-                          {siteSettings?.siteTitle || 'INSPIRASI.COM'}
+                          {siteSettings?.siteName || 'INSPIRASI.COM'}
                         </span>
                       </div>
                     )}

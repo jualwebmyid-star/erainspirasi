@@ -26,7 +26,9 @@ import {
   LayoutGrid,
   Loader2,
   AlertCircle,
-  Cloud
+  Cloud,
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import { SiteSettings, BannerConfig } from '../types';
 
