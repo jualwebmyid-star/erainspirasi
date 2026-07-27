@@ -19,6 +19,7 @@ import { PushNotificationModal } from './components/PushNotificationModal';
 import { ImageUploaderModal } from './components/ImageUploaderModal';
 import { SearchModal } from './components/SearchModal';
 import { VisitorStatsWidget } from './components/VisitorStatsWidget';
+import { Mail, Send, CheckCircle } from 'lucide-react';
 import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
 import { updateOpenGraphTags } from './utils/seo';
 import { pingSearchEngines } from './utils/sitemapGenerator';
@@ -303,6 +304,18 @@ export default function App() {
   const [isPushSubscribed, setIsPushSubscribed] = useState(true);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [imageCallback, setImageCallback] = useState<((url: string, alt: string) => void) | null>(null);
+
+  const [footerEmail, setFooterEmail] = useState('');
+  const [footerSubscribed, setFooterSubscribed] = useState(false);
+
+  const handleFooterSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (footerEmail.trim()) {
+      setFooterSubscribed(true);
+      setTimeout(() => setFooterSubscribed(false), 6000);
+      setFooterEmail('');
+    }
+  };
 
   useEffect(() => {
     if (darkMode) {
@@ -1009,18 +1022,99 @@ export default function App() {
             )}
           </main>
 
-          <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 text-xs text-slate-500 dark:text-slate-400 mt-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 text-xs text-slate-500 dark:text-slate-400 mt-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
               
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="bg-rose-600 text-white font-black text-sm px-2 py-0.5 rounded-lg">ERA</span>
-                  <span className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-sm">
-                    INSPIRASI.COM
-                  </span>
+              {/* Upper Footer Grid: Logo & Bio (Left) + Newsletter Card (Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pb-8 border-b border-slate-100 dark:border-slate-800">
+                
+                {/* Column 1: Logo, Bio & Social Links (6 Cols) */}
+                <div className="lg:col-span-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    {siteSettings?.siteLogo ? (
+                      <img
+                        src={siteSettings.siteLogo}
+                        alt={siteSettings?.siteTitle || 'Logo'}
+                        className="h-9 sm:h-10 w-auto object-contain"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="bg-rose-600 text-white font-black text-sm px-2.5 py-1 rounded-lg">ERA</span>
+                        <span className="font-extrabold text-slate-900 dark:text-white uppercase tracking-wider text-base">
+                          {siteSettings?.siteTitle || 'INSPIRASI.COM'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed max-w-md">
+                    {siteSettings?.siteTagline || 'Portal Berita, Edukasi, Karir & Inspirasi Digital Indonesia. Menyajikan liputan independen, cepat, dan tepercaya.'}
+                  </p>
+
+                  <div className="flex items-center gap-3 pt-1 text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-600">Sosial Media:</span>
+                    <a href={siteSettings?.instagramUrl || "#instagram"} target="_blank" rel="noreferrer" className="hover:text-rose-600 transition">Instagram</a>
+                    <span>•</span>
+                    <a href={siteSettings?.youtubeUrl || "#youtube"} target="_blank" rel="noreferrer" className="hover:text-rose-600 transition">YouTube</a>
+                    <span>•</span>
+                    <a href={siteSettings?.twitterUrl || "#x"} target="_blank" rel="noreferrer" className="hover:text-rose-600 transition">X / Twitter</a>
+                    <span>•</span>
+                    <a href={siteSettings?.facebookUrl || "#facebook"} target="_blank" rel="noreferrer" className="hover:text-rose-600 transition">Facebook</a>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-600 dark:text-slate-300">
+                {/* Column 2: Langganan Berita & Inspirasi Terkini Card (6 Cols) */}
+                <div className="lg:col-span-6">
+                  <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-rose-900 via-slate-900 to-slate-950 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mr-10 -mt-10 w-36 h-36 rounded-full bg-rose-500/20 blur-2xl pointer-events-none" />
+
+                    <div className="relative z-10 space-y-3">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/30 text-rose-200 text-[10px] font-black uppercase tracking-wider">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>BULLETIN DIGITAL</span>
+                      </div>
+
+                      <h4 className="text-base sm:text-lg font-black text-white leading-tight">
+                        Langganan Berita & Inspirasi Terkini
+                      </h4>
+
+                      <p className="text-slate-300 text-xs leading-relaxed">
+                        Dapatkan artikel inspiratif, edukasi karir, dan tren teknologi langsung di email Anda setiap minggu.
+                      </p>
+
+                      {footerSubscribed ? (
+                        <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 shrink-0" />
+                          <span>Terima kasih! Anda berhasil berlangganan bulletin EraInspirasi.</span>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleFooterSubscribe} className="flex flex-col sm:flex-row gap-2 pt-1">
+                          <input
+                            type="email"
+                            required
+                            placeholder="Masukkan alamat email Anda..."
+                            value={footerEmail}
+                            onChange={(e) => setFooterEmail(e.target.value)}
+                            className="flex-1 px-4 py-2.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-rose-400"
+                          />
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 shrink-0 active:scale-95"
+                          >
+                            <span>Daftar Gratis</span>
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Lower Footer: Static Pages & Copyright */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-bold text-slate-600 dark:text-slate-300">
                   {staticPages.map((page) => (
                     <button
                       key={page.id}
@@ -1031,12 +1125,13 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+
+                <div className="text-center md:text-right space-y-0.5">
+                  <div>© 2026 <strong>EraInspirasi.com</strong> • PT Era Inspirasi Media Nusantara</div>
+                  <div className="text-[11px] text-slate-400">Standardisasi Pers & Jurnalistik Digital Terverifikasi</div>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div>© 2026 <strong>EraInspirasi.com</strong> • PT Era Inspirasi Media Nusantara</div>
-                <div className="text-slate-400">Standardisasi Pers & Jurnalistik Digital Terverifikasi</div>
-              </div>
             </div>
           </footer>
         </div>

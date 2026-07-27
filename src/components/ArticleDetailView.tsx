@@ -235,10 +235,12 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               </div>
 
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                <span className="flex items-center gap-1 font-semibold mr-1 text-xs">
-                  <Eye className="w-3.5 h-3.5 text-rose-500" />
-                  {(post.viewCount || 0).toLocaleString('id-ID')} Views
-                </span>
+                {siteSettings?.showReaderViewsCount !== false && (
+                  <span className="flex items-center gap-1 font-semibold mr-1 text-xs">
+                    <Eye className="w-3.5 h-3.5 text-rose-500" />
+                    {(post.viewCount || 0).toLocaleString('id-ID')} Views
+                  </span>
+                )}
 
                 <button
                   onClick={handleLikeArticle}

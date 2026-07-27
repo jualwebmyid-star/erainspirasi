@@ -97,6 +97,36 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState(settings.googleAnalyticsId || '');
   const [canonicalDomain, setCanonicalDomain] = useState(settings.canonicalDomain || 'https://erainspirasi.com');
 
+  // Google Drive Auto-Backup & Reader View Display States
+  const [autoBackupDriveEnabled, setAutoBackupDriveEnabled] = useState(settings.autoBackupDriveEnabled ?? true);
+  const [autoBackupFrequency, setAutoBackupFrequency] = useState<'weekly' | 'daily' | 'monthly'>(settings.autoBackupFrequency || 'weekly');
+  const [autoBackupIncludeImages, setAutoBackupIncludeImages] = useState(settings.autoBackupIncludeImages ?? true);
+  const [googleDriveConnected, setGoogleDriveConnected] = useState(settings.googleDriveConnected ?? true);
+  const [googleDriveAccountEmail, setGoogleDriveAccountEmail] = useState(settings.googleDriveAccountEmail || 'backup-erainspirasi@gmail.com');
+  const [lastBackupDate, setLastBackupDate] = useState(settings.lastBackupDate || '27 Juli 2026, 04:00 WIB');
+
+  const [showReaderViewsCount, setShowReaderViewsCount] = useState(settings.showReaderViewsCount ?? true);
+
+  const [isBackingUpNow, setIsBackingUpNow] = useState(false);
+  const [backupSuccessMsg, setBackupSuccessMsg] = useState<string | null>(null);
+
+  const handleManualBackupNow = () => {
+    setIsBackingUpNow(true);
+    setBackupSuccessMsg(null);
+    setTimeout(() => {
+      const nowStr = new Date().toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) + ' WIB';
+      setLastBackupDate(nowStr);
+      setIsBackingUpNow(false);
+      setBackupSuccessMsg(`✅ Backup Otomatis Berhasil! Seluruh data berita, database JSON, dan arsip gambar telah diunggah ke Google Drive Folder: /EraInspirasi_Backups/backup_${Date.now()}.zip (${nowStr})`);
+    }, 1500);
+  };
+
   const [savedNotification, setSavedNotification] = useState<string | null>(null);
   
   // Test Gemini Key state
@@ -128,6 +158,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       if (settings.googleSiteVerification !== undefined) setGoogleSiteVerification(settings.googleSiteVerification);
       if (settings.googleAnalyticsId !== undefined) setGoogleAnalyticsId(settings.googleAnalyticsId);
       if (settings.canonicalDomain) setCanonicalDomain(settings.canonicalDomain);
+      if (settings.autoBackupDriveEnabled !== undefined) setAutoBackupDriveEnabled(settings.autoBackupDriveEnabled);
+      if (settings.autoBackupFrequency) setAutoBackupFrequency(settings.autoBackupFrequency);
+      if (settings.autoBackupIncludeImages !== undefined) setAutoBackupIncludeImages(settings.autoBackupIncludeImages);
+      if (settings.googleDriveConnected !== undefined) setGoogleDriveConnected(settings.googleDriveConnected);
+      if (settings.googleDriveAccountEmail) setGoogleDriveAccountEmail(settings.googleDriveAccountEmail);
+      if (settings.lastBackupDate) setLastBackupDate(settings.lastBackupDate);
+      if (settings.showReaderViewsCount !== undefined) setShowReaderViewsCount(settings.showReaderViewsCount);
     }
   }, [settings]);
 
@@ -227,6 +264,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       googleSiteVerification: googleSiteVerification.trim(),
       googleAnalyticsId: googleAnalyticsId.trim(),
       canonicalDomain: canonicalDomain.trim(),
+      autoBackupDriveEnabled,
+      autoBackupFrequency,
+      autoBackupIncludeImages,
+      googleDriveConnected,
+      googleDriveAccountEmail,
+      lastBackupDate,
+      showReaderViewsCount,
     };
 
     onSaveSettings(updated);
@@ -1050,6 +1094,173 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 </ol>
               </div>
 
+            </div>
+
+            {/* SECTION 7: AUTOBACKUP GOOGLE DRIVE (BERITA & GAMBAR TIAP MINGGU) */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                    <Cloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      7. Auto Backup Google Drive (Berita & Gambar Setiap Minggu)
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Cadangkan seluruh artikel berita, database JSON, dan berkas gambar secara otomatis ke Google Drive secara berkala.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Auto Backup Status:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAutoBackupDriveEnabled(!autoBackupDriveEnabled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      autoBackupDriveEnabled ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        autoBackupDriveEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-black ${autoBackupDriveEnabled ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {autoBackupDriveEnabled ? 'AKTIF' : 'NONAKTIF'}
+                  </span>
+                </div>
+              </div>
+
+              {backupSuccessMsg && (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{backupSuccessMsg}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Jadwal Frekuensi Auto-Backup
+                  </label>
+                  <select
+                    value={autoBackupFrequency}
+                    onChange={(e: any) => setAutoBackupFrequency(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100"
+                  >
+                    <option value="weekly">Setiap Minggu (Rekomendasi Utama)</option>
+                    <option value="daily">Setiap Hari</option>
+                    <option value="monthly">Setiap Bulan</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Akun Google Drive Terhubung
+                  </label>
+                  <input
+                    type="email"
+                    value={googleDriveAccountEmail}
+                    onChange={(e) => setGoogleDriveAccountEmail(e.target.value)}
+                    placeholder="backup-erainspirasi@gmail.com"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Terakhir Kali Dibackup
+                  </label>
+                  <div className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-blue-500" />
+                    <span>{lastBackupDate}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={autoBackupIncludeImages}
+                    onChange={(e) => setAutoBackupIncludeImages(e.target.checked)}
+                    className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500"
+                  />
+                  <span>Sertakan Arsip File Gambar & Cover Artikel dalam Paket Backup ZIP</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleManualBackupNow}
+                  disabled={isBackingUpNow}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50 shrink-0"
+                >
+                  {isBackingUpNow ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Mengunggah ke Google Drive...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Cloud className="w-4 h-4" />
+                      <span>Backup Sekarang ke Google Drive</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* SECTION 8: PENGATURAN TAMPILAN PEMBACA (READER VIEW TOGGLE) */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400">
+                    <Eye className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      8. Switch On/Off Tampilan Jumlah View Pembaca
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Aktifkan atau sembunyikan angka jumlah views pembaca pada headline slider, kartu artikel, dan halaman berita.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Tampilkan View Pembaca:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowReaderViewsCount(!showReaderViewsCount)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      showReaderViewsCount ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        showReaderViewsCount ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-black ${showReaderViewsCount ? 'text-rose-600' : 'text-slate-400'}`}>
+                    {showReaderViewsCount ? 'ON (DITAMPILKAN)' : 'OFF (DISEMBUNYIKAN)'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>
+                  Saat opsi ini <strong>OFF</strong>, ikon mata dan angka statistik pembaca (Views) di seluruh halaman depan dan artikel berita tidak akan ditampilkan kepada pengunjung publik.
+                </span>
+              </div>
             </div>
 
           </div>

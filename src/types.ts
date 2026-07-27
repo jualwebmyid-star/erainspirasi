@@ -185,5 +185,12 @@ export interface SiteSettings {
   googleSiteVerification?: string;
   googleAnalyticsId?: string;
   canonicalDomain?: string;
+  autoBackupDriveEnabled?: boolean;
+  autoBackupFrequency?: 'weekly' | 'daily' | 'monthly';
+  autoBackupIncludeImages?: boolean;
+  googleDriveConnected?: boolean;
+  googleDriveAccountEmail?: string;
+  lastBackupDate?: string;
+  showReaderViewsCount?: boolean;
 }
 

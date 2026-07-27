@@ -151,53 +151,29 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="contents">
       
       {/* 1. DESKTOP TOP BAR (Laptop/Desktop Only: hidden lg:block) - Positioned AT THE VERY TOP */}
-      <div className="hidden lg:block bg-slate-900 text-slate-300 text-xs py-1.5 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="hidden lg:block bg-slate-900 text-slate-300 text-xs border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-3 overflow-hidden">
             <span className="inline-flex items-center gap-1.5 text-slate-400 font-medium shrink-0">
               <Calendar className="w-3.5 h-3.5 text-rose-500" />
-              <span>Kamis, 23 Juli 2026</span>
+              <span>
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
             </span>
 
             <div className="w-px h-3.5 bg-slate-700" />
 
-            {/* Ticker marquee / headline highlight with vertical sliding Framer Motion animation */}
-            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap h-6">
-              <span className="px-2 py-0.5 rounded bg-rose-600 text-white font-black text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs z-10">
-                <Flame className="w-3 h-3 fill-current animate-pulse" />
-                HEADLINE
+            {/* Topbar Date and Tagline Info */}
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 text-slate-400 font-medium shrink-0">
+                <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                <span>
+                  {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
               </span>
-              
-              <div className="relative h-6 overflow-hidden flex-1">
-                <AnimatePresence mode="wait">
-                  {headlinePosts.length > 0 && headlinePosts[tickerIndex] ? (
-                    <motion.span 
-                      key={headlinePosts[tickerIndex].id}
-                      initial={{ y: 18, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -18, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: 'easeInOut' }}
-                      onClick={() => onSelectPost && onSelectPost(headlinePosts[tickerIndex])}
-                      className="absolute inset-0 text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center transition-colors"
-                      title={headlinePosts[tickerIndex].title}
-                    >
-                      {headlinePosts[tickerIndex].title}
-                    </motion.span>
-                  ) : (
-                    <motion.span 
-                      key="fallback-headline-desktop"
-                      initial={{ y: 18, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -18, opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 text-slate-200 font-medium h-6 flex items-center truncate"
-                    >
-                      Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400 font-medium">{siteSettings?.siteTagline || 'Portal Berita, Edukasi & Inspirasi'}</span>
             </div>
           </div>
 
@@ -388,68 +364,40 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* 4. MOBILE HEADLINE TICKER BAR (Mobile HP Only: lg:hidden) - Positioned below Sticky Nav & Banner */}
-      <div className="lg:hidden bg-slate-900 text-slate-300 text-[11px] py-1.5 px-3 border-b border-slate-800">
-        <div className="flex items-center gap-2 overflow-hidden h-6">
-          <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black text-[9px] tracking-wider uppercase shrink-0 flex items-center gap-1 shadow-xs z-10">
-            <Flame className="w-3 h-3 fill-current animate-pulse" />
-            HEADLINE
-          </span>
-          <div className="relative h-6 overflow-hidden flex-1">
-            <AnimatePresence mode="wait">
-              {headlinePosts.length > 0 && headlinePosts[tickerIndex] ? (
-                <motion.span 
-                  key={headlinePosts[tickerIndex].id}
-                  initial={{ y: 18, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -18, opacity: 0 }}
-                  transition={{ duration: 0.4, ease: 'easeInOut' }}
-                  onClick={() => onSelectPost && onSelectPost(headlinePosts[tickerIndex])}
-                  className="absolute inset-0 text-slate-200 hover:text-rose-400 cursor-pointer font-medium truncate h-6 flex items-center text-[11px] transition-colors"
-                  title={headlinePosts[tickerIndex].title}
-                >
-                  {headlinePosts[tickerIndex].title}
-                </motion.span>
-              ) : (
-                <motion.span 
-                  key="fallback-headline-mobile"
-                  initial={{ y: 18, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -18, opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="absolute inset-0 text-slate-200 font-medium h-6 flex items-center truncate text-[11px]"
-                >
-                  Inovasi Mobil Listrik Lokal: Industri Otomotif Nasional Siap Tembus Pasar Global
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-
       {/* EraInspirasi Category Bar (Desktop Nav Menu) */}
       <div className="hidden lg:block w-full bg-slate-900 text-white border-b border-slate-800 shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto no-scrollbar">
           
           <nav className="flex items-center space-x-1 py-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
             {headerMenuItems && headerMenuItems.length > 0 ? (
-              headerMenuItems.filter(m => m.isVisible).map((menu) => (
-                <button
-                  key={menu.id}
-                  onClick={() => {
-                    if (menu.type === 'page' && menu.url.startsWith('/p/') && onOpenStaticPage) {
-                      const slug = menu.url.replace('/p/', '');
-                      onOpenStaticPage(slug);
-                    } else {
-                      setCurrentTab('reader');
-                      onSelectCategory(menu.label === 'Beranda' ? 'Semua' : menu.label);
-                    }
-                  }}
-                  className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all uppercase tracking-wide text-slate-300 hover:text-white hover:bg-slate-800`}
-                >
-                  {menu.label}
-                </button>
-              ))
+              headerMenuItems.filter(m => m.isVisible).map((menu) => {
+                const isActive = currentTab === 'reader' && (
+                  (menu.label === 'Beranda' && selectedCategory === 'Semua') ||
+                  selectedCategory === menu.label
+                );
+
+                return (
+                  <button
+                    key={menu.id}
+                    onClick={() => {
+                      if (menu.type === 'page' && menu.url.startsWith('/p/') && onOpenStaticPage) {
+                        const slug = menu.url.replace('/p/', '');
+                        onOpenStaticPage(slug);
+                      } else {
+                        setCurrentTab('reader');
+                        onSelectCategory(menu.label === 'Beranda' ? 'Semua' : menu.label);
+                      }
+                    }}
+                    className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all uppercase tracking-wide ${
+                      isActive
+                        ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 font-extrabold'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    {menu.label}
+                  </button>
+                );
+              })
             ) : (
               categories.map((cat) => {
                 const isActive = currentTab === 'reader' && (selectedCategory === cat || (cat === 'Beranda' && selectedCategory === 'Semua'));
@@ -554,30 +502,63 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Menu Categories List */}
               <div className="space-y-1">
                 <div className="px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
-                  KATEGORI BERITA & INSPIRASI
+                  MENU NAVIGASI PORTAL
                 </div>
 
-                {categories.map((cat) => {
-                  const isActive = currentTab === 'reader' && (selectedCategory === cat || (cat === 'Beranda' && selectedCategory === 'Semua'));
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => {
-                        setCurrentTab('reader');
-                        onSelectCategory(cat === 'Beranda' ? 'Semua' : cat);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between uppercase tracking-wide transition ${
-                        isActive
-                          ? 'bg-rose-600 text-white shadow-md font-black'
-                          : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>{cat}</span>
-                      <ChevronRight className="w-4 h-4 opacity-60" />
-                    </button>
-                  );
-                })}
+                {headerMenuItems && headerMenuItems.length > 0 ? (
+                  headerMenuItems.filter(m => m.isVisible).map((menu) => {
+                    const isActive = currentTab === 'reader' && (
+                      (menu.label === 'Beranda' && selectedCategory === 'Semua') ||
+                      selectedCategory === menu.label
+                    );
+
+                    return (
+                      <button
+                        key={menu.id}
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          if (menu.type === 'page' && menu.url.startsWith('/p/') && onOpenStaticPage) {
+                            const slug = menu.url.replace('/p/', '');
+                            onOpenStaticPage(slug);
+                          } else {
+                            setCurrentTab('reader');
+                            onSelectCategory(menu.label === 'Beranda' ? 'Semua' : menu.label);
+                          }
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between uppercase tracking-wide transition ${
+                          isActive
+                            ? 'bg-rose-600 text-white shadow-md font-black'
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <span>{menu.label}</span>
+                        <ChevronRight className="w-4 h-4 opacity-60" />
+                      </button>
+                    );
+                  })
+                ) : (
+                  categories.map((cat) => {
+                    const isActive = currentTab === 'reader' && (selectedCategory === cat || (cat === 'Beranda' && selectedCategory === 'Semua'));
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setCurrentTab('reader');
+                          onSelectCategory(cat === 'Beranda' ? 'Semua' : cat);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between uppercase tracking-wide transition ${
+                          isActive
+                            ? 'bg-rose-600 text-white shadow-md font-black'
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        <ChevronRight className="w-4 h-4 opacity-60" />
+                      </button>
+                    );
+                  })
+                )}
               </div>
 
             </div>
