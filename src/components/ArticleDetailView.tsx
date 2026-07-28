@@ -19,7 +19,9 @@ import {
   ShieldAlert,
   UserCheck,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Lock
 } from 'lucide-react';
 import { BlogPost, Comment, UserProfile, SiteSettings } from '../types';
 import { updateOpenGraphTags } from '../utils/seo';
@@ -34,6 +36,7 @@ interface ArticleDetailViewProps {
   allPosts?: BlogPost[];
   onSelectPost?: (post: BlogPost) => void;
   siteSettings?: SiteSettings;
+  onOpenAuthModal?: () => void;
 }
 
 export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
@@ -44,7 +47,8 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   user,
   allPosts,
   onSelectPost,
-  siteSettings
+  siteSettings,
+  onOpenAuthModal
 }) => {
   const [likes, setLikes] = useState(post.likesCount);
   const [hasLiked, setHasLiked] = useState(false);
@@ -88,9 +92,20 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     }
   };
 
+  const getCategoryPermalinkSlug = (catName?: string) => {
+    if (!catName) return 'berita';
+    return catName
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'berita';
+  };
+
+  const articleCatSlug = getCategoryPermalinkSlug(post.category);
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}?post=${post.slug || post.id}`
-    : `https://erainspirasi.com/?post=${post.slug || post.id}`;
+    ? `${window.location.origin}/${articleCatSlug}/${post.slug || post.id}`
+    : `https://erainspirasi.com/${articleCatSlug}/${post.slug || post.id}`;
 
   // Automatically update Open Graph (OG) meta tags in document head for social media sharing
   useEffect(() => {
@@ -571,12 +586,14 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                     <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-2 leading-snug">
                       {popPost.title}
                     </h4>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3 text-rose-500" />
-                        {popPost.viewCount} views
-                      </span>
-                    </div>
+                    {siteSettings?.showReaderViewsCount !== false && (
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3 text-rose-500" />
+                          {popPost.viewCount} views
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -652,45 +669,73 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
           </h3>
         </div>
 
-        {/* Add Comment Form */}
-        <form onSubmit={handleSubmitComment} className="space-y-3 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>
-              Menulis sebagai: <strong className="text-slate-800 dark:text-slate-200">{user.name}</strong> ({user.role})
-            </span>
-            {replyingToId && (
+        {/* Add Comment Form / Google Auth Gate */}
+        {user && user.provider !== 'guest' && user.id !== 'usr-guest' ? (
+          <form onSubmit={handleSubmitComment} className="space-y-3 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <span>Menulis sebagai:</span>
+                <strong className="text-slate-800 dark:text-slate-200">{user.name}</strong>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-[10px]">
+                  {user.provider === 'google' ? 'Google Auth (Pengunjung)' : user.role.toUpperCase()}
+                </span>
+              </span>
+              {replyingToId && (
+                <button
+                  type="button"
+                  onClick={() => setReplyingToId(null)}
+                  className="text-rose-500 hover:underline"
+                >
+                  Batal Balas
+                </button>
+              )}
+            </div>
+
+            <textarea
+              rows={3}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder={
+                replyingToId
+                  ? 'Tulis balasan untuk komentar ini...'
+                  : 'Tulis tanggapan atau pertanyaan Anda tentang artikel ini...'
+              }
+              className="w-full p-3 text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+
+            <div className="flex justify-end">
               <button
-                type="button"
-                onClick={() => setReplyingToId(null)}
-                className="text-rose-500 hover:underline"
+                type="submit"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-2 shadow"
               >
-                Batal Balas
+                <Send className="w-3.5 h-3.5" />
+                <span>{replyingToId ? 'Kirim Balasan' : 'Kirim Komentar'}</span>
               </button>
-            )}
-          </div>
-
-          <textarea
-            rows={3}
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder={
-              replyingToId
-                ? 'Tulis balasan untuk komentar ini...'
-                : 'Tulis tanggapan atau pertanyaan Anda tentang artikel ini...'
-            }
-            className="w-full p-3 text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-
-          <div className="flex justify-end">
+            </div>
+          </form>
+        ) : (
+          <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center space-y-4 shadow-xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+              <Globe className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                Ingin Berkomentar / Berdiskusi di Artikel Ini?
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                Sesuai kebijakan redaksi EraInspirasi, komentar hanya dapat ditulis oleh pembaca yang telah <strong>login menggunakan akun Google terverifikasi</strong>. Akun Anda akan otomatis tercatat sebagai <strong>Pengunjung Portal</strong> di menu Kelola User.
+              </p>
+            </div>
             <button
-              type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-2 shadow"
+              type="button"
+              onClick={() => onOpenAuthModal && onOpenAuthModal()}
+              className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-md hover:shadow-rose-500/20 transition flex items-center gap-2 mx-auto"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>{replyingToId ? 'Kirim Balasan' : 'Kirim Komentar'}</span>
+              <Globe className="w-4 h-4" />
+              <span>Login dengan Google untuk Berkomentar</span>
             </button>
           </div>
-        </form>
+        )}
 
         {/* Render Comments List */}
         <div className="space-y-4">

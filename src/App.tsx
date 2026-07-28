@@ -501,14 +501,122 @@ export default function App() {
     };
   }, []);
 
+  // Real-time Firebase Firestore Sync for Users
+  useEffect(() => {
+    let unsubUsers: () => void;
+    try {
+      unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+        if (!snapshot.empty) {
+          const loadedUsers = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          } as UserProfile));
+          setUsersList(loadedUsers);
+        }
+      });
+    } catch (e) {
+      console.warn('Users Firestore sync initialization warning:', e);
+    }
+    return () => {
+      if (unsubUsers) unsubUsers();
+    };
+  }, []);
+
+  // Handlers for User CRUD & Role Management
+  const handleAddUser = async (newUser: UserProfile) => {
+    setUsersList((prev) => [...prev, newUser]);
+    try {
+      await setDoc(doc(db, 'users', newUser.id), {
+        ...newUser,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Failed to add user to Firestore:', err);
+    }
+  };
+
+  const handleEditUser = async (updatedUser: UserProfile) => {
+    setUsersList((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+    try {
+      await setDoc(doc(db, 'users', updatedUser.id), {
+        ...updatedUser,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn('Failed to edit user in Firestore:', err);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setUsersList((prev) => prev.filter((u) => u.id !== userId));
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+    } catch (err) {
+      console.warn('Failed to delete user from Firestore:', err);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId: string, newRole: UserRole) => {
+    setUsersList((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
+    if (user.id === userId) {
+      setUser((prev) => ({ ...prev, role: newRole }));
+    }
+    try {
+      await setDoc(doc(db, 'users', userId), {
+        role: newRole,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn('Failed to update user role in Firestore:', err);
+    }
+  };
+
+  const handleUpdateUser = async (newUser: UserProfile) => {
+    setUser(newUser);
+    // Automatically record Google Auth user in usersList & Firestore as 'reader' ('pengunjung') if not existing
+    if (newUser.id && newUser.id !== 'usr-guest') {
+      const existing = usersList.find((u) => u.id === newUser.id || u.email === newUser.email);
+      if (!existing) {
+        const recordedUser: UserProfile = {
+          ...newUser,
+          role: newUser.role || 'reader',
+        };
+        handleAddUser(recordedUser);
+      }
+    }
+  };
+
   // Deep-linking URL Slug Sync & Parser for Shareable Links (Articles, Categories, Static Pages)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const parseUrl = () => {
       const params = new URLSearchParams(window.location.search);
+      const pathname = decodeURIComponent(window.location.pathname || '/').trim();
+      const pathSegments = pathname.split('/').filter(Boolean);
 
-      // 1. Static Page Permalink Check (?page=kebijakan-privasi or ?static=...)
+      // 1. Path-based article permalink check: /kategori-slug/judul-artikel-slug
+      if (posts.length > 0 && pathSegments.length >= 2) {
+        const possiblePostSlug = pathSegments[pathSegments.length - 1].toLowerCase();
+        const matched = posts.find(
+          (p) =>
+            p.slug?.toLowerCase() === possiblePostSlug ||
+            p.id?.toLowerCase() === possiblePostSlug
+        );
+        if (matched) {
+          if (!selectedPost || selectedPost.id !== matched.id) {
+            setSelectedPost(matched);
+            setSelectedStaticPageSlug(null);
+            setCurrentTab('reader');
+          }
+          return;
+        }
+      }
+
+      // 2. Static Page Permalink Check (?page=kebijakan-privasi or ?static=...)
       const pageParam = params.get('page') || params.get('static');
       if (pageParam && staticPages.length > 0) {
         const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
@@ -528,7 +636,7 @@ export default function App() {
         }
       }
 
-      // 2. Category Permalink Check (?category=gaya-hidup or ?cat=gaya-hidup or ?kategori=gaya-hidup)
+      // 3. Category Permalink Check (?category=gaya-hidup or ?cat=gaya-hidup or ?kategori=gaya-hidup)
       const catParam = params.get('category') || params.get('cat') || params.get('kategori');
       if (catParam) {
         const cleanCatParam = decodeURIComponent(catParam).toLowerCase().trim();
@@ -556,7 +664,7 @@ export default function App() {
         return;
       }
 
-      // 3. Article Post Permalink Check (?post=judul-artikel or ?article=... or ?p=...)
+      // 4. Fallback Article Post Query Permalink Check (?post=judul-artikel or ?article=... or ?p=...)
       if (posts.length > 0) {
         const postParam = params.get('post') || params.get('article') || params.get('p');
         if (postParam) {
@@ -649,7 +757,9 @@ export default function App() {
     setSelectedPost(post);
     setSelectedStaticPageSlug(null);
     if (typeof window !== 'undefined') {
-      window.history.pushState({}, '', `?post=${post.slug || post.id}`);
+      const catSlug = getCategorySlug(post.category);
+      const postSlug = post.slug || post.id;
+      window.history.pushState({}, '', `/${catSlug}/${postSlug}`);
     }
   };
 
@@ -925,14 +1035,10 @@ export default function App() {
               {currentTab === 'users' && (
                 <UserManager
                   usersList={usersList}
-                  onUpdateUserRole={(userId, newRole) => {
-                    setUsersList((prev) =>
-                      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-                    );
-                    if (user.id === userId) {
-                      setUser((prev) => ({ ...prev, role: newRole }));
-                    }
-                  }}
+                  onUpdateUserRole={handleUpdateUserRole}
+                  onAddUser={handleAddUser}
+                  onEditUser={handleEditUser}
+                  onDeleteUser={handleDeleteUser}
                 />
               )}
 
@@ -996,6 +1102,7 @@ export default function App() {
                     allPosts={posts}
                     onSelectPost={handleSelectPostToRead}
                     siteSettings={siteSettings}
+                    onOpenAuthModal={() => setShowAuthModal(true)}
                   />
                 ) : (
                   <BlogReaderView
@@ -1072,6 +1179,7 @@ export default function App() {
                 allPosts={posts}
                 onSelectPost={handleSelectPostToRead}
                 siteSettings={siteSettings}
+                onOpenAuthModal={() => setShowAuthModal(true)}
               />
             ) : (
 
