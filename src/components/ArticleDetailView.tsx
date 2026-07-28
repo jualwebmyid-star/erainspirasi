@@ -54,6 +54,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
   const [showTocMenu, setShowTocMenu] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [popularTimeframe, setPopularTimeframe] = useState<'today' | 'week' | 'month' | 'all'>('week');
 
   // Filter 3 Related Articles in the same category
   const relatedPosts = (allPosts || [])
@@ -138,15 +139,56 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
     }, 1200);
   };
 
-  // Top 5 Popular Posts sorted by viewCount
-  const popularPosts = [...(allPosts || [])]
-    .sort((a, b) => b.viewCount - a.viewCount)
-    .slice(0, 5);
+  // Top 5 Popular Posts calculated dynamically by selected timeframe
+  const popularPosts = (() => {
+    const list = allPosts || [];
+    const publishedOnly = list.filter(
+      (p) => p.status === 'published' || (!p.status && p.status !== 'draft' && p.status !== 'scheduled' && p.status !== 'trash')
+    );
 
-  // Extract unique trending tags
-  const allTrendingTags = Array.from(
-    new Set((allPosts || []).flatMap((p) => p.tags))
-  ).slice(0, 10);
+    const now = new Date().getTime();
+    const ONE_DAY = 24 * 60 * 60 * 1000;
+
+    let filtered = publishedOnly;
+
+    if (popularTimeframe === 'today') {
+      const recent = publishedOnly.filter((p) => {
+        const pubDate = new Date(p.publishedAt || 0).getTime();
+        return now - pubDate <= 2 * ONE_DAY;
+      });
+      if (recent.length >= 2) filtered = recent;
+    } else if (popularTimeframe === 'week') {
+      const recent = publishedOnly.filter((p) => {
+        const pubDate = new Date(p.publishedAt || 0).getTime();
+        return now - pubDate <= 7 * ONE_DAY;
+      });
+      if (recent.length >= 2) filtered = recent;
+    } else if (popularTimeframe === 'month') {
+      const recent = publishedOnly.filter((p) => {
+        const pubDate = new Date(p.publishedAt || 0).getTime();
+        return now - pubDate <= 30 * ONE_DAY;
+      });
+      if (recent.length >= 2) filtered = recent;
+    }
+
+    return [...filtered].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5);
+  })();
+
+  // Extract top 8 unique trending tags by occurrence
+  const tagCounts = (allPosts || [])
+    .flatMap((p) => p.tags || [])
+    .reduce((acc, tag) => {
+      if (tag && tag.trim()) {
+        const clean = tag.trim();
+        acc[clean] = (acc[clean] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+  const allTrendingTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag)
+    .slice(0, 8);
 
   const articleComments = comments.filter((c) => c.postId === post.id);
 
@@ -441,6 +483,54 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
               <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 dark:bg-rose-950 px-2 py-0.5 rounded-full">
                 Top Views
               </span>
+            </div>
+
+            {/* Interactive Switcher View (Hari Ini, Minggu, Bulan, Semua) */}
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl text-[10px] font-extrabold">
+              <button
+                type="button"
+                onClick={() => setPopularTimeframe('today')}
+                className={`flex-1 py-1 px-1 rounded-lg transition-all ${
+                  popularTimeframe === 'today'
+                    ? 'bg-rose-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setPopularTimeframe('week')}
+                className={`flex-1 py-1 px-1 rounded-lg transition-all ${
+                  popularTimeframe === 'week'
+                    ? 'bg-rose-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Minggu
+              </button>
+              <button
+                type="button"
+                onClick={() => setPopularTimeframe('month')}
+                className={`flex-1 py-1 px-1 rounded-lg transition-all ${
+                  popularTimeframe === 'month'
+                    ? 'bg-rose-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Bulan
+              </button>
+              <button
+                type="button"
+                onClick={() => setPopularTimeframe('all')}
+                className={`flex-1 py-1 px-1 rounded-lg transition-all ${
+                  popularTimeframe === 'all'
+                    ? 'bg-rose-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Semua
+              </button>
             </div>
 
             <div className="space-y-3">

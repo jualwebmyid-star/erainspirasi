@@ -23,6 +23,7 @@ import { Mail, Send, CheckCircle } from 'lucide-react';
 import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
 import { updateOpenGraphTags } from './utils/seo';
 import { pingSearchEngines } from './utils/sitemapGenerator';
+import { safeStorage } from './utils/storage';
 
 import { 
   INITIAL_POSTS, 
@@ -49,7 +50,7 @@ export default function App() {
 
   // Site Settings State (Logo, AI API Keys, Socials)
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
-    const saved = localStorage.getItem('erainspirasi_settings');
+    const saved = safeStorage.getItem('erainspirasi_settings');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -69,7 +70,7 @@ export default function App() {
 
   const handleSaveSettings = async (newSettings: SiteSettings) => {
     setSiteSettings(newSettings);
-    localStorage.setItem('erainspirasi_settings', JSON.stringify(newSettings));
+    safeStorage.setItem('erainspirasi_settings', JSON.stringify(newSettings));
     try {
       await setDoc(doc(db, 'settings', 'site'), newSettings);
     } catch (e) {
@@ -95,6 +96,20 @@ export default function App() {
     } catch (e) {
       console.warn('Failed to update category in Firestore:', e);
     }
+
+    // Auto-sync header menu if category is moved to footer only
+    if (updatedCat.location === 'footer') {
+      const updatedMenu = headerMenuItems.filter(
+        (m) => !(m.url === `/kategori/${updatedCat.slug}` || m.label.toLowerCase() === updatedCat.name.toLowerCase())
+      );
+      if (updatedMenu.length !== headerMenuItems.length) {
+        setHeaderMenuItems(updatedMenu);
+        safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updatedMenu));
+        try {
+          await setDoc(doc(db, 'settings', 'headerMenu'), { items: updatedMenu });
+        } catch (e) {}
+      }
+    }
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -110,6 +125,7 @@ export default function App() {
   const handleAddMenuItem = async (item: HeaderMenuItem) => {
     const updated = [...headerMenuItems, item];
     setHeaderMenuItems(updated);
+    safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updated));
     try {
       await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
     } catch (e) {
@@ -120,6 +136,7 @@ export default function App() {
   const handleUpdateMenuItem = async (item: HeaderMenuItem) => {
     const updated = headerMenuItems.map((m) => (m.id === item.id ? item : m));
     setHeaderMenuItems(updated);
+    safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updated));
     try {
       await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
     } catch (e) {
@@ -130,6 +147,7 @@ export default function App() {
   const handleDeleteMenuItem = async (id: string) => {
     const updated = headerMenuItems.filter((m) => m.id !== id);
     setHeaderMenuItems(updated);
+    safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updated));
     try {
       await setDoc(doc(db, 'settings', 'headerMenu'), { items: updated });
     } catch (e) {
@@ -152,6 +170,40 @@ export default function App() {
       await setDoc(doc(db, 'staticPages', page.id), page);
     } catch (e) {
       console.warn('Failed to update static page in Firestore:', e);
+    }
+
+    // Auto-sync header menu if static page location is set to footer
+    if (page.location === 'footer') {
+      const updatedMenu = headerMenuItems.filter(
+        (m) => !(m.url === `/p/${page.slug}` || m.label.toLowerCase() === page.title.toLowerCase())
+      );
+      if (updatedMenu.length !== headerMenuItems.length) {
+        setHeaderMenuItems(updatedMenu);
+        safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updatedMenu));
+        try {
+          await setDoc(doc(db, 'settings', 'headerMenu'), { items: updatedMenu });
+        } catch (e) {}
+      }
+    } else if (page.location === 'header' || page.location === 'both') {
+      const exists = headerMenuItems.some(
+        (m) => m.url === `/p/${page.slug}` || m.label.toLowerCase() === page.title.toLowerCase()
+      );
+      if (!exists) {
+        const newItem: HeaderMenuItem = {
+          id: `menu-page-${page.id}`,
+          label: page.title,
+          url: `/p/${page.slug}`,
+          type: 'page',
+          order: headerMenuItems.length + 1,
+          isVisible: true,
+        };
+        const updatedMenu = [...headerMenuItems, newItem];
+        setHeaderMenuItems(updatedMenu);
+        safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(updatedMenu));
+        try {
+          await setDoc(doc(db, 'settings', 'headerMenu'), { items: updatedMenu });
+        } catch (e) {}
+      }
     }
   };
 
@@ -176,16 +228,22 @@ export default function App() {
     { id: 'c7', name: 'Otomotif', slug: 'otomotif', description: 'Kendaraan listrik lokal, tren EV, dan modifikasi', articleCount: 2, color: 'bg-slate-800 text-white' },
   ]);
 
-  // Initial Header Menu Items State
-  const [headerMenuItems, setHeaderMenuItems] = useState<HeaderMenuItem[]>([
-    { id: 'm1', label: 'Beranda', url: '/', type: 'custom', order: 1, isVisible: true },
-    { id: 'm2', label: 'Tekno & Gadget', url: '/kategori/tekno-gadget', type: 'category', order: 2, isVisible: true },
-    { id: 'm3', label: 'Inspirasi', url: '/kategori/inspirasi', type: 'category', order: 3, isVisible: true },
-    { id: 'm4', label: 'Bisnis & UMKM', url: '/kategori/bisnis-umkm', type: 'category', order: 4, isVisible: true },
-    { id: 'm5', label: 'Tentang Kami', url: '/p/tentang-kami', type: 'page', order: 5, isVisible: true },
-    { id: 'm6', label: 'Kebijakan Privasi', url: '/p/kebijakan-privasi', type: 'page', order: 6, isVisible: true },
-    { id: 'm7', label: 'Kontak Redaksi', url: '/p/kontak-redaksi', type: 'page', order: 7, isVisible: true },
-  ]);
+  // Initial Header Menu Items State with safeStorage fallback
+  const [headerMenuItems, setHeaderMenuItems] = useState<HeaderMenuItem[]>(() => {
+    const saved = safeStorage.getItem('erainspirasi_headermenu');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      { id: 'm1', label: 'Beranda', url: '/', type: 'custom', order: 1, isVisible: true },
+      { id: 'm2', label: 'Tekno & Gadget', url: '/kategori/tekno-gadget', type: 'category', order: 2, isVisible: true },
+      { id: 'm3', label: 'Inspirasi', url: '/kategori/inspirasi', type: 'category', order: 3, isVisible: true },
+      { id: 'm4', label: 'Bisnis & UMKM', url: '/kategori/bisnis-umkm', type: 'category', order: 4, isVisible: true },
+    ];
+  });
 
   // Initial Static Pages State
   const [staticPages, setStaticPages] = useState<StaticPageItem[]>([
@@ -236,14 +294,14 @@ export default function App() {
 
   // Dark Mode
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('erainspirasi_theme');
+    const saved = safeStorage.getItem('erainspirasi_theme');
     if (saved) return saved === 'dark';
     return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   // User Profile Session Persistence across refreshes
   const [user, setUser] = useState<UserProfile>(() => {
-    const savedUser = localStorage.getItem('erainspirasi_user');
+    const savedUser = safeStorage.getItem('erainspirasi_user');
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
@@ -263,9 +321,9 @@ export default function App() {
   // Keep user session synced in localStorage
   useEffect(() => {
     if (user && user.role !== 'reader' && user.provider !== 'guest') {
-      localStorage.setItem('erainspirasi_user', JSON.stringify(user));
+      safeStorage.setItem('erainspirasi_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('erainspirasi_user');
+      safeStorage.removeItem('erainspirasi_user');
     }
   }, [user]);
 
@@ -320,10 +378,10 @@ export default function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('erainspirasi_theme', 'dark');
+      safeStorage.setItem('erainspirasi_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('erainspirasi_theme', 'light');
+      safeStorage.setItem('erainspirasi_theme', 'light');
     }
   }, [darkMode]);
 
@@ -404,7 +462,7 @@ export default function App() {
         if (snap.exists()) {
           const data = snap.data() as SiteSettings;
           setSiteSettings(data);
-          localStorage.setItem('erainspirasi_settings', JSON.stringify(data));
+          safeStorage.setItem('erainspirasi_settings', JSON.stringify(data));
         }
       });
 
@@ -418,7 +476,9 @@ export default function App() {
       // 3. Header Menu Items
       unsubMenu = onSnapshot(doc(db, 'settings', 'headerMenu'), (snap) => {
         if (snap.exists() && snap.data()?.items) {
-          setHeaderMenuItems(snap.data().items as HeaderMenuItem[]);
+          const items = snap.data().items as HeaderMenuItem[];
+          setHeaderMenuItems(items);
+          safeStorage.setItem('erainspirasi_headermenu', JSON.stringify(items));
         }
       });
 

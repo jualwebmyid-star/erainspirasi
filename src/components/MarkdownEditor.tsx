@@ -8,6 +8,7 @@ import {
   rewriteSpinDirect, 
   detectHumanizeDirect 
 } from '../services/geminiClient';
+import { safeStorage } from '../utils/storage';
 import { 
   Sparkles, 
   RefreshCw, 
@@ -163,7 +164,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return siteSettings.geminiApiKey.trim();
     }
     try {
-      const saved = localStorage.getItem('erainspirasi_settings');
+      const saved = safeStorage.getItem('erainspirasi_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.geminiApiKey && parsed.geminiApiKey.trim()) {

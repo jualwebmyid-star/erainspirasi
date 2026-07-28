@@ -11,6 +11,7 @@ import {
   Radio,
   Wifi
 } from 'lucide-react';
+import { safeStorage } from '../utils/storage';
 
 interface VisitorStatsProps {
   variant?: 'sidebar' | 'footer' | 'full';
@@ -19,7 +20,7 @@ interface VisitorStatsProps {
 export const VisitorStatsWidget: React.FC<VisitorStatsProps> = ({ variant = 'sidebar' }) => {
   const [onlineCount, setOnlineCount] = useState<number>(76);
   const [stats, setStats] = useState(() => {
-    const saved = localStorage.getItem('erainspirasi_visitor_stats');
+    const saved = safeStorage.getItem('erainspirasi_visitor_stats');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -37,7 +38,7 @@ export const VisitorStatsWidget: React.FC<VisitorStatsProps> = ({ variant = 'sid
   // Simulated real-time visitors fluctuation & count increment
   useEffect(() => {
     // 1. Save state
-    localStorage.setItem('erainspirasi_visitor_stats', JSON.stringify(stats));
+    safeStorage.setItem('erainspirasi_visitor_stats', JSON.stringify(stats));
 
     // 2. Interval for slight real-time fluctuations
     const interval = setInterval(() => {
@@ -56,7 +57,7 @@ export const VisitorStatsWidget: React.FC<VisitorStatsProps> = ({ variant = 'sid
           thisMonth: prev.thisMonth + 1,
           totalHits: prev.totalHits + 1,
         };
-        localStorage.setItem('erainspirasi_visitor_stats', JSON.stringify(newStats));
+        safeStorage.setItem('erainspirasi_visitor_stats', JSON.stringify(newStats));
         return newStats;
       });
     }, 7000);

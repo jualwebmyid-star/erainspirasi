@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart2, CheckCircle2, Vote, Sparkles } from 'lucide-react';
+import { safeStorage } from '../utils/storage';
 
 interface PollOption {
   id: string;
@@ -32,7 +33,7 @@ export const InteractivePollWidget: React.FC = () => {
 
   useEffect(() => {
     // Check local storage for existing vote
-    const savedVote = localStorage.getItem(`erainspirasi_poll_${poll.id}`);
+    const savedVote = safeStorage.getItem(`erainspirasi_poll_${poll.id}`);
     if (savedVote) {
       setHasVoted(true);
       setSelectedOptionId(savedVote);
@@ -55,7 +56,7 @@ export const InteractivePollWidget: React.FC = () => {
     setPoll(updatedPoll);
     setHasVoted(true);
     setSelectedOptionId(optionId);
-    localStorage.setItem(`erainspirasi_poll_${poll.id}`, optionId);
+    safeStorage.setItem(`erainspirasi_poll_${poll.id}`, optionId);
   };
 
   return (

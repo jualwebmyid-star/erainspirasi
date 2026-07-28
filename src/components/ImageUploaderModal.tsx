@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, Check, Sparkles, Image as ImageIcon, Sliders, Zap, Link as LinkIcon, RefreshCw } from 'lucide-react';
 import { generateAltDirect } from '../services/geminiClient';
+import { safeStorage } from '../utils/storage';
 
 interface ImageUploaderModalProps {
   isOpen: boolean;
@@ -133,7 +134,7 @@ export const ImageUploaderModal: React.FC<ImageUploaderModalProps> = ({
     let apiKey = '';
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      const saved = localStorage.getItem('erainspirasi_settings');
+      const saved = safeStorage.getItem('erainspirasi_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.geminiApiKey) {

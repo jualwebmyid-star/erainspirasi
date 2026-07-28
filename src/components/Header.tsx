@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { UserProfile, HeaderMenuItem, SiteSettings, BlogPost } from '../types';
+import { safeStorage } from '../utils/storage';
 
 interface HeaderProps {
   currentTab: string;
@@ -91,10 +92,10 @@ export const Header: React.FC<HeaderProps> = ({
     const nextDark = !darkMode;
     if (nextDark) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('erainspirasi_theme', 'dark');
+      safeStorage.setItem('erainspirasi_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('erainspirasi_theme', 'light');
+      safeStorage.setItem('erainspirasi_theme', 'light');
     }
     setDarkMode(nextDark);
   };
