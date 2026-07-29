@@ -18,6 +18,7 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
 }) => {
   const [authMode, setAuthMode] = useState<'google' | 'email'>('google');
   const [email, setEmail] = useState('');
+  const [googleEmailInput, setGoogleEmailInput] = useState('pembaca@gmail.com');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -32,13 +33,16 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
       const result = await signInWithPopup(auth, googleProvider);
       const googleUser = result.user;
 
+      const userEmail = googleUser.email || googleEmailInput.trim() || 'pembaca@gmail.com';
+      const nameFromEmail = userEmail.split('@')[0] || 'Pembaca';
+
       // STRICT USER RULE: Google Auth users are ALWAYS 'reader' role (commenting only, no admin panel access)
       const role: UserRole = 'reader';
 
       const newUser: UserProfile = {
         id: googleUser.uid,
-        name: googleUser.displayName || 'Pengguna Google',
-        email: googleUser.email || 'user@gmail.com',
+        name: nameFromEmail,
+        email: userEmail,
         avatar: googleUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
         role,
         provider: 'google',
@@ -48,6 +52,7 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
       try {
         await setDoc(doc(db, 'users', newUser.id), {
           ...newUser,
+          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }, { merge: true });
       } catch (err) {
@@ -60,16 +65,28 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
     } catch (error: any) {
       console.warn('Google Auth popup closed or blocked, using instant Google OAuth session:', error);
       
-      // Fallback popup simulation for iframe environments
-      const defaultEmail = 'pembaca@gmail.com';
+      const userEmail = googleEmailInput.trim() || 'pembaca@gmail.com';
+      const nameFromEmail = userEmail.split('@')[0] || 'Pembaca';
+
       const newUser: UserProfile = {
         id: `usr-google-${Date.now()}`,
-        name: 'Pengguna Google (Verified)',
-        email: defaultEmail,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        name: nameFromEmail,
+        email: userEmail,
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
         role: 'reader',
         provider: 'google',
       };
+
+      // Sync to Cloud DB
+      try {
+        await setDoc(doc(db, 'users', newUser.id), {
+          ...newUser,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      } catch (err) {
+        console.warn('User save warning in fallback:', err);
+      }
 
       onUpdateUser(newUser);
       setIsLoading(false);
@@ -192,8 +209,27 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
         {authMode === 'google' && (
           <div className="space-y-4 py-2">
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-center">
-              Login menggunakan akun Google khusus untuk memberikan komentar dan interaksi pada artikel. Akses panel redaksi dibatasi untuk pengelola.
+              Login menggunakan akun Google untuk memberikan komentar pada artikel. Identitas nama Anda otomatis diambil dari email Google Anda.
             </p>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Email Google Pembaca:
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  value={googleEmailInput}
+                  onChange={(e) => setGoogleEmailInput(e.target.value)}
+                  placeholder="contoh: nama.anda@gmail.com"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500 font-mono"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400">
+                Nama komentar Anda: <strong className="text-rose-600 dark:text-rose-400 font-bold">{googleEmailInput.trim().split('@')[0] || 'pembaca'}</strong> (Otomatis dari email & tersimpan di Kelola User)
+              </p>
+            </div>
 
             <button
               onClick={handleGoogleLogin}

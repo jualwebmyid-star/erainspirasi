@@ -723,7 +723,7 @@ export const ArticleDetailView: React.FC<ArticleDetailViewProps> = ({
                 Ingin Berkomentar / Berdiskusi di Artikel Ini?
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                Sesuai kebijakan redaksi EraInspirasi, komentar hanya dapat ditulis oleh pembaca yang telah <strong>login menggunakan akun Google terverifikasi</strong>. Akun Anda akan otomatis tercatat sebagai <strong>Pengunjung Portal</strong> di menu Kelola User.
+                Sesuai kebijakan redaksi EraInspirasi, komentar hanya dapat ditulis oleh pembaca yang telah <strong>login menggunakan akun Google</strong>. Identitas nama Anda (dari email) akan otomatis tercatat di menu <strong>Kelola User & Role</strong>.
               </p>
             </div>
             <button

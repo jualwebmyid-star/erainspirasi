@@ -340,7 +340,7 @@ export default function App() {
     },
     {
       id: 'usr-google-1',
-      name: 'Ahmad Fauzi (Google Auth)',
+      name: 'ahmadfauzi',
       email: 'ahmadfauzi@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       role: 'contributor',
@@ -348,7 +348,7 @@ export default function App() {
     },
     {
       id: 'usr-reader-1',
-      name: 'Dian Sastro (Pembaca)',
+      name: 'dian.sastro',
       email: 'dian.sastro@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
       role: 'reader',
@@ -603,6 +603,13 @@ export default function App() {
           role: newUser.role || 'reader',
         };
         handleAddUser(recordedUser);
+      } else {
+        const updatedUserObj: UserProfile = {
+          ...existing,
+          ...newUser,
+          role: existing.role || newUser.role || 'reader',
+        };
+        handleEditUser(updatedUserObj);
       }
     }
   };
@@ -1377,14 +1384,7 @@ export default function App() {
         onClose={() => setShowAuthModal(false)}
         currentUser={user}
         onUpdateUser={(updated) => {
-          setUser(updated);
-          setUsersList((prev) => {
-            const exists = prev.some((u) => u.id === updated.id || u.email === updated.email);
-            if (!exists) {
-              return [updated, ...prev];
-            }
-            return prev.map((u) => (u.id === updated.id || u.email === updated.email ? updated : u));
-          });
+          handleUpdateUser(updated);
           if (updated.role === 'admin') {
             setCurrentTab('dashboard');
           }
