@@ -982,6 +982,7 @@ export default function App() {
   const activeStaticPage = staticPages.find((p) => p.slug === selectedStaticPageSlug);
 
   const categoriesNameList = ['Beranda', ...categories.map((c) => c.name)];
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col font-sans">
@@ -989,7 +990,7 @@ export default function App() {
       {/* IF ADMIN: Compact Row Layout (Left Sidebar + Right Main Body) */}
       {user.role === 'admin' ? (
         <div className="flex flex-1 min-h-screen">
-          {/* Permanent Left Admin Sidebar */}
+          {/* Permanent Left Admin Sidebar (or Mobile Slide Drawer) */}
           <AdminSidebar
             currentTab={currentTab}
             setCurrentTab={(tab) => {
@@ -1001,6 +1002,8 @@ export default function App() {
             darkMode={darkMode}
             setDarkMode={setDarkMode}
             onLogout={handleLogout}
+            isMobileOpen={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
           />
 
           {/* Right Main Content Panel */}
@@ -1025,6 +1028,7 @@ export default function App() {
               onOpenSearch={() => setShowSearchModal(true)}
               onLogout={handleLogout}
               unreadNotificationsCount={isPushSubscribed ? 2 : 0}
+              onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
             />
 
             <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">

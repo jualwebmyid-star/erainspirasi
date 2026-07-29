@@ -92,10 +92,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const [copiedSlugLink, setCopiedSlugLink] = useState(false);
 
-  const currentCleanSlug = slug.trim() || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+  const currentCategorySlug = (category || 'nasional')
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'nasional';
+
+  const currentCleanSlug = slug.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '') || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+
   const fullShareablePermalink = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}?post=${currentCleanSlug}`
-    : `https://erainspirasi.com/?post=${currentCleanSlug}`;
+    ? `${window.location.origin}/${currentCategorySlug}/${currentCleanSlug}`
+    : `https://erainspirasi.com/${currentCategorySlug}/${currentCleanSlug}`;
 
   const handleCopySlugPermalink = () => {
     navigator.clipboard.writeText(fullShareablePermalink);

@@ -511,13 +511,20 @@ app.get(['/sitemap.xml', '/sitemap'], (req, res) => {
   const baseUrl = `${protocol}://${host}`;
   const today = new Date().toISOString().slice(0, 10);
 
-  const postsUrls = INITIAL_POSTS.map((p) => `
+  const postsUrls = INITIAL_POSTS.map((p) => {
+    const catSlug = (p.category || 'nasional')
+      .toLowerCase()
+      .replace(/&/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'nasional';
+    return `
   <url>
-    <loc>${baseUrl}/?post=${encodeURIComponent(p.slug || p.id)}</loc>
+    <loc>${baseUrl}/${catSlug}/${encodeURIComponent(p.slug || p.id)}</loc>
     <lastmod>${(p.publishedAt || today).slice(0, 10)}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>`).join('');
+  </url>`;
+  }).join('');
 
   const categories = [
     { name: 'Nasional', slug: 'nasional' },

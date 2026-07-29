@@ -38,6 +38,7 @@ interface HeaderProps {
   siteSettings?: SiteSettings;
   posts?: BlogPost[];
   onSelectPost?: (post: BlogPost) => void;
+  onOpenMobileSidebar?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -59,6 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
   siteSettings,
   posts,
   onSelectPost,
+  onOpenMobileSidebar,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -92,18 +94,29 @@ export const Header: React.FC<HeaderProps> = ({
     setDarkMode((prev) => !prev);
   };
 
-  // IF LOGGED IN AS ADMIN: Render Clean Admin Top Info Bar (No top tabs; left sidebar handles navigation)
+  // IF LOGGED IN AS ADMIN: Render Clean Admin Top Info Bar with Mobile Hamburger Burger Menu Trigger
   if (user.role === 'admin') {
     return (
       <header className="sticky top-0 z-20 w-full shadow-md bg-slate-900 text-white border-b border-rose-900/60">
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Hamburger Burger Menu Button for Mobile Admin */}
+            <button
+              onClick={onOpenMobileSidebar}
+              className="p-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-500 shadow-md shadow-rose-900/50 transition md:hidden flex items-center gap-1.5 font-extrabold text-xs shrink-0 active:scale-95"
+              title="Buka Menu Redaksi"
+            >
+              <Menu className="w-4 h-4" />
+              <span>Menu Redaksi</span>
+            </button>
+
             <span className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Panel Redaksi Digital Active
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="hidden sm:inline">Panel Redaksi Digital Active</span>
+              <span className="sm:hidden font-black text-white uppercase">ERA<span className="text-rose-500">.CMS</span></span>
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
-            <span className="text-xs text-slate-300 hidden sm:inline">
+            <span className="text-xs text-slate-300 hidden md:inline">
               User: <strong className="text-white">{user.name}</strong> ({user.email})
             </span>
           </div>
@@ -131,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow-md transition active:scale-95 flex items-center gap-1"
             >
               <LogOut className="w-3 h-3" />
-              <span>Logout</span>
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
