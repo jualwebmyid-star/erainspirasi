@@ -58,7 +58,11 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   const draftCount = posts.filter((p) => p.status === 'draft').length;
   const scheduledCount = posts.filter((p) => p.status === 'scheduled').length;
   const trashCount = posts.filter((p) => p.status === 'trash').length;
-  const totalViews = posts.reduce((sum, p) => sum + (p.status !== 'trash' ? p.viewCount : 0), 0);
+  const totalViews = posts.reduce((sum, p) => {
+    if (p.status === 'trash') return sum;
+    const views = Number(p.viewCount);
+    return sum + (isNaN(views) ? 0 : views);
+  }, 0);
 
   const handleFilterChange = (filter: 'all' | 'published' | 'draft' | 'scheduled' | 'trash') => {
     setStatusFilter(filter);
@@ -76,16 +80,16 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   const paginatedPosts = displayedPosts.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-5 sm:space-y-8 pb-16">
       
       {/* Dashboard Top Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 sm:pb-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <PenTool className="w-6 h-6 text-indigo-500" />
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <PenTool className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 shrink-0" />
             <span>Studio Manajemen Konten (CMS Dashboard)</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Pusat kontrol manajemen artikel, draf AI, jadwal rilis, moderasi komentar, dan kotak sampah.
           </p>
         </div>
@@ -93,136 +97,85 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
             onClick={() => setShowWpImporterModal(true)}
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center gap-2 shrink-0"
+            className="flex-1 sm:flex-initial px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
           >
-            <Download className="w-4 h-4" />
-            <span>Import dari WordPress</span>
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Import WordPress</span>
           </button>
 
           <button
             onClick={() => onNavigateTab('editor')}
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center gap-2 shrink-0"
+            className="flex-1 sm:flex-initial px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Tulis Artikel / Draf AI Baru</span>
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Tulis Artikel Baru</span>
           </button>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
         <div 
           onClick={() => setStatusFilter('published')}
-          className="cursor-pointer p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-1 hover:border-emerald-500 transition"
+          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-emerald-500 transition active:scale-95"
         >
-          <div className="text-[10px] font-extrabold text-emerald-600 uppercase">Dipublikasikan</div>
-          <div className="text-xl font-black text-slate-900 dark:text-slate-100">{publishedCount} Artikel</div>
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-emerald-600 uppercase">Dipublikasikan</div>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{publishedCount} Artikel</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('draft')}
-          className="cursor-pointer p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-1 hover:border-amber-500 transition"
+          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-amber-500 transition active:scale-95"
         >
-          <div className="text-[10px] font-extrabold text-amber-500 uppercase">Draf Penulisan</div>
-          <div className="text-xl font-black text-slate-900 dark:text-slate-100">{draftCount} Draf</div>
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-amber-500 uppercase">Draf Penulisan</div>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{draftCount} Draf</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('scheduled')}
-          className="cursor-pointer p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-1 hover:border-indigo-500 transition"
+          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-indigo-500 transition active:scale-95"
         >
-          <div className="text-[10px] font-extrabold text-indigo-500 uppercase">Rilis Terjadwal</div>
-          <div className="text-xl font-black text-slate-900 dark:text-slate-100">{scheduledCount} Artikel</div>
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-indigo-500 uppercase">Rilis Terjadwal</div>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{scheduledCount} Artikel</div>
         </div>
 
         <div 
           onClick={() => setStatusFilter('trash')}
-          className="cursor-pointer p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-1 hover:border-rose-500 transition"
+          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-rose-500 transition active:scale-95"
         >
-          <div className="text-[10px] font-extrabold text-rose-500 uppercase">🗑️ Sampah (Trash)</div>
-          <div className="text-xl font-black text-rose-600 dark:text-rose-400">{trashCount} Artikel</div>
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-rose-500 uppercase">🗑️ Sampah</div>
+          <div className="text-base sm:text-xl font-black text-rose-600 dark:text-rose-400">{trashCount} Artikel</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-1 col-span-2 sm:col-span-1">
-          <div className="text-[10px] font-extrabold text-slate-400 uppercase">Total Dibaca</div>
-          <div className="text-xl font-black text-slate-900 dark:text-slate-100">{totalViews.toLocaleString('id-ID')}</div>
-        </div>
-      </div>
-
-      {/* Quick Tool Navigation Shortcuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          onClick={() => onNavigateTab('settings')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-rose-900 to-rose-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md border border-rose-800/50"
-        >
-          <div className="flex items-center justify-between">
-            <Settings className="w-5 h-5 text-rose-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200">Konfigurasi</span>
-          </div>
-          <h4 className="font-bold text-base">Setting Portal & API</h4>
-          <p className="text-xs text-rose-200">Atur logo, slogan, Gemini API Key, banner iklan & auto backup drive.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('social')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-indigo-900 to-purple-900 text-white space-y-2 hover:scale-[1.01] transition shadow-md"
-        >
-          <div className="flex items-center justify-between">
-            <Share2 className="w-5 h-5 text-indigo-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20">Auto-Post</span>
-          </div>
-          <h4 className="font-bold text-base">Syndication Medsos</h4>
-          <p className="text-xs text-indigo-200">Jadwalkan & kirim postingan autokonten langsung ke X & IG.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('analytics')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 text-white space-y-2 hover:scale-[1.01] transition shadow-md"
-        >
-          <div className="flex items-center justify-between">
-            <BarChart3 className="w-5 h-5 text-emerald-400" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Live Metrics</span>
-          </div>
-          <h4 className="font-bold text-base">Analitik Trafik</h4>
-          <p className="text-xs text-slate-300">Pantau statistik pembaca, tingkat retensi, & ekspor laporan.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('seo')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-purple-900 to-indigo-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md"
-        >
-          <div className="flex items-center justify-between">
-            <Globe className="w-5 h-5 text-purple-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Schema.org</span>
-          </div>
-          <h4 className="font-bold text-base">SEO Optimizer</h4>
-          <p className="text-xs text-purple-200">Audit meta tag, pratinjau SERP Google & generator JSON-LD.</p>
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 col-span-2 sm:col-span-1">
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase">Total Dibaca</div>
+          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{totalViews.toLocaleString('id-ID')}</div>
         </div>
       </div>
 
       {/* Main Articles Table with Status Tabs */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+      <div className="p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3 sm:space-y-4">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/80 pb-3">
-          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-100 dark:border-slate-700/80 pb-2.5 sm:pb-3">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">
             Daftar Artikel Portal ({displayedPosts.length})
           </h3>
 
           {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl text-xs font-bold overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar">
             <button
               onClick={() => handleFilterChange('all')}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 transition ${
                 statusFilter === 'all'
                   ? 'bg-rose-600 text-white shadow-xs font-extrabold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Semua Artikel ({posts.filter((p) => p.status !== 'trash').length})
+              Semua ({posts.filter((p) => p.status !== 'trash').length})
             </button>
             <button
               onClick={() => handleFilterChange('published')}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 transition ${
                 statusFilter === 'published'
                   ? 'bg-rose-600 text-white shadow-xs font-extrabold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -232,7 +185,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             </button>
             <button
               onClick={() => handleFilterChange('draft')}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 transition ${
                 statusFilter === 'draft'
                   ? 'bg-rose-600 text-white shadow-xs font-extrabold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -242,7 +195,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             </button>
             <button
               onClick={() => handleFilterChange('scheduled')}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 transition ${
                 statusFilter === 'scheduled'
                   ? 'bg-rose-600 text-white shadow-xs font-extrabold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -252,7 +205,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             </button>
             <button
               onClick={() => handleFilterChange('trash')}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shrink-0 transition ${
                 statusFilter === 'trash'
                   ? 'bg-rose-600 text-white shadow-xs font-extrabold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -464,6 +417,57 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Quick Tool Navigation Shortcuts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+        <div
+          onClick={() => onNavigateTab('settings')}
+          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-rose-900 to-rose-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md border border-rose-800/50 active:scale-95"
+        >
+          <div className="flex items-center justify-between">
+            <Settings className="w-5 h-5 text-rose-300" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200 uppercase tracking-wider">Konfigurasi</span>
+          </div>
+          <h4 className="font-extrabold text-base">Setting Portal & API</h4>
+          <p className="text-xs text-rose-200">Atur logo, slogan, Gemini API Key, banner iklan & auto backup drive.</p>
+        </div>
+
+        <div
+          onClick={() => onNavigateTab('social')}
+          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-indigo-900 to-purple-900 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
+        >
+          <div className="flex items-center justify-between">
+            <Share2 className="w-5 h-5 text-indigo-300" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 uppercase tracking-wider">Auto-Post</span>
+          </div>
+          <h4 className="font-extrabold text-base">Syndication Medsos</h4>
+          <p className="text-xs text-indigo-200">Jadwalkan & kirim postingan autokonten langsung ke X & IG.</p>
+        </div>
+
+        <div
+          onClick={() => onNavigateTab('analytics')}
+          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
+        >
+          <div className="flex items-center justify-between">
+            <BarChart3 className="w-5 h-5 text-emerald-400" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 uppercase tracking-wider">Live Metrics</span>
+          </div>
+          <h4 className="font-extrabold text-base">Analitik Trafik</h4>
+          <p className="text-xs text-slate-300">Pantau statistik pembaca, tingkat retensi, & ekspor laporan.</p>
+        </div>
+
+        <div
+          onClick={() => onNavigateTab('seo')}
+          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-purple-900 to-indigo-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
+        >
+          <div className="flex items-center justify-between">
+            <Globe className="w-5 h-5 text-purple-300" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 uppercase tracking-wider">Schema.org</span>
+          </div>
+          <h4 className="font-extrabold text-base">SEO Optimizer</h4>
+          <p className="text-xs text-purple-200">Audit meta tag, pratinjau SERP Google & generator JSON-LD.</p>
+        </div>
       </div>
 
       {/* WordPress Importer Modal */}
