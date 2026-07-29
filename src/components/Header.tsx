@@ -89,15 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
   const categories = categoriesList && categoriesList.length > 0 ? categoriesList : defaultCategories;
 
   const handleToggleDarkMode = () => {
-    const nextDark = !darkMode;
-    if (nextDark) {
-      document.documentElement.classList.add('dark');
-      safeStorage.setItem('erainspirasi_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      safeStorage.setItem('erainspirasi_theme', 'light');
-    }
-    setDarkMode(nextDark);
+    setDarkMode((prev) => !prev);
   };
 
   // IF LOGGED IN AS ADMIN: Render Clean Admin Top Info Bar (No top tabs; left sidebar handles navigation)

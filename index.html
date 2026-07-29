@@ -23,6 +23,21 @@
     <!-- Google Site Verification Placeholder -->
     <meta name="google-site-verification" content="" />
     
+    <!-- Instant Dark Mode Pre-hydration Script -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('erainspirasi_theme');
+          var isDark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    
     <!-- Open Graph / WhatsApp / Facebook / LinkedIn Meta Tags -->
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="EraInspirasi Portal" />

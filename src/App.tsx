@@ -377,11 +377,17 @@ export default function App() {
   };
 
   useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
+      if (body) body.classList.add('dark');
+      root.style.colorScheme = 'dark';
       safeStorage.setItem('erainspirasi_theme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
+      if (body) body.classList.remove('dark');
+      root.style.colorScheme = 'light';
       safeStorage.setItem('erainspirasi_theme', 'light');
     }
   }, [darkMode]);
