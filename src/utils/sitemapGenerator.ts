@@ -64,7 +64,7 @@ export function generateSitemapXml({
       const catSlug = slugifyCategory(cat);
       if (!catSlug || catSlug === 'semua' || catSlug === 'beranda') return '';
       return `  <url>
-    <loc>${cleanBaseUrl}/?category=${catSlug}</loc>
+    <loc>${cleanBaseUrl}/${catSlug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

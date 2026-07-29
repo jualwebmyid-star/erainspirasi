@@ -634,7 +634,35 @@ export default function App() {
         }
       }
 
-      // 2. Static Page Permalink Check (?page=kebijakan-privasi or ?static=...)
+      // 2. Single Path Segment Category Check: /kategori-slug (e.g., /nasional, /tekno-gadget, /bisnis-umkm)
+      if (pathSegments.length === 1) {
+        const possibleCatSlug = pathSegments[0].toLowerCase();
+        const matchedCategoryObj = categories.find(
+          (c) =>
+            c.slug?.toLowerCase() === possibleCatSlug ||
+            c.name?.toLowerCase() === possibleCatSlug ||
+            c.name?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === possibleCatSlug ||
+            c.id?.toLowerCase() === possibleCatSlug
+        );
+        const matchedPostCategory = posts.find(
+          (p) =>
+            p.category?.toLowerCase() === possibleCatSlug ||
+            p.category?.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === possibleCatSlug
+        )?.category;
+
+        if (matchedCategoryObj || matchedPostCategory) {
+          const finalCatName = matchedCategoryObj ? matchedCategoryObj.name : matchedPostCategory!;
+          if (selectedCategory !== finalCatName || selectedPost !== null || selectedStaticPageSlug !== null) {
+            setSelectedCategory(finalCatName);
+            setSelectedPost(null);
+            setSelectedStaticPageSlug(null);
+            setCurrentTab('reader');
+          }
+          return;
+        }
+      }
+
+      // 3. Static Page Permalink Check (?page=kebijakan-privasi or ?static=...)
       const pageParam = params.get('page') || params.get('static');
       if (pageParam && staticPages.length > 0) {
         const cleanPageParam = decodeURIComponent(pageParam).toLowerCase().trim();
@@ -809,10 +837,10 @@ export default function App() {
     setCurrentTab('reader');
     if (typeof window !== 'undefined') {
       if (cat === 'Semua' || cat === 'Beranda') {
-        window.history.pushState({}, '', window.location.pathname);
+        window.history.pushState({}, '', '/');
       } else {
         const catSlug = getCategorySlug(cat);
-        window.history.pushState({}, '', `?category=${catSlug}`);
+        window.history.pushState({}, '', `/${catSlug}`);
       }
     }
   };

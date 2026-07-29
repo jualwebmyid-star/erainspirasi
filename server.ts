@@ -541,7 +541,7 @@ app.get(['/sitemap.xml', '/sitemap'], (req, res) => {
 
   const categoryUrls = categories.map((c) => `
   <url>
-    <loc>${baseUrl}/?category=${c.slug}</loc>
+    <loc>${baseUrl}/${c.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

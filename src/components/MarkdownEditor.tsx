@@ -599,65 +599,62 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     <div className="space-y-6 pb-20">
       
       {/* Editor Header Title & Actions */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider">
               WordPress WYSIWYG & AI Studio
             </span>
           </div>
-          <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 mt-1">
-            <Edit3 className="w-5 h-5 text-rose-600" />
+          <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 mt-1">
+            <Edit3 className="w-5 h-5 text-rose-600 shrink-0" />
             <span>Editor Visual WP & AI Auto-Scheduler</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Nulis artikel ala WordPress visual WYSIWYG, atur lebar gambar langsung, dan auto-generate jadwal posting AI.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full xl:w-auto">
           {/* Auto Batch AI Schedule Button */}
           <button
             onClick={() => setShowBatchModal(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 via-rose-600 to-purple-600 text-white shadow-md hover:brightness-110 transition flex items-center gap-1.5 active:scale-95"
+            className="col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 via-rose-600 to-purple-600 text-white shadow-md hover:brightness-110 transition flex items-center justify-center gap-1.5 active:scale-95"
             title="Auto-generate 3-10 artikel AI campuran & jadwalkan posting otomatis"
           >
-            <Zap className="w-4 h-4 fill-amber-300 text-amber-200 animate-bounce" />
-            <span>⚡ Mix AI Auto-Batch & Jadwal Posting</span>
+            <Zap className="w-4 h-4 fill-amber-300 text-amber-200 animate-bounce shrink-0" />
+            <span className="truncate">⚡ Mix AI Auto-Batch</span>
           </button>
 
           {/* AI Berita Umum Button */}
           <button
             onClick={() => setShowAiModal(true)}
-            className="px-3 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow hover:opacity-95 transition flex items-center gap-1.5"
+            className="px-3 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow hover:opacity-95 transition flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Berita Umum</span>
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">AI Berita Umum</span>
           </button>
 
           <button
             onClick={() => setShowRewriteModal(true)}
-            className="px-3 py-2 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5"
+            className="px-3 py-2 rounded-xl text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Rewrite AI</span>
+            <RefreshCw className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span className="truncate">Rewrite AI</span>
           </button>
 
           <button
             onClick={handleDetectHumanize}
             disabled={isDetectingHumanizing}
-            className="px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1.5"
+            className="col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>{isDetectingHumanizing ? 'Menganalisis...' : 'Deteksi & Humanize'}</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <span className="truncate">{isDetectingHumanizing ? 'Menganalisis...' : 'Deteksi & Humanize'}</span>
           </button>
 
           {/* Save Post Button */}
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/20 transition flex items-center gap-1.5 active:scale-95"
+            className="col-span-2 sm:col-span-1 px-4 py-2 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/20 transition flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3.5 h-3.5 shrink-0" />
             <span>Publish Artikel</span>
           </button>
         </div>
@@ -698,13 +695,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             {/* Clean & Unified WordPress Editor Toolbar */}
             <div className="bg-slate-100 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5">
               
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                 {/* Left: Quick Formatting Tools */}
-                <div className="flex items-center gap-1 flex-wrap">
+                <div className="flex items-center gap-1 flex-wrap overflow-x-auto no-scrollbar max-w-full">
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('**', '**')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="Tebal (Bold)"
                   >
                     <Bold className="w-4 h-4" />
@@ -713,7 +710,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('*', '*')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="Miring (Italic)"
                   >
                     <Italic className="w-4 h-4" />
@@ -722,7 +719,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('\n## ')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="+ Subjudul H2"
                   >
                     <Heading1 className="w-4 h-4" />
@@ -731,7 +728,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('\n### ')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="+ Subjudul H3"
                   >
                     <Heading2 className="w-4 h-4" />
@@ -740,7 +737,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('\n> ')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="+ Kutipan"
                   >
                     <Quote className="w-4 h-4" />
@@ -749,7 +746,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('\n* ')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="+ List Poin"
                   >
                     <List className="w-4 h-4" />
@@ -758,7 +755,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor('[Teks Tautan](', ')')}
-                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold"
+                    className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-slate-800 shadow-xs border border-slate-200 dark:border-slate-800 transition font-bold shrink-0"
                     title="Tautan Link"
                   >
                     <Link className="w-4 h-4" />
@@ -779,7 +776,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                         insertTextAtCursor('', imgHtml);
                       })
                     }
-                    className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-rose-600/20 active:scale-95 shrink-0"
+                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-rose-600/20 active:scale-95 shrink-0"
                   >
                     <ImageIcon className="w-4 h-4" />
                     <span>Sisipkan Gambar ({selectedImageWidth})</span>
@@ -787,26 +784,26 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </div>
 
                 {/* Right: View Mode Tabs (Visual & Text) */}
-                <div className="flex items-center bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold shrink-0 shadow-xs">
+                <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold shrink-0 shadow-xs w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setActiveTab('visual-wp')}
-                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                    className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
                       activeTab === 'visual-wp' ? 'bg-rose-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
-                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
                     <span>Mode Visual</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('write')}
-                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                    className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg transition flex items-center justify-center gap-1.5 whitespace-nowrap ${
                       activeTab === 'write' ? 'bg-rose-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                   >
-                    <Code className="w-3.5 h-3.5" />
-                    <span>Mode Teks (Markdown)</span>
+                    <Code className="w-3.5 h-3.5 shrink-0" />
+                    <span>Mode Teks</span>
                   </button>
                 </div>
 
@@ -862,11 +859,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               {/* 1. WordPress Visual Editor Mode (Clean & Uncluttered Live Experience) */}
               {activeTab === 'visual-wp' && (
                 <div className="lg:col-span-12 space-y-4">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold px-1">
-                    <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
-                      <LayoutGrid className="w-3.5 h-3.5" />
-                      <span>Mode Visual WP: Tampilan Hasil Akhir Langsung Seperti Di Web (Clean & Real-time)</span>
-                    </span>
+                  <div className="flex items-center justify-end text-[11px] text-slate-500 font-bold px-1">
                     <span className="text-slate-400 font-mono">{wordsCount} kata • Est. {readingTimeMinutes} mnt baca</span>
                   </div>
 

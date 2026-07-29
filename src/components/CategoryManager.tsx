@@ -276,7 +276,12 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
       {/* Compact Category Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {categories.map((cat) => {
-          const permalinkUrl = `${window.location.origin}/?category=${encodeURIComponent(cat.name)}`;
+          const catSlug = (cat.slug || cat.name)
+            .toLowerCase()
+            .replace(/&/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'nasional';
+          const permalinkUrl = `${window.location.origin}/${catSlug}`;
           const isCopied = copiedSlug === cat.id;
 
           const handleCopyPermalink = () => {

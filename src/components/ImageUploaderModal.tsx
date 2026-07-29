@@ -26,8 +26,31 @@ export const ImageUploaderModal: React.FC<ImageUploaderModalProps> = ({
     'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80'
   );
   const [customUrlInput, setCustomUrlInput] = useState('');
+  const [aiPromptInput, setAiPromptInput] = useState('');
+  const [isGeneratingAiImage, setIsGeneratingAiImage] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleGenerateAiImage = (promptOverride?: string) => {
+    const promptToUse = (promptOverride || aiPromptInput || imageName || 'Berita teknologi dan inovasi modern').trim();
+    if (!promptToUse) return;
+
+    setIsGeneratingAiImage(true);
+    const cleanPrompt = promptToUse.replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+    
+    // Generate high-resolution AI Image via Pollinations AI
+    const seed = Math.floor(Math.random() * 1000000);
+    const generatedAiImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1200&height=630&nologo=true&seed=${seed}`;
+    
+    setTimeout(() => {
+      setUploadedUrl(generatedAiImageUrl);
+      setImageName(`Foto AI: ${promptToUse}`);
+      setGeneratedAlt(`Ilustrasi AI - ${promptToUse}`);
+      setOriginalSize(1280);
+      setOptimizedSize(310);
+      setIsGeneratingAiImage(false);
+    }, 500);
+  };
 
   const compressionSavings = Math.max(15, Math.round(((originalSize - optimizedSize) / originalSize) * 100));
 
@@ -218,6 +241,77 @@ export const ImageUploaderModal: React.FC<ImageUploaderModalProps> = ({
           accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml"
           className="hidden"
         />
+
+        {/* AI Image Generator Section */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-900/10 via-indigo-900/10 to-rose-900/10 dark:from-purple-950/40 dark:via-indigo-950/40 dark:to-rose-950/40 border border-purple-200 dark:border-purple-800/60 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-black text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-pulse" />
+              <span>Generasi Gambar AI Otomatis (Text-to-Image)</span>
+            </label>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-600 text-white uppercase tracking-wider">
+              Instan HD
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Contoh: Gedung Jakarta malam hari, Teknologi AI modern, Mobil listrik..."
+              value={aiPromptInput}
+              onChange={(e) => setAiPromptInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleGenerateAiImage();
+                }
+              }}
+              className="flex-1 p-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-slate-900 dark:text-slate-100 shadow-xs focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              type="button"
+              onClick={() => handleGenerateAiImage()}
+              disabled={isGeneratingAiImage}
+              className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 shrink-0 active:scale-95 transition"
+            >
+              {isGeneratingAiImage ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Membuat AI...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Buat Gambar AI</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Quick AI Topic Suggestions */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">Ide Cepat:</span>
+            {[
+              'Berita Teknologi AI',
+              'Gedung Bisnis Jakarta',
+              'Gaya Hidup Sehat',
+              'Mobil Listrik Masa Depan',
+              'Inspirasi Karir Anak Muda'
+            ].map((topic) => (
+              <button
+                key={topic}
+                type="button"
+                onClick={() => {
+                  setAiPromptInput(topic);
+                  handleGenerateAiImage(topic);
+                }}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/80 dark:bg-slate-800/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/50 shrink-0 transition"
+              >
+                + {topic}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Drag & Drop Area */}
         <div
