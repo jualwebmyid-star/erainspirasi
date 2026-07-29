@@ -48,6 +48,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   const [siteSlogan, setSiteSlogan] = useState(settings.siteSlogan || 'Portal Berita Terdepan, Edukasi & Inspirasi Publik');
   const [siteIcon, setSiteIcon] = useState(settings.siteIcon || '');
   const [logoUrl, setLogoUrl] = useState(settings.logoUrl || '');
+  const [mainMenuBgColor, setMainMenuBgColor] = useState(settings.mainMenuBgColor || '#0f172a');
   
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey || '');
   const [openaiApiKey, setOpenaiApiKey] = useState(settings.openaiApiKey || '');
@@ -143,6 +144,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       if (settings.siteSlogan) setSiteSlogan(settings.siteSlogan);
       if (settings.siteIcon !== undefined) setSiteIcon(settings.siteIcon);
       if (settings.logoUrl !== undefined) setLogoUrl(settings.logoUrl);
+      if (settings.mainMenuBgColor) setMainMenuBgColor(settings.mainMenuBgColor);
       if (settings.geminiApiKey !== undefined) setGeminiApiKey(settings.geminiApiKey);
       if (settings.openaiApiKey !== undefined) setOpenaiApiKey(settings.openaiApiKey);
       if (settings.facebookUrl) setFacebookUrl(settings.facebookUrl);
@@ -249,6 +251,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       siteSlogan,
       siteIcon,
       logoUrl,
+      mainMenuBgColor,
       geminiApiKey: geminiApiKey.trim(),
       openaiApiKey: openaiApiKey.trim(),
       facebookUrl,
@@ -494,6 +497,59 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     <span>Upload Logo</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Main Navigation Menu Background Color Setting */}
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                  Warna Background Menu Utama (Navigasi Depan)
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="color"
+                    value={mainMenuBgColor}
+                    onChange={(e) => setMainMenuBgColor(e.target.value)}
+                    className="w-9 h-9 rounded-xl cursor-pointer border border-slate-300 dark:border-slate-700 p-0.5 bg-transparent"
+                    title="Pilih Warna Kustom"
+                  />
+                  <input
+                    type="text"
+                    value={mainMenuBgColor}
+                    onChange={(e) => setMainMenuBgColor(e.target.value)}
+                    placeholder="#0f172a"
+                    className="w-28 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 uppercase"
+                  />
+                  
+                  {/* Color Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 ml-1">
+                    {[
+                      { label: 'Dark Slate', hex: '#0f172a' },
+                      { label: 'Marun', hex: '#881337' },
+                      { label: 'Hitam', hex: '#090d16' },
+                      { label: 'Navy', hex: '#1e1b4b' },
+                      { label: 'Hijau Tua', hex: '#064e3b' },
+                      { label: 'Cokelat', hex: '#451a03' },
+                      { label: 'Ungu', hex: '#3b0764' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.hex}
+                        type="button"
+                        onClick={() => setMainMenuBgColor(preset.hex)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold text-white border transition ${
+                          mainMenuBgColor.toLowerCase() === preset.hex.toLowerCase()
+                            ? 'ring-2 ring-rose-500 scale-105 shadow-sm'
+                            : 'opacity-80 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: preset.hex }}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Warna ini terhubung langsung dengan baris menu navigasi utama di halaman depan portal.
+                </p>
               </div>
             </div>
 

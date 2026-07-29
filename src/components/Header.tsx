@@ -371,7 +371,10 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* EraInspirasi Category Bar (Desktop Nav Menu) */}
-      <div className="hidden lg:block w-full bg-slate-900 text-white border-b border-slate-800 shadow-inner">
+      <div
+        className="hidden lg:block w-full text-white border-b border-slate-800/80 shadow-inner transition-colors duration-300"
+        style={{ backgroundColor: siteSettings?.mainMenuBgColor || '#0f172a' }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto no-scrollbar">
           
           <nav className="flex items-center space-x-1 py-1.5 overflow-x-auto no-scrollbar text-xs font-bold">

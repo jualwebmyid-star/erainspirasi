@@ -18,7 +18,7 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
 }) => {
   const [authMode, setAuthMode] = useState<'google' | 'email'>('google');
   const [email, setEmail] = useState('');
-  const [googleEmailInput, setGoogleEmailInput] = useState('pembaca@gmail.com');
+  const [googleEmailInput, setGoogleEmailInput] = useState('user@gmail.com');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -33,17 +33,18 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
       const result = await signInWithPopup(auth, googleProvider);
       const googleUser = result.user;
 
-      const userEmail = googleUser.email || googleEmailInput.trim() || 'pembaca@gmail.com';
-      const nameFromEmail = userEmail.split('@')[0] || 'Pembaca';
+      const userEmail = googleUser.email || googleEmailInput.trim() || 'user@gmail.com';
+      const displayName = googleUser.displayName || userEmail;
+      const avatar = googleUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userEmail)}&background=e11d48&color=fff`;
 
       // STRICT USER RULE: Google Auth users are ALWAYS 'reader' role (commenting only, no admin panel access)
       const role: UserRole = 'reader';
 
       const newUser: UserProfile = {
         id: googleUser.uid,
-        name: nameFromEmail,
+        name: displayName,
         email: userEmail,
-        avatar: googleUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        avatar: avatar,
         role,
         provider: 'google',
       };
@@ -65,14 +66,14 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
     } catch (error: any) {
       console.warn('Google Auth popup closed or blocked, using instant Google OAuth session:', error);
       
-      const userEmail = googleEmailInput.trim() || 'pembaca@gmail.com';
-      const nameFromEmail = userEmail.split('@')[0] || 'Pembaca';
+      const userEmail = googleEmailInput.trim() || 'user@gmail.com';
+      const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userEmail)}&background=e11d48&color=fff`;
 
       const newUser: UserProfile = {
         id: `usr-google-${Date.now()}`,
-        name: nameFromEmail,
+        name: userEmail,
         email: userEmail,
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        avatar: avatar,
         role: 'reader',
         provider: 'google',
       };
@@ -226,9 +227,6 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500 font-mono"
                 />
               </div>
-              <p className="text-[10px] text-slate-400">
-                Nama komentar Anda: <strong className="text-rose-600 dark:text-rose-400 font-bold">{googleEmailInput.trim().split('@')[0] || 'pembaca'}</strong> (Otomatis dari email & tersimpan di Kelola User)
-              </p>
             </div>
 
             <button
@@ -327,10 +325,6 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
               <LogIn className="w-4 h-4" />
               <span>{isLoading ? 'Memverifikasi...' : 'Masuk Sistem Redaksi'}</span>
             </button>
-
-            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-[10px] text-slate-500 text-center">
-              🔑 Akun Redaksi: <span className="font-bold text-slate-700 dark:text-slate-300">admin@erainspirasi.com</span> | Sandi: <span className="font-bold text-slate-700 dark:text-slate-300">admin123</span>
-            </div>
           </form>
         )}
 

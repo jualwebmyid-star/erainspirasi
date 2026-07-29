@@ -66,6 +66,7 @@ export default function App() {
       twitterUrl: 'https://x.com/erainspirasi',
       youtubeUrl: 'https://youtube.com/@erainspirasi',
       whatsappContact: '6281234567890',
+      mainMenuBgColor: '#0f172a',
     };
   });
 

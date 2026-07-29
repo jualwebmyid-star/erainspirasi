@@ -193,5 +193,6 @@ export interface SiteSettings {
   lastBackupDate?: string;
   showReaderViewsCount?: boolean;
   defaultViewMode?: 'list' | 'grid' | 'compact';
+  mainMenuBgColor?: string;
 }
 
