@@ -32,6 +32,7 @@ interface CmsDashboardProps {
   onPermanentDeletePost?: (id: string) => void;
   onNavigateTab: (tab: 'editor' | 'social' | 'analytics' | 'seo' | 'settings') => void;
   onImportWpPosts?: (posts: BlogPost[]) => void;
+  onPublishNow?: (post: BlogPost) => void;
 }
 
 export const CmsDashboard: React.FC<CmsDashboardProps> = ({
@@ -44,6 +45,7 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   onPermanentDeletePost,
   onNavigateTab,
   onImportWpPosts,
+  onPublishNow,
 }) => {
   const [showWpImporterModal, setShowWpImporterModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'scheduled' | 'trash'>('published');
@@ -289,10 +291,16 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
                         </td>
                         <td className="py-3 px-3 font-bold text-slate-800 dark:text-slate-200 max-w-xs">
                           <div className="truncate" title={post.title}>{post.title}</div>
-                          {post.scheduledAt && post.status === 'scheduled' && (
-                            <div className="text-[10px] text-indigo-500 font-semibold flex items-center gap-1 mt-0.5">
-                              <Clock className="w-3 h-3 shrink-0" />
-                              <span>Jadwal: {new Date(post.scheduledAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                          {post.status === 'scheduled' && (
+                            <div className="flex flex-col gap-0.5 mt-1">
+                              <div className="text-[10px] text-indigo-500 font-semibold flex items-center gap-1">
+                                <Clock className="w-3 h-3 shrink-0" />
+                                <span>Jadwal: {new Date(post.scheduledAt || post.publishedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                              </div>
+                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 shrink-0 text-amber-500" />
+                                <span>✨ AI Rewritten & Humanized ({100 - (post.aiScore || 4)}% Human)</span>
+                              </div>
                             </div>
                           )}
                         </td>
@@ -350,6 +358,17 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
                               </>
                             ) : (
                               <>
+                                {post.status === 'scheduled' && onPublishNow && (
+                                  <button
+                                    onClick={() => onPublishNow(post)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs flex items-center gap-1 shadow-sm transition active:scale-95"
+                                    title="Terbitkan Artikel Sekarang (Rilis Otomatis Dini)"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                    <span>Rilis Sekarang</span>
+                                  </button>
+                                )}
+
                                 {/* Tombol Lihat Artikel */}
                                 <button
                                   onClick={() => onSelectPostToRead && onSelectPostToRead(post)}

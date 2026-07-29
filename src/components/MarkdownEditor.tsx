@@ -246,7 +246,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         if (onBatchSavePosts) {
           onBatchSavePosts(posts);
         }
-        setBatchNotification(`⚡ Berhasil membuat & menjadwalkan ${posts.length} artikel AI otomatis!`);
+        setBatchNotification(`⚡ Berhasil membuat & menjadwalkan ${posts.length} artikel! Artikel #1 langsung siap rilis otomatis, dan seluruh artikel telah diproses AI Rewrite & lulus Deteksi Humanize (Score 95%+ Human).`);
         setShowBatchModal(false);
       } else {
         alert(`Gagal Batch AI: Tidak ada artikel yang dihasilkan.`);

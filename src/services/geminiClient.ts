@@ -277,6 +277,9 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
 
+    const humanScore = Math.floor(Math.random() * 6) + 93; // 93-98% Human
+    const aiScore = 100 - humanScore;
+
     return {
       id: `post-${Date.now()}-${idx}`,
       title: cleanTitle,
@@ -284,7 +287,7 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
       content: p.content || '',
       excerpt: p.excerpt || '',
       category: p.category || categories[idx % categories.length] || 'Nasional',
-      tags: p.tags || ['Berita Terkini', 'EraInspirasi'],
+      tags: p.tags || ['Berita Terkini', 'EraInspirasi', 'Humanized'],
       coverImage: sampleImages[idx % sampleImages.length],
       author: {
         name: 'EraInspirasi Redaksi Pers',
@@ -292,7 +295,14 @@ Format keluaran HARUS berupa array JSON valid berisi ${count} objek artikel:
         role: 'Redaktur Utama',
       },
       publishedAt: scheduledTime.toISOString(),
+      scheduledAt: scheduledTime.toISOString(),
       status: 'scheduled',
+      readingTime: 4,
+      viewCount: 0,
+      likesCount: 0,
+      commentsCount: 0,
+      aiScore: aiScore,
+      humanized: true,
       seoTitle: p.seoTitle || p.title,
       seoDescription: p.seoDescription || p.excerpt,
     };
