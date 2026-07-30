@@ -28,7 +28,12 @@ import {
   AlertCircle,
   Cloud,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Bot,
+  Zap,
+  Play,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { SiteSettings, BannerConfig } from '../types';
 
@@ -36,12 +41,16 @@ interface AdminSettingsProps {
   settings: SiteSettings;
   onSaveSettings: (newSettings: SiteSettings) => void;
   onOpenImageUploader: (onSelectUrl: (url: string, alt: string) => void) => void;
+  onTriggerAutoPostNow?: () => void;
+  onForcePublishAllScheduled?: () => void;
 }
 
 export const AdminSettings: React.FC<AdminSettingsProps> = ({
   settings,
   onSaveSettings,
   onOpenImageUploader,
+  onTriggerAutoPostNow,
+  onForcePublishAllScheduled,
 }) => {
   const [siteName, setSiteName] = useState(settings.siteName || 'EraInspirasi');
   const [siteTagline, setSiteTagline] = useState(settings.siteTagline || 'Portal Berita, Edukasi & Inspirasi Digital');
@@ -111,6 +120,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
 
   const [showReaderViewsCount, setShowReaderViewsCount] = useState(settings.showReaderViewsCount ?? true);
 
+  // Auto-Pilot AI Auto-Poster States
+  const [autoPilotEnabled, setAutoPilotEnabled] = useState(settings.autoPilotEnabled ?? true);
+  const [autoPilotIntervalHours, setAutoPilotIntervalHours] = useState(settings.autoPilotIntervalHours || 2);
+  const [autoPilotCategories, setAutoPilotCategories] = useState<string[]>(
+    settings.autoPilotCategories && settings.autoPilotCategories.length > 0
+      ? settings.autoPilotCategories
+      : ['Nasional', 'Politik', 'Ekonomi & Bisnis', 'Teknologi', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan', 'Inspirasi']
+  );
+  const [autoPilotNextRun, setAutoPilotNextRun] = useState(settings.autoPilotNextRun || '');
+  const [autoPilotLastRun, setAutoPilotLastRun] = useState(settings.autoPilotLastRun || '');
+  const [autoPilotTotalPosted, setAutoPilotTotalPosted] = useState(settings.autoPilotTotalPosted || 0);
+
   const [isBackingUpNow, setIsBackingUpNow] = useState(false);
   const [backupSuccessMsg, setBackupSuccessMsg] = useState<string | null>(null);
 
@@ -170,6 +191,12 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       if (settings.googleDriveAccountEmail) setGoogleDriveAccountEmail(settings.googleDriveAccountEmail);
       if (settings.lastBackupDate) setLastBackupDate(settings.lastBackupDate);
       if (settings.showReaderViewsCount !== undefined) setShowReaderViewsCount(settings.showReaderViewsCount);
+      if (settings.autoPilotEnabled !== undefined) setAutoPilotEnabled(settings.autoPilotEnabled);
+      if (settings.autoPilotIntervalHours) setAutoPilotIntervalHours(settings.autoPilotIntervalHours);
+      if (settings.autoPilotCategories && settings.autoPilotCategories.length > 0) setAutoPilotCategories(settings.autoPilotCategories);
+      if (settings.autoPilotNextRun) setAutoPilotNextRun(settings.autoPilotNextRun);
+      if (settings.autoPilotLastRun) setAutoPilotLastRun(settings.autoPilotLastRun);
+      if (settings.autoPilotTotalPosted !== undefined) setAutoPilotTotalPosted(settings.autoPilotTotalPosted);
     }
   }, [settings]);
 
@@ -277,6 +304,12 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       googleDriveAccountEmail,
       lastBackupDate,
       showReaderViewsCount,
+      autoPilotEnabled,
+      autoPilotIntervalHours,
+      autoPilotCategories,
+      autoPilotNextRun,
+      autoPilotLastRun,
+      autoPilotTotalPosted,
     };
 
     onSaveSettings(updated);
@@ -315,17 +348,17 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 pb-20 w-full overflow-hidden sm:overflow-visible">
       
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm">
         <div>
           <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider">
             Sistem Kontrol Portal & Banner
           </span>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 mt-1">
-            <Settings className="w-6 h-6 text-rose-600" />
-            <span>Pengaturan Portal, Banner Iklan & API Media Sosial</span>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 mt-1">
+            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600 shrink-0" />
+            <span className="break-words">Pengaturan Portal, Banner Iklan & API Media Sosial</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Kelola identitas logo, banner iklan 2 posisi (Header & Sidebar), API key AI, serta koneksi media sosial.
@@ -334,7 +367,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
 
         <button
           onClick={handleSave}
-          className="px-6 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 active:scale-95 shrink-0"
+          className="w-full sm:w-auto justify-center px-6 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 active:scale-95 shrink-0"
         >
           <Save className="w-4 h-4" />
           <span>Simpan Semua Ke Database</span>
@@ -342,15 +375,15 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       </div>
 
       {/* Database Connection Info Status */}
-      <div className="p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
             <Database className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-xs text-amber-400 uppercase tracking-wider">Database Terhubung: Database Cloud Terpusat</span>
-              <span className="flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+              <span className="flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold shrink-0">
                 <Radio className="w-3 h-3 animate-pulse text-emerald-400" /> Real-time Sync Active
               </span>
             </div>
@@ -369,7 +402,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
       )}
 
       {/* Quick Jump Navigation Tabs */}
-      <div className="sticky top-16 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
+      <div className="sticky top-14 sm:top-16 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold max-w-full">
         {[
           { id: 'sec-1', label: '1. Identitas & Logo', icon: Building },
           { id: 'sec-2', label: '2. Banner Iklan', icon: ImageIcon },
@@ -379,6 +412,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
           { id: 'sec-6', label: '6. SEO & Google Indexing', icon: Globe },
           { id: 'sec-7', label: '7. Auto Backup Drive', icon: Cloud },
           { id: 'sec-8', label: '8. Tampilan Views', icon: Eye },
+          { id: 'sec-9', label: '9. Auto-Pilot AI', icon: Bot },
         ].map((item) => {
           const IconComp = item.icon;
           return (
@@ -400,18 +434,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         })}
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-4 sm:space-y-6">
         
         {/* SECTION 1: IDENTITAS PORTAL & UPLOAD LOGO */}
-        <div id="sec-1" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
+        <div id="sec-1" className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5 scroll-mt-28 max-w-full">
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
-            <Building className="w-5 h-5 text-rose-600" />
-            <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+            <Building className="w-5 h-5 text-rose-600 shrink-0" />
+            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
               1. Identitas Portal & Upload Logo Web
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">
@@ -422,7 +456,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={siteName}
                   onChange={(e) => setSiteName(e.target.value)}
                   placeholder="Contoh: EraInspirasi.com"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full min-w-0 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -435,7 +469,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={siteTagline}
                   onChange={(e) => setSiteTagline(e.target.value)}
                   placeholder="Contoh: Portal Berita, Edukasi & Inspirasi Digital"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full min-w-0 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -448,7 +482,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={siteSlogan}
                   onChange={(e) => setSiteSlogan(e.target.value)}
                   placeholder="Contoh: Portal Berita Terdepan, Edukasi & Inspirasi Publik"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                  className="w-full min-w-0 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">Slogan ini akan langsung tampil di tab judul browser & hasil pencarian Google.</p>
               </div>
@@ -457,18 +491,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">
                   Icon Web / Favicon (Tampil di Tab Bar Browser)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={siteIcon}
                     onChange={(e) => setSiteIcon(e.target.value)}
                     placeholder="https://domain.com/favicon.png atau upload"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 font-mono"
+                    className="w-full sm:flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 font-mono"
                   />
                   <button
                     type="button"
                     onClick={handleUploadIconClick}
-                    className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition shadow-sm"
+                    className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition shadow-sm"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload Icon</span>
@@ -480,18 +514,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">
                   URL Gambar Logo Portal (Atau Upload dari Komputer)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={logoUrl}
                     onChange={(e) => setLogoUrl(e.target.value)}
                     placeholder="https://domain.com/logo.png"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
+                    className="w-full sm:flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500"
                   />
                   <button
                     type="button"
                     onClick={handleUploadLogoClick}
-                    className="px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 font-bold text-xs flex items-center gap-1.5 shrink-0"
+                    className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 font-bold text-xs flex items-center gap-1.5 shrink-0"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload Logo</span>
@@ -587,11 +621,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 2: MANAJEMEN UPLOAD BANNER IKLAN (2 POSISI) */}
-        <div id="sec-2" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-6 scroll-mt-28">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+        <div id="sec-2" className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 sm:space-y-6 scroll-mt-28 max-w-full">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-rose-600" />
-              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+              <ImageIcon className="w-5 h-5 text-rose-600 shrink-0" />
+              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                 2. Manajemen Upload Banner Iklan (2 Posisi Utama)
               </h3>
             </div>
@@ -600,18 +634,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             
             {/* POSISI 1: BANNER HEADER */}
-            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <LayoutGrid className="w-4 h-4 text-rose-600" />
+                  <LayoutGrid className="w-4 h-4 text-rose-600 shrink-0" />
                   <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
                     Posisi 1: Banner Header Website (Leaderboard)
                   </span>
                 </div>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
                   <input
                     type="checkbox"
                     checked={headerBanner.isEnabled}
@@ -626,18 +660,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   URL Gambar Banner Header
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={headerBanner.imageUrl}
                     onChange={(e) => setHeaderBanner((prev) => ({ ...prev, imageUrl: e.target.value }))}
                     placeholder="https://domain.com/banner-header.jpg"
-                    className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                    className="w-full sm:flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                   />
                   <button
                     type="button"
                     onClick={handleUploadHeaderBannerClick}
-                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                    className="w-full sm:w-auto justify-center px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload Banner</span>
@@ -654,7 +688,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={headerBanner.targetUrl}
                   onChange={(e) => setHeaderBanner((prev) => ({ ...prev, targetUrl: e.target.value }))}
                   placeholder="https://sponsor.com/promo"
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
@@ -670,15 +704,15 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </div>
 
             {/* POSISI 2: BANNER SIDEBAR ARTIKEL (300x250) */}
-            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-rose-600" />
+                  <Layers className="w-4 h-4 text-rose-600 shrink-0" />
                   <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
                     Posisi 2: Banner Sidebar Artikel (300x250 Medium Rectangle)
                   </span>
                 </div>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
                   <input
                     type="checkbox"
                     checked={sidebarBanner.isEnabled}
@@ -693,18 +727,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   URL Gambar Banner Sidebar
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={sidebarBanner.imageUrl}
                     onChange={(e) => setSidebarBanner((prev) => ({ ...prev, imageUrl: e.target.value }))}
                     placeholder="https://domain.com/banner-sidebar.jpg"
-                    className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                    className="w-full sm:flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                   />
                   <button
                     type="button"
                     onClick={handleUploadSidebarBannerClick}
-                    className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                    className="w-full sm:w-auto justify-center px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload Banner</span>
@@ -721,7 +755,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={sidebarBanner.targetUrl}
                   onChange={(e) => setSidebarBanner((prev) => ({ ...prev, targetUrl: e.target.value }))}
                   placeholder="https://sponsor.com/promo"
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
@@ -737,15 +771,15 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </div>
 
             {/* POSISI 3: BANNER SPONSOR BARIS KE-3 ARTIKEL IN-FEED */}
-            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4 lg:col-span-2">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4 lg:col-span-2">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-rose-600" />
+                  <Layers className="w-4 h-4 text-rose-600 shrink-0" />
                   <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase">
                     Posisi 3: Banner Sponsor Baris Ke-3 Artikel (In-Feed Reader & Detail)
                   </span>
                 </div>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
                   <input
                     type="checkbox"
                     checked={feedRow3Banner.isEnabled}
@@ -761,18 +795,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     URL Gambar Banner In-Feed Baris Ke-3
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={feedRow3Banner.imageUrl}
                       onChange={(e) => setFeedRow3Banner((prev) => ({ ...prev, imageUrl: e.target.value }))}
                       placeholder="https://domain.com/banner-row3.jpg"
-                      className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                      className="w-full sm:flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                     />
                     <button
                       type="button"
                       onClick={handleUploadFeedRow3BannerClick}
-                      className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
+                      className="w-full sm:w-auto justify-center px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shrink-0"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Upload Banner</span>
@@ -789,7 +823,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     value={feedRow3Banner.targetUrl}
                     onChange={(e) => setFeedRow3Banner((prev) => ({ ...prev, targetUrl: e.target.value }))}
                     placeholder="https://sponsor.com/promo"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                    className="w-full min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                   />
                 </div>
               </div>
@@ -811,11 +845,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 3: KONFIGURASI API KEY AI (GEMINI & OPENAI) */}
-        <div id="sec-3" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+        <div id="sec-3" className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5 scroll-mt-28 max-w-full">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-500" />
-              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+              <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
+              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                 3. Pengaturan API Key Artificial Intelligence (AI Engine)
               </h3>
             </div>
@@ -824,12 +858,12 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Gemini API Key */}
-            <div className="space-y-3 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
+            <div className="space-y-3 p-3.5 sm:p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-indigo-600" />
+                  <Key className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                   <span>Google Gemini AI API Key</span>
                 </label>
                 <span className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400">Rekomendasi Utama</span>
@@ -843,7 +877,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     setTestGeminiResult(null);
                   }}
                   placeholder="AIzaSy..."
-                  className="w-full pl-3 pr-10 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full min-w-0 pl-3 pr-10 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                 />
                 <button
                   type="button"
@@ -854,7 +888,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 </button>
               </div>
 
-              <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
                   Digunakan untuk Penulisan AI otomatis, Humanizer Anti-AI, dan Auto-Batch Generator.
                 </p>
@@ -862,7 +896,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   type="button"
                   onClick={handleTestGeminiKey}
                   disabled={isTestingGemini}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0 transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto justify-center px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 shrink-0 transition-colors disabled:opacity-50"
                 >
                   {isTestingGemini ? (
                     <>
@@ -928,11 +962,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* SECTION 4: KONEKSI API MEDIA SOSIAL & AUTOPILOT */}
-        <div id="sec-4" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-5 scroll-mt-28">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+        <div id="sec-4" className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5 scroll-mt-28 max-w-full">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <Share2 className="w-5 h-5 text-rose-600" />
-              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+              <Share2 className="w-5 h-5 text-rose-600 shrink-0" />
+              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                 4. Koneksi API Media Sosial & Tautan Portal
               </h3>
             </div>
@@ -946,10 +980,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
               A. Tautan Akun Publik Media Sosial & WhatsApp
             </h4>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <Facebook className="w-3.5 h-3.5 text-blue-600" />
+                  <Facebook className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                   <span>Facebook Page</span>
                 </label>
                 <input
@@ -957,13 +991,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={facebookUrl}
                   onChange={(e) => setFacebookUrl(e.target.value)}
                   placeholder="https://facebook.com/erainspirasi"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <Instagram className="w-3.5 h-3.5 text-pink-600" />
+                  <Instagram className="w-3.5 h-3.5 text-pink-600 shrink-0" />
                   <span>Instagram Account</span>
                 </label>
                 <input
@@ -971,13 +1005,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={instagramUrl}
                   onChange={(e) => setInstagramUrl(e.target.value)}
                   placeholder="https://instagram.com/erainspirasi"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <Twitter className="w-3.5 h-3.5 text-sky-500" />
+                  <Twitter className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                   <span>Twitter / X</span>
                 </label>
                 <input
@@ -985,13 +1019,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={twitterUrl}
                   onChange={(e) => setTwitterUrl(e.target.value)}
                   placeholder="https://x.com/erainspirasi"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <Youtube className="w-3.5 h-3.5 text-red-600" />
+                  <Youtube className="w-3.5 h-3.5 text-red-600 shrink-0" />
                   <span>YouTube Channel</span>
                 </label>
                 <input
@@ -999,13 +1033,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://youtube.com/@erainspirasi"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>No. WhatsApp Redaksi (62...)</span>
                 </label>
                 <input
@@ -1013,18 +1047,18 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                   value={whatsappContact}
                   onChange={(e) => setWhatsappContact(e.target.value)}
                   placeholder="6281234567890"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
+                  className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100"
                 />
               </div>
             </div>
 
             <div id="sec-5" className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 scroll-mt-28">
               <h4 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-rose-600" />
+                <Key className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                 <span>B. Kunci API & Access Token Otomatisasi Posting Sosmed</span>
               </h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Facebook Page Access Token (Graph API)
@@ -1034,7 +1068,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     value={facebookPageAccessToken}
                     onChange={(e) => setFacebookPageAccessToken(e.target.value)}
                     placeholder="EAAB..."
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                    className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
                   />
                 </div>
 
@@ -1047,7 +1081,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     value={instagramAccessToken}
                     onChange={(e) => setInstagramAccessToken(e.target.value)}
                     placeholder="IGQV..."
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                    className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
                   />
                 </div>
 
@@ -1060,7 +1094,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                     value={twitterApiKey}
                     onChange={(e) => setTwitterApiKey(e.target.value)}
                     placeholder="API Key..."
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
+                    className="w-full min-w-0 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-slate-100"
                   />
                 </div>
 
@@ -1351,6 +1385,181 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({
                 <span>
                   Saat opsi ini <strong>OFF</strong>, ikon mata dan angka statistik pembaca (Views) di seluruh halaman depan dan artikel berita tidak akan ditampilkan kepada pengunjung publik.
                 </span>
+              </div>
+            </div>
+
+            {/* SECTION 9: AUTO-PILOT & AUTO-POST AI (OTOMATISASI TANPA KLIK) */}
+            <div id="sec-9" className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-800 shadow-xl space-y-6 scroll-mt-28">
+              <div className="flex items-center justify-between border-b border-indigo-800/80 pb-4 flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-indigo-600/30 text-amber-300 border border-indigo-500/40">
+                    <Bot className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <span>9. System Auto-Pilot & Auto-Post AI (Otomatisasi Berita)</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 uppercase tracking-widest shadow-sm">
+                        Fitur Otomatis
+                      </span>
+                    </h3>
+                    <p className="text-xs text-indigo-200/90 mt-0.5">
+                      Sistem AI bekerja secara mandiri menghasilkan & menerbitkan artikel berita secara terjadwal otomatis tanpa perlu mengklik tombol AI manual.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-indigo-900/50 p-2 rounded-2xl border border-indigo-700/60">
+                  <span className="text-xs font-bold text-indigo-200">
+                    Status Auto-Pilot:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAutoPilotEnabled(!autoPilotEnabled)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                      autoPilotEnabled ? 'bg-emerald-500' : 'bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        autoPilotEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${autoPilotEnabled ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}`}>
+                    {autoPilotEnabled ? '🟢 AKTIF' : '🔴 NONAKTIF'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Dashboard Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl bg-indigo-900/40 border border-indigo-800/80 flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-indigo-300 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-indigo-300 font-semibold uppercase">Frekuensi Auto-Post</div>
+                    <div className="text-xs font-black text-white">Setiap {autoPilotIntervalHours} Jam</div>
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-indigo-900/40 border border-indigo-800/80 flex items-center gap-3">
+                  <Zap className="w-5 h-5 text-amber-400 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-indigo-300 font-semibold uppercase">Total Auto-Post Sukses</div>
+                    <div className="text-xs font-black text-amber-300">{autoPilotTotalPosted} Artikel Rilis</div>
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-indigo-900/40 border border-indigo-800/80 flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-indigo-300 font-semibold uppercase">Posting Terakhir</div>
+                    <div className="text-[11px] font-bold text-slate-200 truncate max-w-[140px]" title={autoPilotLastRun || 'Baru saja'}>
+                      {autoPilotLastRun ? new Date(autoPilotLastRun).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : 'Menunggu Siklus Pertama'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Controls Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-indigo-800/60">
+                {/* Interval selection */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-indigo-100">
+                    Atur Frekuensi Posting Otomatis AI (Interval Jam)
+                  </label>
+                  <select
+                    value={autoPilotIntervalHours}
+                    onChange={(e) => setAutoPilotIntervalHours(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-indigo-700 text-xs font-bold text-white outline-none focus:ring-2 focus:ring-amber-400"
+                  >
+                    <option value={0.5}>⚡ Setiap 30 Menit (Sangat Cepat)</option>
+                    <option value={1}>⚡ Setiap 1 Jam (Cepat)</option>
+                    <option value={2}>⭐ Setiap 2 Jam (Rekomendasi Redaksi)</option>
+                    <option value={3}>⭐ Setiap 3 Jam (Standar Berita)</option>
+                    <option value={6}>🕒 Setiap 6 Jam (4 Artikel/Hari)</option>
+                    <option value={12}>🕒 Setiap 12 Jam (2 Artikel/Hari)</option>
+                    <option value={24}>📅 Setiap 24 Jam (1 Artikel/Hari)</option>
+                  </select>
+                  <p className="text-[10px] text-indigo-300">
+                    Sistem akan otomatis mengeksekusi AI Rewrite, Humanize (Score 95%+), dan langsung menerbitkan berita tanpa perlu membuka tab editor.
+                  </p>
+                </div>
+
+                {/* Target Categories */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-indigo-100">
+                    Pilihan Kategori Target Auto-Post AI
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 p-2.5 rounded-xl bg-slate-900/80 border border-indigo-800 max-h-32 overflow-y-auto no-scrollbar">
+                    {[
+                      'Nasional',
+                      'Politik',
+                      'Ekonomi & Bisnis',
+                      'Teknologi',
+                      'Otomotif',
+                      'Olahraga',
+                      'Gaya Hidup',
+                      'Hiburan',
+                      'Inspirasi',
+                      'Edukasi',
+                      'Hukum'
+                    ].map((cat) => {
+                      const isSelected = autoPilotCategories.includes(cat);
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              if (autoPilotCategories.length > 1) {
+                                setAutoPilotCategories(autoPilotCategories.filter((c) => c !== cat));
+                              }
+                            } else {
+                              setAutoPilotCategories([...autoPilotCategories, cat]);
+                            }
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-amber-400 text-slate-950 border border-amber-300 shadow-sm'
+                              : 'bg-indigo-950/80 text-indigo-300 border border-indigo-800 hover:bg-indigo-900'
+                          }`}
+                        >
+                          {isSelected ? <CheckSquare className="w-3 h-3 shrink-0 text-slate-950" /> : <Square className="w-3 h-3 shrink-0 text-indigo-400" />}
+                          <span>{cat}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Instant Action Buttons */}
+              <div className="pt-3 border-t border-indigo-800/60 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-xs text-indigo-200">
+                  ⚡ <strong>Uji Coba Langsung:</strong> Klik tombol di kanan untuk mengeksekusi auto-post AI detik ini juga tanpa menunggu timer.
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {onForcePublishAllScheduled && (
+                    <button
+                      type="button"
+                      onClick={onForcePublishAllScheduled}
+                      className="px-3.5 py-2 rounded-xl bg-indigo-800/80 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 border border-indigo-600 transition active:scale-95"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Rilis Semua Terjadwal Now</span>
+                    </button>
+                  )}
+
+                  {onTriggerAutoPostNow && (
+                    <button
+                      type="button"
+                      onClick={onTriggerAutoPostNow}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md transition active:scale-95"
+                    >
+                      <Zap className="w-4 h-4 fill-slate-950" />
+                      <span>⚡ Jalankan Auto-Post AI Sekarang (1-Click)</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

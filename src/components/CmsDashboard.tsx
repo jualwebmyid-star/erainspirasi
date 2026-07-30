@@ -17,7 +17,9 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Settings
+  Settings,
+  Bot,
+  Zap
 } from 'lucide-react';
 import { BlogPost, Comment } from '../types';
 import { WordPressImporter } from './WordPressImporter';
@@ -33,6 +35,9 @@ interface CmsDashboardProps {
   onNavigateTab: (tab: 'editor' | 'social' | 'analytics' | 'seo' | 'settings') => void;
   onImportWpPosts?: (posts: BlogPost[]) => void;
   onPublishNow?: (post: BlogPost) => void;
+  onTriggerAutoPostNow?: () => void;
+  onForcePublishAllScheduled?: () => void;
+  autoPilotEnabled?: boolean;
 }
 
 export const CmsDashboard: React.FC<CmsDashboardProps> = ({
@@ -46,6 +51,9 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
   onNavigateTab,
   onImportWpPosts,
   onPublishNow,
+  onTriggerAutoPostNow,
+  onForcePublishAllScheduled,
+  autoPilotEnabled = true,
 }) => {
   const [showWpImporterModal, setShowWpImporterModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'scheduled' | 'trash'>('published');
@@ -86,70 +94,22 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 sm:pb-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <PenTool className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 shrink-0" />
-            <span>Studio Manajemen Konten (CMS Dashboard)</span>
+            <PenTool className="w-5 h-5 sm:w-6 sm:h-6 text-rose-600 shrink-0" />
+            <span>CMS Redaksi - Daftar Artikel Portal</span>
           </h2>
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pusat kontrol manajemen artikel, draf AI, jadwal rilis, moderasi komentar, dan kotak sampah.
+            Daftar lengkap artikel, status publikasi, draf penulisan, jadwal rilis, serta manajemen arsip sampah.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
-            onClick={() => setShowWpImporterModal(true)}
-            className="flex-1 sm:flex-initial px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Import WordPress</span>
-          </button>
-
-          <button
             onClick={() => onNavigateTab('editor')}
-            className="flex-1 sm:flex-initial px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
           >
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Sparkles className="w-4 h-4" />
             <span>Tulis Artikel Baru</span>
           </button>
-        </div>
-      </div>
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-        <div 
-          onClick={() => setStatusFilter('published')}
-          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-emerald-500 transition active:scale-95"
-        >
-          <div className="text-[9px] sm:text-[10px] font-extrabold text-emerald-600 uppercase">Dipublikasikan</div>
-          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{publishedCount} Artikel</div>
-        </div>
-
-        <div 
-          onClick={() => setStatusFilter('draft')}
-          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-amber-500 transition active:scale-95"
-        >
-          <div className="text-[9px] sm:text-[10px] font-extrabold text-amber-500 uppercase">Draf Penulisan</div>
-          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{draftCount} Draf</div>
-        </div>
-
-        <div 
-          onClick={() => setStatusFilter('scheduled')}
-          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-indigo-500 transition active:scale-95"
-        >
-          <div className="text-[9px] sm:text-[10px] font-extrabold text-indigo-500 uppercase">Rilis Terjadwal</div>
-          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{scheduledCount} Artikel</div>
-        </div>
-
-        <div 
-          onClick={() => setStatusFilter('trash')}
-          className="cursor-pointer p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 hover:border-rose-500 transition active:scale-95"
-        >
-          <div className="text-[9px] sm:text-[10px] font-extrabold text-rose-500 uppercase">🗑️ Sampah</div>
-          <div className="text-base sm:text-xl font-black text-rose-600 dark:text-rose-400">{trashCount} Artikel</div>
-        </div>
-
-        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs space-y-0.5 col-span-2 sm:col-span-1">
-          <div className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase">Total Dibaca</div>
-          <div className="text-base sm:text-xl font-black text-slate-900 dark:text-slate-100">{totalViews.toLocaleString('id-ID')}</div>
         </div>
       </div>
 
@@ -417,57 +377,6 @@ export const CmsDashboard: React.FC<CmsDashboardProps> = ({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Quick Tool Navigation Shortcuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-        <div
-          onClick={() => onNavigateTab('settings')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-rose-900 to-rose-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md border border-rose-800/50 active:scale-95"
-        >
-          <div className="flex items-center justify-between">
-            <Settings className="w-5 h-5 text-rose-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200 uppercase tracking-wider">Konfigurasi</span>
-          </div>
-          <h4 className="font-extrabold text-base">Setting Portal & API</h4>
-          <p className="text-xs text-rose-200">Atur logo, slogan, Gemini API Key, banner iklan & auto backup drive.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('social')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-indigo-900 to-purple-900 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
-        >
-          <div className="flex items-center justify-between">
-            <Share2 className="w-5 h-5 text-indigo-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 uppercase tracking-wider">Auto-Post</span>
-          </div>
-          <h4 className="font-extrabold text-base">Syndication Medsos</h4>
-          <p className="text-xs text-indigo-200">Jadwalkan & kirim postingan autokonten langsung ke X & IG.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('analytics')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
-        >
-          <div className="flex items-center justify-between">
-            <BarChart3 className="w-5 h-5 text-emerald-400" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 uppercase tracking-wider">Live Metrics</span>
-          </div>
-          <h4 className="font-extrabold text-base">Analitik Trafik</h4>
-          <p className="text-xs text-slate-300">Pantau statistik pembaca, tingkat retensi, & ekspor laporan.</p>
-        </div>
-
-        <div
-          onClick={() => onNavigateTab('seo')}
-          className="cursor-pointer p-5 rounded-3xl bg-gradient-to-r from-purple-900 to-indigo-950 text-white space-y-2 hover:scale-[1.01] transition shadow-md active:scale-95"
-        >
-          <div className="flex items-center justify-between">
-            <Globe className="w-5 h-5 text-purple-300" />
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 uppercase tracking-wider">Schema.org</span>
-          </div>
-          <h4 className="font-extrabold text-base">SEO Optimizer</h4>
-          <p className="text-xs text-purple-200">Audit meta tag, pratinjau SERP Google & generator JSON-LD.</p>
-        </div>
       </div>
 
       {/* WordPress Importer Modal */}

@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { AdminSidebar } from './components/AdminSidebar';
 import { BlogReaderView } from './components/BlogReaderView';
 import { ArticleDetailView } from './components/ArticleDetailView';
+import { AdminHomeDashboard } from './components/AdminHomeDashboard';
 import { CmsDashboard } from './components/CmsDashboard';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { SocialScheduler } from './components/SocialScheduler';
@@ -19,11 +20,41 @@ import { PushNotificationModal } from './components/PushNotificationModal';
 import { ImageUploaderModal } from './components/ImageUploaderModal';
 import { SearchModal } from './components/SearchModal';
 import { VisitorStatsWidget } from './components/VisitorStatsWidget';
-import { Mail, Send, CheckCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle, Bot, Zap } from 'lucide-react';
 import { db, collection, setDoc, doc, deleteDoc, onSnapshot } from './lib/firebase';
 import { updateOpenGraphTags } from './utils/seo';
 import { pingSearchEngines } from './utils/sitemapGenerator';
 import { safeStorage } from './utils/storage';
+import { batchGenerateDirect } from './services/geminiClient';
+
+const getGeminiHeaders = () => {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const saved = safeStorage.getItem('erainspirasi_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.geminiApiKey && parsed.geminiApiKey.trim()) {
+        headers['x-gemini-api-key'] = parsed.geminiApiKey.trim();
+      }
+    }
+  } catch (e) {}
+  return headers;
+};
+
+const safeFetchJson = async (url: string, options: RequestInit) => {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  let json: any = {};
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Respon server (${res.status}): ${text.length > 0 ? text.slice(0, 100) : 'Gagal terhubung ke AI'}`);
+  }
+  if (!res.ok) {
+    throw new Error(json.error || `Gagal memproses AI (HTTP ${res.status}).`);
+  }
+  return json;
+};
 
 import { 
   INITIAL_POSTS, 
@@ -416,28 +447,37 @@ export default function App() {
     };
   }, []);
 
-  // Keep postsRef updated for scheduled check without resetting timers
+  // Keep postsRef & siteSettingsRef updated for scheduled & auto-pilot checks without resetting timers
   const postsRef = React.useRef(posts);
   useEffect(() => {
     postsRef.current = posts;
   }, [posts]);
 
+  const siteSettingsRef = React.useRef(siteSettings);
+  useEffect(() => {
+    siteSettingsRef.current = siteSettings;
+  }, [siteSettings]);
+
+  const [autoPilotToast, setAutoPilotToast] = React.useState<string | null>(null);
+  const isAutoPilotRunningRef = React.useRef(false);
+
   // Auto-publish scheduled articles whose scheduledAt/publishedAt time has arrived or passed
   useEffect(() => {
     const checkScheduled = async () => {
-      const now = new Date();
+      const nowMs = Date.now();
       const currentPosts = postsRef.current;
       if (!currentPosts || currentPosts.length === 0) return;
 
-      for (const p of currentPosts) {
+      let hasChanges = false;
+      const updatedList = currentPosts.map((p) => {
         if (p.status === 'scheduled') {
           const targetStr = p.scheduledAt || p.publishedAt;
-          const scheduledTime = targetStr ? new Date(targetStr) : null;
+          const targetMs = targetStr ? new Date(targetStr).getTime() : 0;
 
-          if (scheduledTime && scheduledTime.getTime() <= now.getTime()) {
+          if (!targetMs || targetMs <= nowMs + 5000) {
             console.log(`⏰ Auto-publishing scheduled article: "${p.title}" (Scheduled: ${targetStr})`);
-
-            const updated: BlogPost = {
+            hasChanges = true;
+            const updatedPost: BlogPost = {
               ...p,
               status: 'published',
               publishedAt: new Date().toISOString(),
@@ -445,28 +485,170 @@ export default function App() {
               aiScore: p.aiScore || 4, // 96% Human score
             };
 
-            setPosts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
-
-            try {
-              await setDoc(doc(db, 'posts', p.id), updated, { merge: true });
-            } catch (err) {
+            setDoc(doc(db, 'posts', p.id), updatedPost, { merge: true }).catch((err) => {
               console.warn('Firebase auto-publish scheduled error:', err);
-            }
+            });
 
-            // Auto-ping Google & Bing for real-time indexing of newly published scheduled article
-            pingSearchEngines();
+            return updatedPost;
           }
         }
+        return p;
+      });
+
+      if (hasChanges) {
+        setPosts(updatedList);
+        pingSearchEngines();
       }
     };
 
     // Run check immediately
     checkScheduled();
 
-    // Repeat check every 10 seconds for real-time background auto-posting
-    const timer = setInterval(checkScheduled, 10000);
+    // Repeat check every 5 seconds for real-time background auto-posting
+    const timer = setInterval(checkScheduled, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-Pilot Autonomous Background AI Auto-Poster Engine
+  useEffect(() => {
+    const runAutoPilotCheck = async () => {
+      if (isAutoPilotRunningRef.current) return;
+      const settings = siteSettingsRef.current;
+      const isEnabled = settings.autoPilotEnabled ?? true; // Default Enabled
+      if (!isEnabled) return;
+
+      const now = Date.now();
+      const nextRunStr = settings.autoPilotNextRun;
+      const nextRunMs = nextRunStr ? new Date(nextRunStr).getTime() : 0;
+
+      // If next run time arrived or not initialized yet
+      if (nextRunMs === 0 || now >= nextRunMs) {
+        isAutoPilotRunningRef.current = true;
+        console.log('🤖 Auto-Pilot AI: Executing background auto-posting without manual click...');
+
+        try {
+          const categoriesList = settings.autoPilotCategories && settings.autoPilotCategories.length > 0
+            ? settings.autoPilotCategories
+            : ['Nasional', 'Politik', 'Ekonomi & Bisnis', 'Teknologi', 'Otomotif', 'Olahraga', 'Gaya Hidup', 'Hiburan', 'Inspirasi'];
+          
+          const intervalHours = settings.autoPilotIntervalHours || 2;
+          const apiKey = settings.geminiApiKey || safeStorage.getItem('erainspirasi_gemini_key') || '';
+
+          let generatedPosts: BlogPost[] = [];
+          
+          // Attempt backend generator first
+          try {
+            const res = await safeFetchJson('/api/gemini/batch-generate-schedule', {
+              method: 'POST',
+              headers: getGeminiHeaders(),
+              body: JSON.stringify({
+                geminiApiKey: apiKey,
+                count: 1,
+                categories: categoriesList,
+                intervalHours,
+              }),
+            });
+            if (res.success && res.posts && res.posts.length > 0) {
+              generatedPosts = res.posts;
+            }
+          } catch (e) {
+            console.warn('Auto-Pilot backend API fallback to client generator:', e);
+            if (apiKey) {
+              const directRes = await batchGenerateDirect(apiKey, {
+                count: 1,
+                categories: categoriesList,
+                intervalHours,
+              });
+              if (directRes.success && directRes.posts) {
+                generatedPosts = directRes.posts as BlogPost[];
+              }
+            }
+          }
+
+          if (generatedPosts.length > 0) {
+            const newPost: BlogPost = {
+              ...generatedPosts[0],
+              status: 'published',
+              publishedAt: new Date().toISOString(),
+              humanized: true,
+              aiScore: generatedPosts[0].aiScore || 4,
+            };
+
+            setPosts((prev) => [newPost, ...prev]);
+            await setDoc(doc(db, 'posts', newPost.id), newPost, { merge: true });
+
+            const nextRunTime = new Date(now + intervalHours * 3600000).toISOString();
+            const updatedSettings: SiteSettings = {
+              ...settings,
+              autoPilotEnabled: true,
+              autoPilotLastRun: new Date().toISOString(),
+              autoPilotNextRun: nextRunTime,
+              autoPilotTotalPosted: (settings.autoPilotTotalPosted || 0) + 1,
+            };
+
+            setSiteSettings(updatedSettings);
+            safeStorage.setItem('erainspirasi_settings', JSON.stringify(updatedSettings));
+            await setDoc(doc(db, 'settings', 'site'), updatedSettings, { merge: true });
+
+            pingSearchEngines();
+
+            const toastMsg = `🤖 Auto-Pilot AI: 1 Artikel berita baru ("${newPost.title}") berhasil terbit otomatis tanpa klik!`;
+            setAutoPilotToast(toastMsg);
+            setTimeout(() => setAutoPilotToast(null), 10000);
+          }
+        } catch (err) {
+          console.error('Auto-Pilot AI execution error:', err);
+        } finally {
+          isAutoPilotRunningRef.current = false;
+        }
+      }
+    };
+
+    runAutoPilotCheck();
+    const interval = setInterval(runAutoPilotCheck, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleTriggerAutoPostNow = async () => {
+    isAutoPilotRunningRef.current = false;
+    const updatedSettings: SiteSettings = {
+      ...siteSettings,
+      autoPilotEnabled: true,
+      autoPilotNextRun: new Date(0).toISOString(),
+    };
+    setSiteSettings(updatedSettings);
+    safeStorage.setItem('erainspirasi_settings', JSON.stringify(updatedSettings));
+    await setDoc(doc(db, 'settings', 'site'), updatedSettings, { merge: true });
+  };
+
+  const handleForcePublishAllScheduled = async () => {
+    const currentPosts = postsRef.current;
+    const scheduledPosts = currentPosts.filter((p) => p.status === 'scheduled');
+    if (scheduledPosts.length === 0) {
+      alert('Tidak ada artikel terjadwal yang mengantre.');
+      return;
+    }
+
+    const updatedList = currentPosts.map((p) => {
+      if (p.status === 'scheduled') {
+        const updated: BlogPost = {
+          ...p,
+          status: 'published',
+          publishedAt: new Date().toISOString(),
+          humanized: true,
+          aiScore: p.aiScore || 4,
+        };
+        setDoc(doc(db, 'posts', p.id), updated, { merge: true }).catch(console.warn);
+        return updated;
+      }
+      return p;
+    });
+
+    setPosts(updatedList);
+    pingSearchEngines();
+    setAutoPilotToast(`⏰ Berhasil menerbitkan ${scheduledPosts.length} artikel terjadwal ke status Dipublikasikan!`);
+    setTimeout(() => setAutoPilotToast(null), 8000);
+  };
 
   // Real-time Firebase Firestore Sync for Settings, Categories, Menu & Static Pages
   useEffect(() => {
@@ -530,7 +712,19 @@ export default function App() {
             id: docSnap.id,
             ...docSnap.data(),
           } as UserProfile));
-          setUsersList(loadedUsers);
+
+          // Deduplicate loadedUsers by email/id (preserving admin roles if present)
+          const uniqueMap = new Map<string, UserProfile>();
+          loadedUsers.forEach((u) => {
+            const key = (u.email || u.id || '').toLowerCase().trim();
+            if (key) {
+              const existing = uniqueMap.get(key);
+              if (!existing || u.role === 'admin') {
+                uniqueMap.set(key, u);
+              }
+            }
+          });
+          setUsersList(Array.from(uniqueMap.values()));
         }
       });
     } catch (e) {
@@ -543,7 +737,12 @@ export default function App() {
 
   // Handlers for User CRUD & Role Management
   const handleAddUser = async (newUser: UserProfile) => {
-    setUsersList((prev) => [...prev, newUser]);
+    setUsersList((prev) => {
+      const filtered = prev.filter(
+        (u) => u.email?.toLowerCase().trim() !== newUser.email?.toLowerCase().trim() && u.id !== newUser.id
+      );
+      return [...filtered, newUser];
+    });
     try {
       await setDoc(doc(db, 'users', newUser.id), {
         ...newUser,
@@ -1068,6 +1267,19 @@ export default function App() {
             />
 
             <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
+              {(currentTab === 'beranda' || currentTab === 'home-dashboard') && (
+                <AdminHomeDashboard
+                  posts={posts}
+                  analytics={analytics}
+                  siteSettings={siteSettings}
+                  onNavigateTab={(tab) => setCurrentTab(tab)}
+                  onImportWpPosts={handleBatchSavePosts}
+                  onTriggerAutoPostNow={handleTriggerAutoPostNow}
+                  onForcePublishAllScheduled={handleForcePublishAllScheduled}
+                  autoPilotEnabled={siteSettings.autoPilotEnabled ?? true}
+                />
+              )}
+
               {currentTab === 'dashboard' && (
                 <CmsDashboard
                   posts={posts}
@@ -1086,6 +1298,9 @@ export default function App() {
                   onNavigateTab={(tab) => setCurrentTab(tab)}
                   onImportWpPosts={handleBatchSavePosts}
                   onPublishNow={handlePublishNow}
+                  onTriggerAutoPostNow={handleTriggerAutoPostNow}
+                  onForcePublishAllScheduled={handleForcePublishAllScheduled}
+                  autoPilotEnabled={siteSettings.autoPilotEnabled ?? true}
                 />
               )}
 
@@ -1104,6 +1319,8 @@ export default function App() {
                   settings={siteSettings}
                   onSaveSettings={handleSaveSettings}
                   onOpenImageUploader={handleOpenImagePicker}
+                  onTriggerAutoPostNow={handleTriggerAutoPostNow}
+                  onForcePublishAllScheduled={handleForcePublishAllScheduled}
                 />
               )}
 
@@ -1387,7 +1604,7 @@ export default function App() {
         onUpdateUser={(updated) => {
           handleUpdateUser(updated);
           if (updated.role === 'admin') {
-            setCurrentTab('dashboard');
+            setCurrentTab('beranda');
           }
         }}
       />
@@ -1417,6 +1634,14 @@ export default function App() {
           setShowImageUploader(false);
         }}
       />
+
+      {autoPilotToast && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-700 shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 max-w-md">
+          <Bot className="w-6 h-6 text-amber-300 animate-bounce shrink-0" />
+          <div className="text-xs font-bold leading-relaxed">{autoPilotToast}</div>
+          <button onClick={() => setAutoPilotToast(null)} className="ml-auto text-slate-400 hover:text-white p-1 font-extrabold text-sm">✕</button>
+        </div>
+      )}
     </div>
   );
 }

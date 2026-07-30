@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Home,
   LayoutDashboard, 
   PenTool, 
   Share2, 
@@ -48,8 +49,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   // Auto-collapse sidebar if in 'editor' view for maximum writing space
   const [isCollapsed, setIsCollapsed] = useState(currentTab === 'editor');
 
-  const isSettingsSubmenuActive = ['settings', 'social', 'seo', 'header-menu', 'users'].includes(currentTab);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(isSettingsSubmenuActive);
+  const isSettingsSubmenuActive = ['settings', 'social', 'seo', 'header-menu'].includes(currentTab);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Sync collapse state when switching to editor view
   useEffect(() => {
@@ -57,12 +58,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       setIsCollapsed(true);
     }
   }, [currentTab]);
-
-  useEffect(() => {
-    if (isSettingsSubmenuActive) {
-      setIsSettingsOpen(true);
-    }
-  }, [isSettingsSubmenuActive]);
 
   const handleNavClick = (tabId: string) => {
     setCurrentTab(tabId);
@@ -72,11 +67,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   };
 
   const mainNavItems = [
-    { id: 'dashboard', label: 'CMS Redaksi', icon: LayoutDashboard },
+    { id: 'beranda', label: 'Beranda', icon: Home },
+    { id: 'dashboard', label: 'Daftar Artikel', icon: LayoutDashboard },
     { id: 'editor', label: 'Editor AI', icon: PenTool },
     { id: 'categories', label: 'Kelola Kategori', icon: Tag },
     { id: 'static-pages', label: 'Halaman Statis', icon: FileText },
     { id: 'analytics', label: 'Analitik Portal', icon: BarChart3 },
+    { id: 'users', label: 'Kelola User & Role', icon: Users },
   ];
 
   const settingsSubmenuItems = [
@@ -84,7 +81,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'social', label: 'Otomatisasi Medsos', icon: Share2 },
     { id: 'seo', label: 'Optimasi SEO', icon: Globe2 },
     { id: 'header-menu', label: 'Kelola Menu Header', icon: LayoutList },
-    { id: 'users', label: 'Kelola User dan Role', icon: Users },
   ];
 
   return (
@@ -219,8 +215,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <div className="space-y-1">
                   <button
                     onClick={() => {
-                      setIsSettingsOpen(true);
-                      handleNavClick('settings');
+                      setIsSettingsOpen((prev) => !prev);
+                      if (!isSettingsOpen) {
+                        handleNavClick('settings');
+                      }
                     }}
                     className={`w-full px-3 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center justify-between group ${
                       isSettingsSubmenuActive

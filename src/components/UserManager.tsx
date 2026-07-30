@@ -60,7 +60,19 @@ export const UserManager: React.FC<UserManagerProps> = ({
     setTimeout(() => setNotificationMsg(''), 4000);
   };
 
-  const filteredUsers = usersList.filter((u) => {
+  // Deduplicate usersList by lowercased email / id to avoid duplicate rows
+  const uniqueUsersList = React.useMemo(() => {
+    const seen = new Set<string>();
+    return usersList.filter((u) => {
+      const key = (u.email || u.id || '').toLowerCase().trim();
+      if (!key) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [usersList]);
+
+  const filteredUsers = uniqueUsersList.filter((u) => {
     const matchesSearch =
       u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase());

@@ -194,5 +194,11 @@ export interface SiteSettings {
   showReaderViewsCount?: boolean;
   defaultViewMode?: 'list' | 'grid' | 'compact';
   mainMenuBgColor?: string;
+  autoPilotEnabled?: boolean;
+  autoPilotIntervalHours?: number;
+  autoPilotCategories?: string[];
+  autoPilotNextRun?: string;
+  autoPilotLastRun?: string;
+  autoPilotTotalPosted?: number;
 }
 
